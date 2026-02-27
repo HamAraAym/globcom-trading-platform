@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==============================
+// ENUMS (ROLES & STATUSES)
+// ==============================
+enum Role {
+  BUYER_REP
+  SUPPLIER_REP
+  TRADING_REP
+  ADMIN
+  MANAGEMENT
+}
+
+enum OnlineStatus {
+  ONLINE
+  AWAY
+  OFFLINE
+}
+
+enum DealStatus {
+  DRAFT
+  ACTIVE
+  UNDER_NEGOTIATION
+  SENT_TO_BUYER
+  CLOSED_WON
+  CLOSED_LOST
+  CANCELLED
+}
+
+// ==============================
+// 1. USER & CRM MODELS
+// ==============================
+model User {
+  id            String       @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String       @unique
+  password      String       
+  role          Role         @default(BUYER_REP)
+  onlineStatus  OnlineStatus @default(OFFLINE)
+  lastSeen      DateTime     @default(now())
+
+  // Relations
+  demands       Demand[]
+  supplies      Supply[]
+  messages      Message[]
+  auditLogs     AuditLog[]
+  assignedBuyers ExternalBuyer[] // Admin assigns buyers to Trading Reps
+
+  createdAt     DateTime     @default(now())
+}
+
+model ExternalBuyer {
+  id            String   @id @default(cuid())
+  name          String
+  company       String
+  email         String   @unique
+  phone         String?
+  address       String?
+  notes         String?
+  
+  assignedRepId String?
+  assignedRep   User?    @relation(fields: [assignedRepId], references: [id])
+
+  createdAt     DateTime @default(now())
+}
+
+// ==============================
+// 2. INTERNAL MARKETPLACE 
+// ==============================
+model Demand {
+  id            String     @id @default(cuid())
+  title         String
+  quantity      Int
+  targetPrice   Float
+  timeline      String
+  specs         String
+  attachments   String[]   // Array of media/PDF URLs
+  status        DealStatus @default(ACTIVE)
+
+  creatorId     String
+  createdBy     User       @relation(fields: [creatorId], references: [id])
+  
+  chatRoom      ChatRoom?  // Dedicated product chat
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Supply {
+  id            String     @id @default(cuid())
+  title         String
+  quantity      Int
+  price         Float
+  location      String
+  specs         String
+  attachments   String[]   // Max 5 images + PDF URLs
+  status        DealStatus @default(ACTIVE)
+
+  creatorId     String
+  createdBy     User       @relation(fields: [creatorId], references: [id])
+
+  chatRoom      ChatRoom?
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+// ==============================
+// 3. COLLABORATION ENGINE
+// ==============================
+model ChatRoom {
+  id            String    @id @default(cuid())
+  
+  // A chat room belongs to EITHER a Demand or a Supply
+  demandId      String?   @unique
+  demand        Demand?   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  
+  supplyId      String?   @unique
+  supply        Supply?   @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+
+  messages      Message[]
+  createdAt     DateTime  @default(now())
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  content       String
+  attachments   String[] // Uploaded media in chat
+  mentions      String[] // Array of User IDs pinged in this message
+
+  senderId      String
+  sender        User     @relation(fields: [senderId], references: [id])
+
+  chatRoomId    String
+  chatRoom      ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+}
+
+// ==============================
+// 4. GOVERNANCE & AUDIT
+// ==============================
+model AuditLog {
+  id            String   @id @default(cuid())
+  action        String   // e.g., "CREATED_DEMAND", "CHANGED_PRICE", "SENT_EMAIL"
+  details       String   // JSON string of what changed
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  createdAt     DateTime @default(now())
+}
