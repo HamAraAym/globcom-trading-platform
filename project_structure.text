@@ -9,6 +9,7 @@
 - postcss.config.mjs
 - prisma
   - schema.prisma
+  - seed.ts
 - prisma.config.ts
 - public
   - file.svg
@@ -17,15 +18,53 @@
   - vercel.svg
   - window.svg
 - src
+  - actions
+    - buyerActions.ts
+    - chatActions.ts
+    - demandActions.ts
+    - emailActions.ts
+    - messageActions.ts
+    - notificationActions.ts
+    - supplyActions.ts
   - app
     - api
       - auth
         - [...nextauth]
           - route.ts
+    - audit
+      - page.tsx
+    - buyers
+      - page.tsx
+    - chat
+      - [chatId]
+        - page.tsx
+    - demands
+      - page.tsx
     - favicon.ico
     - globals.css
     - layout.tsx
-    - lib
-      - prisma.ts
+    - login
+      - page.tsx
     - page.tsx
+    - supplies
+      - page.tsx
+    - trading
+      - page.tsx
+  - components
+    - ChatInput.tsx
+    - ClientModal.tsx
+    - DemandForm.tsx
+    - EmailDispatcher.tsx
+    - LocationAutocomplete.tsx
+    - MediaGallery.tsx
+    - NotificationBell.tsx
+    - PageWrapper.tsx
+    - Providers.tsx
+    - Sidebar.tsx
+    - SupplyForm.tsx
+    - TopBar.tsx
+  - lib
+    - prisma.ts
+    - supabase.ts
+  - proxy.ts
 - tsconfig.json
