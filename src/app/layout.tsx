@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script"; // <-- IMPORTANT: Imported Next.js Script optimizer
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import Sidebar from "@/components/Sidebar";
 import PageWrapper from "@/components/PageWrapper";
-import TopBar from "@/components/TopBar"; // NEW: Importing the Global Header
 
 // Using Inter for a clean, professional, Bloomberg-terminal-like readability
 const inter = Inter({ subsets: ["latin"] });
@@ -31,26 +29,13 @@ export default function RootLayout({
         />
       </head>
       <body 
-        className={`${inter.className} bg-slate-50 text-slate-900 antialiased selection:bg-blue-600/20 selection:text-blue-900 flex h-screen overflow-hidden`}
+        className={`${inter.className} bg-slate-50 text-slate-900 antialiased selection:bg-blue-600/20 selection:text-blue-900`}
       >
         <Providers>
-          <div className="flex h-screen w-full relative">
-            <Sidebar />
-            
-            {/* The PageWrapper handles layout spacing and conditional rendering */}
-            <PageWrapper>
-              <div className="flex flex-col h-full w-full overflow-hidden">
-                {/* GLOBAL TOP HEADER */}
-                <TopBar /> 
-                
-                {/* MAIN PAGE CONTENT */}
-                <main className="flex-1 overflow-auto relative">
-                  {children}
-                </main>
-              </div>
-            </PageWrapper>
-
-          </div>
+          {/* The PageWrapper now completely handles the Sidebar, TopBar, and Login screen logic */}
+          <PageWrapper>
+            {children}
+          </PageWrapper>
         </Providers>
       </body>
     </html>

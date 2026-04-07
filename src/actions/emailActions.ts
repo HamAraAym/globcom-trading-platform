@@ -13,7 +13,7 @@ export async function dispatchToClient(formData: FormData) {
   const title = formData.get("title") as string;
 
   // 1. Verify the buyer exists
-  const buyer = await prisma.externalBuyer.findUnique({ where: { id: buyerId } });
+  const buyer = await prisma.client.findUnique({ where: { id: buyerId } });
   if (!buyer) throw new Error("Buyer not found");
 
   // =========================================================================

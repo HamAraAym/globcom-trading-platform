@@ -12,11 +12,31 @@ export async function createDemand(formData: FormData) {
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
   if (!user) throw new Error("User not found");
 
+  // --- Core Base Fields ---
   const title = formData.get("title") as string;
   const quantity = parseInt(formData.get("quantity") as string);
   const targetPrice = parseFloat(formData.get("targetPrice") as string);
   const timeline = formData.get("timeline") as string;
   const specs = formData.get("specs") as string;
+
+  // --- NEW: Strict Business Logistics Fields ---
+  const origin = formData.get("origin") as string | null;
+  const destination = formData.get("destination") as string | null;
+  const incoterms = formData.get("incoterms") as string | null;
+  const paymentTerms = formData.get("paymentTerms") as string | null;
+  const inspection = formData.get("inspection") as string | null;
+  const packaging = formData.get("packaging") as string | null;
+
+  // --- NEW: Dynamic Specifications (Parse from JSON String) ---
+  const keyTermsRaw = formData.get("keyTerms") as string | null;
+  let keyTerms = null;
+  if (keyTermsRaw) {
+    try {
+      keyTerms = JSON.parse(keyTermsRaw);
+    } catch (e) {
+      console.error("Failed to parse dynamic key terms", e);
+    }
+  }
 
   const uploadedUrls: string[] = [];
 
@@ -40,16 +60,31 @@ export async function createDemand(formData: FormData) {
     if (url) uploadedUrls.push(url);
   }
 
-  // Save to DB
+  // Save to Database via Prisma
   await prisma.demand.create({
     data: {
-      title, quantity, targetPrice, timeline, specs,
+      title, 
+      quantity, 
+      targetPrice, 
+      timeline, 
+      specs,
+      // Inject new strict fields
+      origin,
+      destination,
+      incoterms,
+      paymentTerms,
+      inspection,
+      packaging,
+      // Inject dynamic JSON
+      keyTerms,
+      // Relations and standard tracking
       creatorId: user.id,
       status: "ACTIVE",
       attachments: uploadedUrls,
     }
   });
 
+  // Log the creation
   await prisma.auditLog.create({
     data: { action: "CREATED_DEMAND", details: `Demand posted: ${title}`, userId: user.id }
   });

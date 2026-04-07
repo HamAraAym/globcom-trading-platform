@@ -12,11 +12,35 @@ export async function createSupply(formData: FormData) {
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
   if (!user) throw new Error("User not found");
 
+  // --- Core Base Fields ---
   const title = formData.get("title") as string;
   const quantity = parseInt(formData.get("quantity") as string);
   const price = parseFloat(formData.get("price") as string);
   const location = formData.get("location") as string;
   const specs = formData.get("specs") as string;
+
+  // --- NEW: Strict Business Logistics Fields ---
+  const origin = formData.get("origin") as string | null;
+  const destination = formData.get("destination") as string | null;
+  const incoterms = formData.get("incoterms") as string | null;
+  const paymentTerms = formData.get("paymentTerms") as string | null;
+  const inspection = formData.get("inspection") as string | null;
+  const packaging = formData.get("packaging") as string | null;
+
+  // --- NEW: Offer Validity Date ---
+  const validityDateRaw = formData.get("validityDate") as string | null;
+  const validityDate = validityDateRaw ? new Date(validityDateRaw) : null;
+
+  // --- NEW: Dynamic Specifications (Parse from JSON String) ---
+  const keyTermsRaw = formData.get("keyTerms") as string | null;
+  let keyTerms = null;
+  if (keyTermsRaw) {
+    try {
+      keyTerms = JSON.parse(keyTermsRaw);
+    } catch (e) {
+      console.error("Failed to parse dynamic key terms", e);
+    }
+  }
 
   const uploadedUrls: string[] = [];
 
@@ -43,7 +67,22 @@ export async function createSupply(formData: FormData) {
   // Save to DB
   await prisma.supply.create({
     data: {
-      title, quantity, price, location, specs,
+      title, 
+      quantity, 
+      price, 
+      location, 
+      specs,
+      // Inject new strict fields
+      origin,
+      destination,
+      incoterms,
+      paymentTerms,
+      inspection,
+      packaging,
+      validityDate,
+      // Inject dynamic JSON
+      keyTerms,
+      // Relations and standard tracking
       creatorId: user.id,
       status: "ACTIVE",
       attachments: uploadedUrls,

@@ -3,19 +3,32 @@ import { sendMessage } from "@/actions/messageActions";
 import { getServerSession } from "next-auth";
 import { 
   MessageSquare, AlertCircle, Info, 
-  MapPin, Calendar, CircleDollarSign, Scale, FileBox, Package 
+  MapPin, Calendar, CircleDollarSign, Scale, FileBox, Package,
+  Truck, CreditCard, ShieldCheck, List, CalendarClock, FileText 
 } from "lucide-react";
 import MediaGallery from "@/components/MediaGallery";
 import ChatInput from "@/components/ChatInput"; 
-import EmailDispatcher from "@/components/EmailDispatcher"; // NEW: The Email Dispatcher
+import EmailDispatcher from "@/components/EmailDispatcher";
+import DealStatusManager from "@/components/DealStatusManager";
+import DocumentGenerator from "@/components/DocumentGenerator"; // NEW: Smart Proposal Generator
 
 export default async function ChatRoomPage({ params }: { params: { chatId: string } }) {
   const session = await getServerSession();
   const resolvedParams = await params;
   const chatId = resolvedParams.chatId;
 
-  // 1. Fetch Room, Internal Users (for @mentions), and External Buyers (for Dispatching)
-  const [room, internalUsers, externalBuyers] = await Promise.all([
+  // 1. Secure Role Check
+  let userRole = "GUEST";
+  if (session?.user?.email) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    });
+    if (dbUser) userRole = dbUser.role;
+  }
+
+  // 2. Fetch Room, Users, and Clients
+  const [room, internalUsers, clients] = await Promise.all([
     prisma.chatRoom.findUnique({
       where: { id: chatId },
       include: {
@@ -31,7 +44,7 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
       select: { id: true, firstName: true, lastName: true, role: true },
       orderBy: { firstName: 'asc' }
     }),
-    prisma.externalBuyer.findMany({
+    prisma.client.findMany({
       orderBy: { name: "asc" }
     })
   ]);
@@ -54,13 +67,26 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
   const themeColor = isDemand ? "blue" : "emerald";
   const ThemeIcon = isDemand ? FileBox : Package;
 
-  // Bind the specific Chat ID to the server action
+  // SOP Compliance: Only Trading Team & Admins can change status
+  const canEditStatus = userRole === "ADMIN" || userRole === "TRADING_REP";
+
   const send = sendMessage.bind(null, chatId);
+
+  // Helper function to render Logistics fields cleanly in the narrow sidebar
+  const renderLogisticsItem = (label: string, value: string | null, icon: React.ReactNode) => (
+    <div className="flex flex-col">
+      <div className="flex items-center gap-1.5 text-slate-400 mb-0.5">
+        {icon} <span className="text-[9px] font-bold uppercase tracking-wider">{label}</span>
+      </div>
+      <p className="text-xs font-bold text-slate-900 leading-tight">
+        {value || <span className="text-slate-300 font-normal italic">Not specified</span>}
+      </p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 lg:p-8 font-sans flex flex-col h-screen overflow-hidden">
       
-      {/* Page Header */}
       <div className="max-w-[1600px] mx-auto w-full mb-6 shrink-0">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
           <MessageSquare size={24} className={`text-${themeColor}-600`} />
@@ -69,12 +95,9 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
         <p className="text-sm text-slate-500 mt-1">End-to-end encrypted internal communication channel.</p>
       </div>
 
-      {/* Split-Pane Layout */}
       <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden pb-4">
         
-        {/* ========================================== */}
-        {/* LEFT PANE: THE CHAT ENGINE                 */}
-        {/* ========================================== */}
+        {/* LEFT PANE: CHAT ENGINE */}
         <div className="flex-1 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative">
           
           <div className="bg-slate-900 px-6 py-4 flex justify-between items-center shrink-0 border-b border-slate-800 z-10">
@@ -109,7 +132,7 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
                       <div className="flex items-center gap-2 mb-1.5 px-1">
                         <span className="text-xs font-bold text-slate-700">{msg.sender.firstName} {msg.sender.lastName}</span>
                         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded-md">
-                          {msg.sender.role}
+                          {msg.sender.role.replace("_", " ")}
                         </span>
                       </div>
                       
@@ -139,14 +162,21 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
           />
         </div>
 
-        {/* ========================================== */}
-        {/* RIGHT PANE: PRODUCT CONTEXT & DISPATCHER   */}
-        {/* ========================================== */}
+        {/* RIGHT PANE: PRODUCT CONTEXT & ACTIONS */}
         <div className="w-full lg:w-[400px] xl:w-[450px] shrink-0 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
           
-          <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center gap-2 shrink-0">
-            <Info size={18} className="text-slate-400" />
-            <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Context Details</h3>
+          <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <Info size={18} className="text-slate-400" />
+              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Context Details</h3>
+            </div>
+            <DealStatusManager 
+              itemId={contextItem!.id} 
+              currentStatus={contextItem!.status} 
+              type={isDemand ? "DEMAND" : "SUPPLY"} 
+              chatId={chatId}
+              canEdit={canEditStatus}
+            />
           </div>
 
           <div className="p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col">
@@ -156,6 +186,7 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
             
             <h2 className="text-xl font-black text-slate-900 tracking-tight mb-6">{contextItem?.title}</h2>
 
+            {/* Core Metrics */}
             <div className="space-y-4 mb-8">
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-slate-500"><Scale size={16}/> <span className="text-xs font-bold uppercase tracking-wider">Quantity</span></div>
@@ -173,30 +204,84 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
                   {(contextItem as any)?.timeline || (contextItem as any)?.location}
                 </span>
               </div>
+              {!isDemand && (contextItem as any)?.validityDate && (
+                <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2 text-slate-500"><CalendarClock size={16}/> <span className="text-xs font-bold uppercase tracking-wider">Validity</span></div>
+                  <span className="font-bold text-rose-600">
+                    {new Date((contextItem as any).validityDate).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              )}
             </div>
 
+            {/* Trade Logistics Grid */}
             <div className="mb-8">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Specifications</h4>
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-                {contextItem?.specs}
+              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Truck size={14} className={`text-${themeColor}-500`} /> Trade Logistics
+              </h4>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-2 gap-y-4 gap-x-3">
+                {renderLogisticsItem("Origin", (contextItem as any)?.origin, <MapPin size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Destination", (contextItem as any)?.destination, <MapPin size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Incoterms", (contextItem as any)?.incoterms, <Truck size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Payment", (contextItem as any)?.paymentTerms, <CreditCard size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Inspection", (contextItem as any)?.inspection, <ShieldCheck size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Packaging", (contextItem as any)?.packaging, <Package size={12} className="text-slate-400" />)}
               </div>
             </div>
 
+            {/* Technical Specifications (Dynamic JSON) */}
+            {(contextItem as any)?.keyTerms && Array.isArray((contextItem as any).keyTerms) && (contextItem as any).keyTerms.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <List size={14} className={`text-${themeColor}-500`} /> Technical Specs
+                </h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {(contextItem as any).keyTerms.map((term: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-lg">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">{term.label}</span>
+                      <span className="text-xs font-bold text-slate-900 text-right">{term.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Attached Documents */}
             {contextItem?.attachments && contextItem.attachments.length > 0 && (
               <div className="mb-8">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Attached Documents</h4>
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  Attached Documents ({contextItem.attachments.length})
+                </h4>
                 <MediaGallery attachments={contextItem.attachments} />
               </div>
             )}
             
-            {/* THE NEW EMAIL DISPATCHER MODAL */}
-            <div className="mt-auto pt-6 border-t border-slate-100">
+            <div className="mt-auto pt-6 border-t border-slate-100 space-y-4">
+              
+              {/* NEW: SMART PROPOSAL GENERATOR */}
+              {clients.length > 0 ? (
+                <DocumentGenerator 
+                  clientId={clients[0].id} // Default to first client, user can change via UI logic if needed
+                  clientName={clients[0].name}
+                  clientCompany={clients[0].company}
+                  contextItem={contextItem}
+                  defaultDocType={isDemand ? "LOI" : "FCO"} // Demands generate LOIs, Supplies generate FCOs
+                  buttonStyle={`w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20`}
+                />
+              ) : (
+                <div className="bg-rose-50 text-rose-600 text-xs font-bold p-3 rounded-xl border border-rose-100 flex items-center gap-2">
+                  <AlertCircle size={14} /> Add clients in CRM to generate proposals.
+                </div>
+              )}
+
+              {/* EXTERNAL EMAIL DISPATCHER */}
               <EmailDispatcher 
-                buyers={externalBuyers} 
+                buyers={clients} 
                 contextItem={contextItem} 
                 type={isDemand ? "DEMAND" : "SUPPLY"} 
                 themeColor={themeColor} 
               />
+
             </div>
 
           </div>

@@ -1,3 +1,4 @@
+- .DS_Store
 - .env
 - .gitignore
 - README.md
@@ -53,6 +54,8 @@
   - components
     - ChatInput.tsx
     - ClientModal.tsx
+    - DealStatusManager.tsx
+    - DemandCard.tsx
     - DemandForm.tsx
     - EmailDispatcher.tsx
     - LocationAutocomplete.tsx
@@ -61,6 +64,7 @@
     - PageWrapper.tsx
     - Providers.tsx
     - Sidebar.tsx
+    - SupplyCard.tsx
     - SupplyForm.tsx
     - TopBar.tsx
   - lib

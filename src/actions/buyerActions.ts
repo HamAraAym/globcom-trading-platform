@@ -19,7 +19,7 @@ export async function createBuyer(formData: FormData) {
   const addressParts = [area, city, country].filter(Boolean);
   const address = addressParts.length > 0 ? addressParts.join(", ") : null;
 
-  await prisma.externalBuyer.create({
+  await prisma.client.create({
     data: {
       name,
       company,
@@ -35,7 +35,7 @@ export async function createBuyer(formData: FormData) {
 export async function assignRep(buyerId: string, formData: FormData) {
   const repId = formData.get("repId") as string;
 
-  await prisma.externalBuyer.update({
+  await prisma.client.update({
     where: { id: buyerId },
     data: { assignedRepId: repId === "unassigned" ? null : repId }
   });

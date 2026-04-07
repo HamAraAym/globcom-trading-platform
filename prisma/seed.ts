@@ -21,7 +21,7 @@ async function main() {
     where: { email: 'admin@globcom.com' },
     update: {},
     create: {
-      firstName: 'System',
+      firstName: 'GlobCom',
       lastName: 'Admin',
       email: 'admin@globcom.com',
       password: hashedPassword,
