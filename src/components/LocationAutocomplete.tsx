@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin, Map, Globe2, Building2 } from "lucide-react";
 
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
 export default function LocationAutocomplete() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [area, setArea] = useState("");
@@ -23,7 +29,8 @@ export default function LocationAutocomplete() {
           const place = autocomplete.getPlace();
           let tempArea = "", tempCity = "", tempCountry = "";
 
-          place.address_components?.forEach((comp) => {
+          // FIX: Explicitly typed 'comp' as 'any' to satisfy Vercel's strict compiler
+          place.address_components?.forEach((comp: any) => {
             const types = comp.types;
             if (types.includes("sublocality") || types.includes("neighborhood") || types.includes("route")) {
               tempArea = comp.long_name;
