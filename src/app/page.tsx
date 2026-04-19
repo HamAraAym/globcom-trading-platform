@@ -28,13 +28,15 @@ export default async function DashboardPage() {
   let activeSuppliesCount = 0;
 
   demands.forEach(d => {
-    const val = d.quantity * d.targetPrice;
+    // FIX: Fallback to 0 if the targetPrice is null/TBD
+    const val = d.quantity * (d.targetPrice || 0);
     if (d.status === "CLOSED_WON") { closedValue += val; closedCount++; }
     else if (d.status !== "CANCELLED" && d.status !== "CLOSED_LOST") { pipelineValue += val; activeDemandsCount++; }
   });
 
   supplies.forEach(s => {
-    const val = s.quantity * s.price;
+    // FIX: Fallback to 0 if the price is null/TBD
+    const val = s.quantity * (s.price || 0);
     if (s.status === "CLOSED_WON") { closedValue += val; closedCount++; }
     else if (s.status !== "CANCELLED" && s.status !== "CLOSED_LOST") { pipelineValue += val; activeSuppliesCount++; }
   });
