@@ -12,6 +12,7 @@
   - schema.prisma
   - seed.ts
 - prisma.config.ts
+- project_structure.text
 - public
   - file.svg
   - globe.svg
@@ -23,6 +24,7 @@
     - buyerActions.ts
     - chatActions.ts
     - demandActions.ts
+    - documentActions.ts
     - emailActions.ts
     - messageActions.ts
     - notificationActions.ts
@@ -38,6 +40,9 @@
       - page.tsx
     - chat
       - [chatId]
+        - page.tsx
+    - crm
+      - [clientId]
         - page.tsx
     - demands
       - page.tsx
@@ -57,6 +62,7 @@
     - DealStatusManager.tsx
     - DemandCard.tsx
     - DemandForm.tsx
+    - DocumentGenerator.tsx
     - EmailDispatcher.tsx
     - LocationAutocomplete.tsx
     - MediaGallery.tsx

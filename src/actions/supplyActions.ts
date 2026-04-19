@@ -14,24 +14,35 @@ export async function createSupply(formData: FormData) {
 
   // --- Core Base Fields ---
   const title = formData.get("title") as string;
-  const quantity = parseInt(formData.get("quantity") as string);
-  const price = parseFloat(formData.get("price") as string);
+  
+  // CHANGED: Float to allow decimals and extracting the unit
+  const quantity = parseFloat(formData.get("quantity") as string);
+  const quantityUnit = (formData.get("quantityUnit") as string) || "MT";
+  
+  // CHANGED: Safely handling optional price
+  const priceRaw = formData.get("price") as string | null;
+  const price = priceRaw ? parseFloat(priceRaw) : null;
+  
   const location = formData.get("location") as string;
   const specs = formData.get("specs") as string;
 
-  // --- NEW: Strict Business Logistics Fields ---
+  // --- NEW & EXISTING: Strict Business Logistics Fields ---
   const origin = formData.get("origin") as string | null;
   const destination = formData.get("destination") as string | null;
   const incoterms = formData.get("incoterms") as string | null;
   const paymentTerms = formData.get("paymentTerms") as string | null;
   const inspection = formData.get("inspection") as string | null;
   const packaging = formData.get("packaging") as string | null;
+  
+  // NEW: Added Insurance and Load Port extraction
+  const insurance = formData.get("insurance") as string | null;
+  const loadPort = formData.get("loadPort") as string | null;
 
-  // --- NEW: Offer Validity Date ---
+  // --- Offer Validity Date ---
   const validityDateRaw = formData.get("validityDate") as string | null;
   const validityDate = validityDateRaw ? new Date(validityDateRaw) : null;
 
-  // --- NEW: Dynamic Specifications (Parse from JSON String) ---
+  // --- Dynamic Specifications (Parse from JSON String) ---
   const keyTermsRaw = formData.get("keyTerms") as string | null;
   let keyTerms = null;
   if (keyTermsRaw) {
@@ -69,16 +80,19 @@ export async function createSupply(formData: FormData) {
     data: {
       title, 
       quantity, 
+      quantityUnit,
       price, 
       location, 
       specs,
-      // Inject new strict fields
+      // Inject strict fields
       origin,
       destination,
       incoterms,
       paymentTerms,
       inspection,
       packaging,
+      insurance,
+      loadPort,
       validityDate,
       // Inject dynamic JSON
       keyTerms,

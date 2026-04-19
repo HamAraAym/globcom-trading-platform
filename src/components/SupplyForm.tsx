@@ -13,7 +13,7 @@ export default function SupplyForm() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
-  // NEW: Dynamic State for Commodity Specifications
+  // Dynamic State for Commodity Specifications
   const [keyTerms, setKeyTerms] = useState<{label: string, value: string}[]>([]);
 
   // Lock background scrolling when modal is open
@@ -123,30 +123,62 @@ export default function SupplyForm() {
                 {/* SECTION 1: Standard Inputs */}
                 <div className="space-y-4">
                   <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
+                  
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Product Name</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Product Name <span className="text-red-500">*</span>
+                    </label>
                     <input type="text" name="title" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available Qty</label>
-                      <input type="number" name="quantity" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
+
+                  {/* PACKAGING MOVED HERE */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
+                    <input type="text" name="packaging" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* QUANTITY & UNIT */}
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Available Qty <span className="text-red-500">*</span>
+                        </label>
+                        <input type="number" step="any" name="quantity" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
+                      </div>
+                      <div className="w-1/3">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Unit <span className="text-red-500">*</span>
+                        </label>
+                        <select name="quantityUnit" className="w-full mt-1.5 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium cursor-pointer">
+                          <option value="MT">MT</option>
+                          <option value="KG">KG</option>
+                          <option value="BBL">BBL</option>
+                        </select>
+                      </div>
                     </div>
+
+                    {/* PRICE (OPTIONAL) */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Price per unit ($)</label>
-                      <input type="number" step="0.01" name="price" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
+                      <input type="number" step="0.01" name="price" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Storage Location</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Storage Location <span className="text-red-500">*</span>
+                      </label>
                       <div className="relative mt-1.5">
                         <MapPin className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
                         <input type="text" name="location" required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. JAFZA Warehouse" />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Offer Validity Date</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Offer Validity Date <span className="text-red-500">*</span>
+                      </label>
                       <div className="relative mt-1.5">
                         <Calendar className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
                         <input type="datetime-local" name="validityDate" required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" />
@@ -167,6 +199,19 @@ export default function SupplyForm() {
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
                       <input type="text" name="destination" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Any port in Thailand" />
                     </div>
+
+                    {/* NEW: LOAD PORT */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Load Port</label>
+                      <input type="text" name="loadPort" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Oman/Middle East Port" />
+                    </div>
+
+                    {/* NEW: INSURANCE */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Insurance Terms</label>
+                      <input type="text" name="insurance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. To be covered by the buyer" />
+                    </div>
+
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Incoterms</label>
                       <input type="text" name="incoterms" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. CFR, FOB" />
@@ -178,10 +223,6 @@ export default function SupplyForm() {
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inspection</label>
                       <input type="text" name="inspection" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Independent surveyor at load port" />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
-                      <input type="text" name="packaging" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. In Bulk" />
                     </div>
                   </div>
                 </div>
@@ -228,7 +269,9 @@ export default function SupplyForm() {
 
                 {/* SECTION 4: General Notes */}
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">General Notes / Summary</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    General Notes / Summary <span className="text-red-500">*</span>
+                  </label>
                   <textarea name="specs" rows={3} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium"></textarea>
                 </div>
 

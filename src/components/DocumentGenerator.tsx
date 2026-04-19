@@ -56,8 +56,15 @@ export default function DocumentGenerator({
     const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const refNo = `GC-${docType}-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
     const product = contextItem?.title || "[Commodity Name]";
-    const qty = contextItem?.quantity ? `${new Intl.NumberFormat().format(contextItem.quantity)} MT` : "[Quantity]";
     
+    // Dynamically pull the correct unit (MT, KG, etc.), default to MT if missing
+    const unit = contextItem?.quantityUnit || "MT";
+    const qty = contextItem?.quantity ? `${new Intl.NumberFormat().format(contextItem.quantity)} ${unit}` : "[Quantity]";
+    
+    // Extract the new logistics fields
+    const loadPort = contextItem?.loadPort || '[Load Port]';
+    const insurance = contextItem?.insurance || '[Insurance]';
+
     let htmlTemplate = "";
 
     if (docType === "LOI") {
@@ -75,7 +82,9 @@ export default function DocumentGenerator({
             <li><strong>Quantity:</strong> ${qty} (+/- 10% vessel/buyer option)</li>
             <li><strong>Origin:</strong> ${contextItem?.origin || '[Origin]'}</li>
             <li><strong>Destination:</strong> ${contextItem?.destination || '[Destination]'}</li>
-            <li><strong>Target Price:</strong> $${contextItem?.targetPrice || '[Price]'} per MT</li>
+            <li><strong>Load Port:</strong> ${loadPort}</li>
+            <li><strong>Target Price:</strong> $${contextItem?.targetPrice || '[Price]'} per ${unit}</li>
+            <li><strong>Insurance:</strong> ${insurance}</li>
             <li><strong>Payment Terms:</strong> ${contextItem?.paymentTerms || '[Payment Terms]'}</li>
           </ul>
           <p>All other terms and conditions shall be mutually discussed and agreed upon before finalising the contract.</p>
@@ -97,8 +106,10 @@ export default function DocumentGenerator({
             <li><strong>Commodity:</strong> ${product}</li>
             <li><strong>Quantity:</strong> ${qty} (+/- 10% Seller Option)</li>
             <li><strong>Origin:</strong> ${contextItem?.origin || '[Origin]'}</li>
-            <li><strong>Price:</strong> $${contextItem?.price || '[Price]'} / MT</li>
+            <li><strong>Price:</strong> $${contextItem?.price || '[Price]'} / ${unit}</li>
             <li><strong>Delivery Terms:</strong> ${contextItem?.incoterms || '[Incoterms]'} ${contextItem?.destination || '[Destination]'}</li>
+            <li><strong>Load Port:</strong> ${loadPort}</li>
+            <li><strong>Insurance:</strong> ${insurance}</li>
             <li><strong>Payment Terms:</strong> ${contextItem?.paymentTerms || '[Payment Terms]'}</li>
             <li><strong>Packaging:</strong> ${contextItem?.packaging || '[Packaging]'}</li>
           </ul>

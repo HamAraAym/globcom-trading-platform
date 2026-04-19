@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+
+// @ts-ignore - Bypasses the strict Next.js CSS module declaration warning
 import "./globals.css";
+
 import { Providers } from "@/components/Providers";
 import PageWrapper from "@/components/PageWrapper";
 
