@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { openChatRoom } from "@/actions/chatActions";
-import { ArrowRightLeft, MessageSquare, ClipboardList, Package, Scale, CircleDollarSign, Calendar, MapPin, Clock } from "lucide-react";
+import { ArrowRightLeft, MessageSquare, ClipboardList, Package, Scale, CircleDollarSign, Calendar, MapPin, Clock, Truck } from "lucide-react";
 
 export default async function TradingHubPage() {
   // Fetch Demands and Supplies in parallel for speed
@@ -66,28 +66,50 @@ export default async function TradingHubPage() {
                 const startChat = openChatRoom.bind(null, "demand", demand.id);
                 return (
                   <div key={demand.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-lg leading-tight">{demand.title}</h3>
-                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                    <div className="flex flex-col mb-4">
+                      <div className="flex justify-between items-start gap-4">
+                        <h3 className="font-bold text-slate-900 text-lg leading-tight flex-1">{demand.title}</h3>
+                        {demand.incoterms && (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded uppercase border border-slate-200 shrink-0">
+                            {demand.incoterms}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5">
                           <Clock size={12} className="text-blue-500" />
                           Req by {demand.createdBy.firstName} {demand.createdBy.lastName}
                         </p>
+                        
+                        {(demand.origin || demand.destination) && (
+                          <p className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                            <Truck size={10} className="text-blue-400" />
+                            {demand.origin || "TBD"} <span className="text-slate-300">➔</span> {demand.destination || "TBD"}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-3 gap-3 mb-5">
-                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Scale size={12} className="text-blue-600"/> Qty</p>
-                        <p className="text-sm font-bold text-slate-900">{new Intl.NumberFormat().format(demand.quantity)}</p>
+                        <p className="text-sm font-black text-slate-900 leading-none">
+                          {new Intl.NumberFormat().format(demand.quantity)} 
+                          <span className="text-[10px] font-bold text-slate-500 ml-1">{demand.quantityUnit || "MT"}</span>
+                        </p>
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><CircleDollarSign size={12} className="text-blue-600"/> Target</p>
-                        <p className="text-sm font-bold text-slate-900">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(demand.targetPrice)}</p>
+                        {demand.targetPrice ? (
+                          <p className="text-sm font-black text-emerald-600 leading-none">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(demand.targetPrice)}</p>
+                        ) : (
+                          <p className="text-xs font-bold text-slate-400 italic leading-none">TBD</p>
+                        )}
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar size={12} className="text-blue-600"/> Timeline</p>
-                        <p className="text-sm font-bold text-slate-900 truncate" title={demand.timeline}>{demand.timeline}</p>
+                        <p className="text-xs font-bold text-slate-900 truncate leading-none" title={demand.timeline}>{demand.timeline}</p>
                       </div>
                     </div>
 
@@ -133,28 +155,50 @@ export default async function TradingHubPage() {
                 const startChat = openChatRoom.bind(null, "supply", supply.id);
                 return (
                   <div key={supply.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all group">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-lg leading-tight">{supply.title}</h3>
-                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                    <div className="flex flex-col mb-4">
+                      <div className="flex justify-between items-start gap-4">
+                        <h3 className="font-bold text-slate-900 text-lg leading-tight flex-1">{supply.title}</h3>
+                        {supply.incoterms && (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded uppercase border border-slate-200 shrink-0">
+                            {supply.incoterms}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5">
                           <Clock size={12} className="text-emerald-500" />
                           Posted by {supply.createdBy.firstName} {supply.createdBy.lastName}
                         </p>
+                        
+                        {(supply.origin || supply.destination) && (
+                          <p className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                            <Truck size={10} className="text-emerald-400" />
+                            {supply.origin || "TBD"} <span className="text-slate-300">➔</span> {supply.destination || "TBD"}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-3 gap-3 mb-5">
-                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Scale size={12} className="text-emerald-600"/> Avail Qty</p>
-                        <p className="text-sm font-bold text-slate-900">{new Intl.NumberFormat().format(supply.quantity)}</p>
+                        <p className="text-sm font-black text-slate-900 leading-none">
+                          {new Intl.NumberFormat().format(supply.quantity)} 
+                          <span className="text-[10px] font-bold text-slate-500 ml-1">{supply.quantityUnit || "MT"}</span>
+                        </p>
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><CircleDollarSign size={12} className="text-emerald-600"/> Price</p>
-                        <p className="text-sm font-bold text-slate-900">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(supply.price)}</p>
+                        {supply.price ? (
+                          <p className="text-sm font-black text-emerald-600 leading-none">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(supply.price)}</p>
+                        ) : (
+                          <p className="text-xs font-bold text-slate-400 italic leading-none">TBD</p>
+                        )}
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin size={12} className="text-emerald-600"/> Location</p>
-                        <p className="text-sm font-bold text-slate-900 truncate" title={supply.location}>{supply.location}</p>
+                        <p className="text-xs font-bold text-slate-900 truncate leading-none" title={supply.location}>{supply.location}</p>
                       </div>
                     </div>
 
