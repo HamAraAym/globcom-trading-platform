@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { 
   Building, Mail, Phone, MapPin, ShieldCheck, Clock, ShieldAlert, 
   Briefcase, Activity, FileText, CheckCircle2, ChevronLeft, Plus, FileEdit,
-  User, FileBadge, Globe, ExternalLink
+  User, FileBadge, Globe, ExternalLink, Trash2, Edit, Send, Download
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
 
@@ -49,6 +50,35 @@ export default async function ClientProfilePage({ params }: { params: { clientId
     );
   }
 
+  // ==========================================
+  // INLINE SERVER ACTIONS (Next.js 14+)
+  // ==========================================
+  
+  const deleteEntity = async () => {
+    "use server";
+    // Cascades and deletes all associated timeline activities and documents automatically!
+    await prisma.client.delete({ where: { id: clientId } });
+    redirect("/buyers");
+  };
+
+  const dispatchDocument = async (formData: FormData) => {
+    "use server";
+    const docTitle = formData.get("docTitle") as string;
+    const currentUser = await prisma.user.findUnique({ where: { email: session?.user?.email || "" } });
+
+    if (currentUser) {
+      await prisma.clientActivity.create({
+        data: {
+          type: "DOCUMENT_DISPATCHED",
+          description: `Dispatched official document [${docTitle}] to the client's registered email.`,
+          clientId: clientId,
+          userId: currentUser.id
+        }
+      });
+      revalidatePath(`/crm/${clientId}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10 font-sans flex flex-col overflow-y-auto custom-scrollbar">
       
@@ -65,7 +95,19 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             {client.type === "CORPORATE" ? <Building size={300} /> : <User size={300} />}
           </div>
 
-          <div className="flex items-center gap-5 relative z-10">
+          {/* NEW: Action Controls (Edit & Delete) */}
+          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+             <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 rounded-xl transition-all shadow-sm" title="Edit Entity">
+               <Edit size={16} />
+             </Link>
+             <form action={deleteEntity}>
+               <button type="submit" className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 rounded-xl transition-all shadow-sm" title="Purge Entity">
+                 <Trash2 size={16} />
+               </button>
+             </form>
+          </div>
+
+          <div className="flex items-center gap-5 relative z-10 mt-6 md:mt-0">
             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shrink-0 ${client.type === 'CORPORATE' ? 'bg-indigo-900 text-indigo-50 shadow-indigo-900/20' : 'bg-emerald-900 text-emerald-50 shadow-emerald-900/20'}`}>
               {client.name.charAt(0).toUpperCase()}
             </div>
@@ -116,7 +158,7 @@ export default async function ClientProfilePage({ params }: { params: { clientId
       {/* Grid Layout */}
       <div className="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
         
-        {/* LEFT COLUMN: Static Data */}
+        {/* LEFT COLUMN: Static Data & Document Vault */}
         <div className="space-y-8">
           
           {/* Contact Details */}
@@ -149,32 +191,54 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </h3>
             <div className="space-y-3">
               
-              {/* Corporate Only: Trade License */}
               {client.type === "CORPORATE" && (
-                <a 
-                  href={client.tradeLicenseUrl || "#"} 
-                  target={client.tradeLicenseUrl ? "_blank" : "_self"}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}
-                >
-                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}>
-                    <FileText size={16}/> Trade License
-                  </span>
+                <a href={client.tradeLicenseUrl || "#"} target={client.tradeLicenseUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}>
+                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}><FileText size={16}/> Trade License</span>
                   {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-emerald-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
                 </a>
               )}
 
-              {/* Both: Passport / National ID */}
-              <a 
-                href={client.passportUrl || "#"} 
-                target={client.passportUrl ? "_blank" : "_self"}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}
-              >
-                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}>
-                  <FileText size={16}/> Signatory ID / Passport
-                </span>
+              <a href={client.passportUrl || "#"} target={client.passportUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}>
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}><FileText size={16}/> Signatory ID / Passport</span>
                 {client.passportUrl ? <ExternalLink size={16} className="text-emerald-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
               </a>
               
+            </div>
+          </div>
+
+          {/* NEW: Generated Contracts Vault */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
+              <FileBadge size={16} className="text-indigo-500" /> Generated Contracts
+            </h3>
+            <div className="space-y-3">
+              {client.documents.length === 0 ? (
+                <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                   <p className="text-xs font-bold text-slate-500">No contracts generated yet.</p>
+                </div>
+              ) : (
+                client.documents.map(doc => (
+                  <div key={doc.id} className="p-3 border border-slate-200 rounded-xl flex items-center justify-between bg-white shadow-sm hover:border-indigo-300 transition-colors">
+                    <div className="flex-1 overflow-hidden pr-2">
+                      <p className="text-sm font-bold text-slate-800 truncate" title={doc.title}>{doc.title}</p>
+                      <p className="text-[10px] font-bold text-slate-400 mt-0.5">
+                        {new Date(doc.createdAt).toLocaleDateString()} • By {doc.generatedBy.firstName}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors" title="View/Download PDF">
+                        <Download size={16} />
+                      </a>
+                      <form action={dispatchDocument}>
+                        <input type="hidden" name="docTitle" value={doc.title} />
+                        <button type="submit" className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors flex items-center gap-1" title="Email to Client">
+                          <Send size={16} />
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -208,7 +272,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </h3>
             
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 relative">
-              {/* Timeline Line */}
               <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-slate-100 z-0"></div>
 
               {client.activities.length === 0 ? (

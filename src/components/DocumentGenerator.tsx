@@ -7,10 +7,11 @@ import { FileEdit, X, Loader2, Download, FileText, CheckCircle2 } from "lucide-r
 import { saveGeneratedDocument } from "@/actions/documentActions";
 import { DocumentType } from "@prisma/client";
 
-// Dynamically import the patched React 19 version of Quill
+// Dynamically import React Quill
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+
 // @ts-ignore
-import "react-quill-new/dist/quill.snow.css"; 
+import "react-quill-new/dist/quill.snow.css";
 
 interface DocumentGeneratorProps {
   clientId: string;
@@ -37,95 +38,138 @@ export default function DocumentGenerator({
   const [docType, setDocType] = useState<DocumentType>(defaultDocType);
   const [content, setContent] = useState<string>("");
 
-  // Ensure Portal only renders on client
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  // Lock background scrolling when open
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  // SMART DATA INJECTION
+  // SMART DATA & TEMPLATE INJECTION
   useEffect(() => {
     if (!isOpen) return;
 
-    const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+    const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const refNo = `GC-${docType}-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
     const product = contextItem?.title || "[Commodity Name]";
     
-    // Dynamically pull the correct unit (MT, KG, etc.), default to MT if missing
     const unit = contextItem?.quantityUnit || "MT";
     const qty = contextItem?.quantity ? `${new Intl.NumberFormat().format(contextItem.quantity)} ${unit}` : "[Quantity]";
     
-    // Safely handle Optional Pricing
     const rawPrice = contextItem?.targetPrice || contextItem?.price;
-    const formattedPrice = rawPrice 
-      ? `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(rawPrice)} per ${unit}` 
-      : "To Be Determined (TBD)";
+    const formattedPrice = rawPrice ? `USD ${new Intl.NumberFormat('en-US').format(rawPrice)} per ${unit}` : "USD ______ per metric tonne";
 
-    // Extract the new logistics fields with fallbacks
-    const loadPort = contextItem?.loadPort || 'TBA';
-    const insurance = contextItem?.insurance || 'TBA';
-    const origin = contextItem?.origin || 'TBA';
-    const destination = contextItem?.destination || 'TBA';
-    const incoterms = contextItem?.incoterms || 'TBA';
+    // Dynamic Specifications Builder
+    let specsHtml = "";
+    if (contextItem?.keyTerms && Array.isArray(contextItem.keyTerms) && contextItem.keyTerms.length > 0) {
+      specsHtml = contextItem.keyTerms.map((term: any) => 
+        `<li style="margin-bottom: 4px;"><strong>${term.label}:</strong> ${term.value}</li>`
+      ).join("");
+    } else {
+      specsHtml = `<li><strong>Specifications:</strong> As per standard export quality.</li>`;
+    }
 
     let htmlTemplate = "";
 
+    // 1. LETTER OF INTEREST (Matches your specific LOI layout)
     if (docType === "LOI") {
       htmlTemplate = `
-        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.6; color: #000;">
+        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
-          <h2 style="text-align: center; margin-top: 40px; margin-bottom: 40px; text-decoration: underline;">LETTER OF INTEREST (LOI)</h2>
+          <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">LETTER OF INTEREST</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
-          <p><strong>SUBJECT:</strong> Purchase of ${product} in Bulk, Qty: ${qty}</p>
-          <p>Dear Sir/Madam,</p>
-          <p>We, GlobCom International FZE, are pleased to hereby issue our Letter of Interest (LOI) with full corporate responsibility, stating our readiness to purchase the following commodity:</p>
-          <ul style="margin-bottom: 20px;">
-            <li><strong>Product:</strong> ${product}</li>
-            <li><strong>Quantity:</strong> ${qty} (+/- 10% vessel/buyer option)</li>
-            <li><strong>Target Price:</strong> ${formattedPrice}</li>
-            <li><strong>Origin:</strong> ${origin}</li>
-            <li><strong>Destination:</strong> ${destination}</li>
-            <li><strong>Load Port:</strong> ${loadPort}</li>
-            <li><strong>Insurance:</strong> ${insurance}</li>
-            <li><strong>Payment Terms:</strong> ${contextItem?.paymentTerms || 'To be mutually agreed'}</li>
+          <p><strong>SUBJECT: Purchase of ${product} in Bulk, Qty: ${qty} (+/- 10% Vessel's/Buyer Option)</strong></p>
+          <p>Dear Sir,</p>
+          <p>We are pleased to hereby issue our Letter of Interest (LOI) for the same on the following basis:</p>
+          <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
+            <li><strong>Product:</strong> ${product} in Bulk</li>
+            <li style="margin-top: 10px;"><strong><u>Specifications:</u></strong></li>
+            <ul style="margin-top: 5px; margin-bottom: 15px;">
+              ${specsHtml}
+            </ul>
+            <li><strong>Quantity:</strong> ${qty} (±10% at vessel/buyer’s option)</li>
+            <li><strong>Origin:</strong> ${contextItem?.origin || 'UAE / Oman'}</li>
+            <li><strong>Destination:</strong> ${contextItem?.destination || 'Open as per buyer option'}</li>
+            <li><strong>Shipment:</strong> ${contextItem?.timeline || '1st week January 2026'}</li>
+            <li><strong>Price:</strong> ${formattedPrice}, CIF ${contextItem?.destination || 'Any Port'}</li>
+            <li><strong>Insurance:</strong> ${contextItem?.insurance || 'To be covered by the seller.'}</li>
+            <li><strong>Payment Terms:</strong> ${contextItem?.paymentTerms || '100% payment before completion of discharging at discharge port.'}</li>
+            <li><strong>Load Port:</strong> ${contextItem?.loadPort || 'One safe port, one safe berth.'}</li>
+            <li><strong>Discharge Rate:</strong> To be provided by the buyer at the time of vessel nomination.</li>
+            <li><strong>Inspection:</strong> Inspection shall be carried out by SGS at the loading port and at the discharge port for both quality and quantity.</li>
           </ul>
+          <p>Any discrepancy in the quality or quantity, the discharge port report shall be considered as final and binding.</p>
           <p>All other terms and conditions shall be mutually discussed and agreed upon before finalising the contract.</p>
-          <p>We look forward to receiving your firm offer (FCO) at your earliest convenience to proceed further.</p>
+          <p>We look forward to receiving your firm offer at the earliest to proceed further accordingly.</p>
           <br/><br/>
-          <p>Best Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+          <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
         </div>
       `;
-    } else {
+    } 
+    // 2. FULL CORPORATE OFFER (Matches your specific FCO layout)
+    else if (docType === "FCO") {
       htmlTemplate = `
-        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.6; color: #000;">
+        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+          <p><strong>Ref. No:</strong> ${refNo}</p>
+          <p><strong>Date:</strong> ${dateStr}</p>
+          <p><strong>TO:</strong> ${clientCompany}</p>
+          <p><strong>Attn:</strong> ${clientName}</p>
+          <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SUBJECT: OFFER FOR ${product.toUpperCase()}</h2>
+          <p>Dear Sir,</p>
+          <p>We are pleased to offer the ${product} as per the terms and conditions.</p>
+          <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
+            <li><strong>Commodity:</strong> ${product}</li>
+            <li><strong>Quantity:</strong> ${qty} (+/- 10%) Seller Option.</li>
+            <li style="margin-top: 10px;"><strong><u>Quality:</u></strong></li>
+            <ul style="margin-top: 5px; margin-bottom: 15px;">
+              ${specsHtml}
+            </ul>
+            <li><strong>Packing:</strong> ${contextItem?.packaging || 'In Bulk.'}</li>
+            <li><strong>Origin:</strong> ${contextItem?.origin || 'Oman / Middle East'}</li>
+            <li><strong>Shipment Date:</strong> ${contextItem?.timeline || '1st Half of February 2026.'}</li>
+            <li><strong>Payment Terms:</strong> ${contextItem?.paymentTerms || '20% Advance and Balance against document before discharging.'}</li>
+            <li><strong>Delivery Terms:</strong> ${contextItem?.incoterms || 'CFR'} ${contextItem?.destination || 'Any Port'}</li>
+            <li><strong>Price:</strong> ${formattedPrice} CFR ${contextItem?.destination || 'Any Port'}</li>
+            <li><strong>Currency:</strong> USD, or in case of AED Payment, the Exchange rate of 1 USD = 3.6725 AED shall be applicable.</li>
+            <li><strong>Inspection of Quality / Quantity:</strong> Q&Q will be determined by an independent inspection agency appointed by the seller at the load port. The results of the loading port shall be final and binding on both the buyer and seller.</li>
+            <li><strong>Insurance:</strong> ${contextItem?.insurance || 'To be covered by the buyer.'}</li>
+            <li style="margin-top: 10px;"><strong><u>Shipping Terms:</u></strong></li>
+            <ul>
+               <li><strong>Loading port:</strong> ${contextItem?.loadPort || 'Middle East Port'}</li>
+               <li><strong>Discharge Port:</strong> CFR ${contextItem?.destination || 'Any Port'}</li>
+               <li><strong>Discharge Rate:</strong> 10,000 Mt per day SHHINC PWWD</li>
+            </ul>
+            <li style="margin-top: 10px;"><strong>Other Terms:</strong> All other terms and conditions as per Incoterms 2020 or to be further discussed for the contract.</li>
+            <li style="margin-top: 10px;"><strong>Validity:</strong> The above offer is valid until 18:00 Hrs., ${new Date(contextItem?.validityDate || Date.now() + 86400000).toLocaleDateString('en-GB')}, UAE time.</li>
+          </ul>
+          <p>We look forward to receiving your confirmation to establish our business cooperation with your esteemed company.</p>
+          <br/><br/>
+          <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+        </div>
+      `;
+    }
+    // 3. SOFT CORPORATE OFFER (Lightweight version)
+    else {
+        htmlTemplate = `
+        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
-          <h2 style="text-align: center; margin-top: 40px; margin-bottom: 40px; text-decoration: underline;">FULL CORPORATE OFFER (FCO)</h2>
+          <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SOFT CORPORATE OFFER (SCO)</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
-          <p>Dear Sir/Madam,</p>
-          <p>We, GlobCom International FZE, are pleased to issue this Full Corporate Offer (FCO) under the following terms and conditions:</p>
-          <ul style="margin-bottom: 20px;">
+          <p>Dear Sir,</p>
+          <p>For preliminary discussion purposes, we are pleased to outline the following soft offer for ${product}:</p>
+          <ul>
             <li><strong>Commodity:</strong> ${product}</li>
-            <li><strong>Quantity:</strong> ${qty} (+/- 10% Seller Option)</li>
-            <li><strong>Price:</strong> ${formattedPrice}</li>
-            <li><strong>Origin:</strong> ${origin}</li>
-            <li><strong>Delivery Terms:</strong> ${incoterms} to ${destination}</li>
-            <li><strong>Load Port:</strong> ${loadPort}</li>
-            <li><strong>Insurance:</strong> ${insurance}</li>
-            <li><strong>Payment Terms:</strong> ${contextItem?.paymentTerms || 'To be mutually agreed'}</li>
-            <li><strong>Packaging:</strong> ${contextItem?.packaging || 'Bulk'}</li>
+            <li><strong>Quantity Available:</strong> ${qty}</li>
+            <li><strong>Indicative Price:</strong> ${formattedPrice}</li>
+            <li><strong>Origin:</strong> ${contextItem?.origin || 'TBA'}</li>
+            <li><strong>Proposed Incoterms:</strong> ${contextItem?.incoterms || 'TBA'} ${contextItem?.destination || ''}</li>
           </ul>
-          <p><strong>Validity:</strong> The above offer is valid until formal revocation or execution of the Sales & Purchase Agreement.</p>
-          <p>We look forward to receiving your confirmation to establish business cooperation with your esteemed entity.</p>
+          <p>Please note this is a Soft Offer and is not legally binding. A Full Corporate Offer (FCO) and draft contract will follow upon agreement of these preliminary terms.</p>
           <br/><br/>
-          <p>Best Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+          <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong></p>
         </div>
       `;
     }
@@ -140,14 +184,21 @@ export default function DocumentGenerator({
       
       const element = document.createElement("div");
       element.innerHTML = content;
-      // Format specifically for PDF generation
       element.style.padding = "1in"; 
       
       const opt: any = {
-        margin:       0, // Margins handled by padding above
+        margin:       0, 
         filename:     `${docType}_${clientCompany.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true,
+          // FIX: Prevent html2canvas from crashing on modern Next.js/Tailwind CSS colors
+          onclone: (clonedDoc: any) => {
+            const styles = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
+            styles.forEach((s: any) => s.remove());
+          }
+        },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
 
@@ -181,12 +232,10 @@ export default function DocumentGenerator({
     }
   };
 
-  // The actual Modal UI, wrapped in a Portal
   const modalContent = isOpen && mounted ? createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-sm">
       <div className="bg-slate-100 rounded-2xl w-full max-w-5xl h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-700">
         
-        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 text-white shrink-0">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-500 p-2 rounded-lg"><FileText size={20} /></div>
@@ -197,7 +246,6 @@ export default function DocumentGenerator({
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-hidden flex flex-col relative">
           {success ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 z-50">
@@ -207,7 +255,6 @@ export default function DocumentGenerator({
             </div>
           ) : (
             <>
-              {/* Toolbar Section */}
               <div className="p-4 bg-white border-b border-slate-200 flex flex-wrap items-center gap-4 shrink-0 shadow-sm z-20">
                 <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Type:</label>
@@ -226,32 +273,12 @@ export default function DocumentGenerator({
                 </p>
               </div>
               
-              {/* Google Docs Style Editor Area */}
               <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-200 relative">
                 <style>{`
                   .quill { display: flex; flex-direction: column; height: auto; min-height: 100%; padding-bottom: 40px; }
-                  .ql-toolbar { 
-                    position: sticky; 
-                    top: 0; 
-                    z-index: 10; 
-                    background: white; 
-                    border: none !important; 
-                    border-bottom: 1px solid #e2e8f0 !important; 
-                    padding: 12px 24px !important;
-                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-                    display: flex;
-                    justify-content: center;
-                  }
+                  .ql-toolbar { position: sticky; top: 0; z-index: 10; background: white; border: none !important; border-bottom: 1px solid #e2e8f0 !important; padding: 12px 24px !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); display: flex; justify-content: center; }
                   .ql-container { border: none !important; font-family: 'Times New Roman', Times, serif; font-size: 15px; }
-                  .ql-editor { 
-                    background: white; 
-                    min-height: 1056px; 
-                    max-width: 816px; 
-                    margin: 2rem auto;
-                    padding: 1in !important; 
-                    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-                    border: 1px solid #cbd5e1;
-                  }
+                  .ql-editor { background: white; min-height: 1056px; max-width: 816px; margin: 2rem auto; padding: 1in !important; box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); border: 1px solid #cbd5e1; }
                 `}</style>
                 <ReactQuill 
                   theme="snow" 
@@ -272,7 +299,6 @@ export default function DocumentGenerator({
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-between items-center shrink-0 z-20">
           <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
             Target Client: <span className="text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{clientCompany || clientName}</span>
