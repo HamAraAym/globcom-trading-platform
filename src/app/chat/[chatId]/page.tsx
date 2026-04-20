@@ -32,8 +32,8 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
     prisma.chatRoom.findUnique({
       where: { id: chatId },
       include: {
-        demand: { include: { createdBy: true } },
-        supply: { include: { createdBy: true } },
+        demand: { include: { createdBy: true, documents: true } }, // ADD DOCUMENTS: TRUE
+        supply: { include: { createdBy: true, documents: true } }, // ADD DOCUMENTS: TRUE
         messages: {
           include: { sender: true },
           orderBy: { createdAt: "asc" }, 
