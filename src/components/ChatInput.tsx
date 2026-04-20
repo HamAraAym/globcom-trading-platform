@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { useState, useRef, KeyboardEvent } from "react";
 import { Send, Paperclip, Loader2, AtSign } from "lucide-react";
 
 // The shape of the users we will pass in for the mention dropdown

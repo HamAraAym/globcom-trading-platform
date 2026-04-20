@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Mail, Building, FileText, Loader2, X, ShieldAlert } from "lucide-react";
+import { Send, Mail, Building, FileText, Loader2, X, ShieldAlert, User } from "lucide-react";
 import { dispatchToClient } from "@/actions/emailActions";
 
+// FIX: Updated interface to support dual-entity CRM architecture
 interface Buyer {
   id: string;
   name: string;
-  company: string;
+  company: string | null; 
+  type: "CORPORATE" | "INDIVIDUAL";
   email: string;
 }
 
@@ -92,8 +94,10 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                             : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                       >
-                        <p className="font-bold text-slate-900 text-sm">{buyer.name}</p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-1"><Building size={10}/> {buyer.company}</p>
+                        <p className="font-bold text-slate-900 text-sm">{buyer.company || buyer.name}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                          {buyer.type === "CORPORATE" ? <><Building size={10}/> {buyer.name}</> : <><User size={10}/> Individual Entity</>}
+                        </p>
                       </button>
                     ))
                   )}
@@ -123,8 +127,9 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 font-sans">
                       <p className="font-bold text-slate-900 text-lg mb-2">{contextItem.title}</p>
                       <ul className="space-y-1 text-xs text-slate-600">
-                        <li><strong>Quantity:</strong> {new Intl.NumberFormat().format(contextItem.quantity)} Units</li>
-                        <li><strong>Price:</strong> {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(contextItem.price || contextItem.targetPrice)}</li>
+                        {/* INJECTED DYNAMIC UNIT & FALLBACK PRICING */}
+                        <li><strong>Quantity:</strong> {new Intl.NumberFormat().format(contextItem.quantity)} {contextItem.quantityUnit || "MT"}</li>
+                        <li><strong>Price:</strong> {(contextItem.price || contextItem.targetPrice) ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(contextItem.price || contextItem.targetPrice) : "TBD"}</li>
                         <li><strong>Location/Timeline:</strong> {contextItem.location || contextItem.timeline}</li>
                       </ul>
                     </div>

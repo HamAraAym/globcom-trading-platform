@@ -4,13 +4,13 @@ import { getServerSession } from "next-auth";
 import { 
   MessageSquare, AlertCircle, Info, 
   MapPin, Calendar, CircleDollarSign, Scale, FileBox, Package,
-  Truck, CreditCard, ShieldCheck, List, CalendarClock, FileText 
+  Truck, CreditCard, ShieldCheck, List, CalendarClock, FileText, Anchor, Shield 
 } from "lucide-react";
 import MediaGallery from "@/components/MediaGallery";
 import ChatInput from "@/components/ChatInput"; 
 import EmailDispatcher from "@/components/EmailDispatcher";
 import DealStatusManager from "@/components/DealStatusManager";
-import DocumentGenerator from "@/components/DocumentGenerator"; // NEW: Smart Proposal Generator
+import DocumentGenerator from "@/components/DocumentGenerator"; 
 
 export default async function ChatRoomPage({ params }: { params: { chatId: string } }) {
   const session = await getServerSession();
@@ -66,6 +66,10 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
   const typeLabel = isDemand ? "DEMAND" : "SUPPLY";
   const themeColor = isDemand ? "blue" : "emerald";
   const ThemeIcon = isDemand ? FileBox : Package;
+
+  // Safely handle optional pricing
+  const rawPrice = isDemand ? (contextItem as any)?.targetPrice : (contextItem as any)?.price;
+  const displayPrice = rawPrice ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(rawPrice) : "TBD (Upon Request)";
 
   // SOP Compliance: Only Trading Team & Admins can change status
   const canEditStatus = userRole === "ADMIN" || userRole === "TRADING_REP";
@@ -190,11 +194,13 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
             <div className="space-y-4 mb-8">
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-slate-500"><Scale size={16}/> <span className="text-xs font-bold uppercase tracking-wider">Quantity</span></div>
-                <span className="font-bold text-slate-900">{new Intl.NumberFormat().format(contextItem?.quantity || 0)}</span>
+                <span className="font-bold text-slate-900">
+                  {new Intl.NumberFormat().format(contextItem?.quantity || 0)} <span className="text-xs text-slate-500 ml-1">{(contextItem as any)?.quantityUnit || "MT"}</span>
+                </span>
               </div>
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-slate-500"><CircleDollarSign size={16}/> <span className="text-xs font-bold uppercase tracking-wider">{isDemand ? 'Target Price' : 'Listing Price'}</span></div>
-                <span className="font-bold text-slate-900">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((contextItem as any)?.targetPrice || (contextItem as any)?.price || 0)}</span>
+                <span className={`font-bold ${rawPrice ? 'text-slate-900' : 'text-slate-400 italic text-sm'}`}>{displayPrice}</span>
               </div>
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-slate-500">
@@ -222,7 +228,9 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-2 gap-y-4 gap-x-3">
                 {renderLogisticsItem("Origin", (contextItem as any)?.origin, <MapPin size={12} className="text-slate-400" />)}
                 {renderLogisticsItem("Destination", (contextItem as any)?.destination, <MapPin size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Load Port", (contextItem as any)?.loadPort, <Anchor size={12} className="text-slate-400" />)}
                 {renderLogisticsItem("Incoterms", (contextItem as any)?.incoterms, <Truck size={12} className="text-slate-400" />)}
+                {renderLogisticsItem("Insurance", (contextItem as any)?.insurance, <Shield size={12} className="text-slate-400" />)}
                 {renderLogisticsItem("Payment", (contextItem as any)?.paymentTerms, <CreditCard size={12} className="text-slate-400" />)}
                 {renderLogisticsItem("Inspection", (contextItem as any)?.inspection, <ShieldCheck size={12} className="text-slate-400" />)}
                 {renderLogisticsItem("Packaging", (contextItem as any)?.packaging, <Package size={12} className="text-slate-400" />)}
@@ -258,14 +266,14 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
             
             <div className="mt-auto pt-6 border-t border-slate-100 space-y-4">
               
-              {/* NEW: SMART PROPOSAL GENERATOR */}
+              {/* SMART PROPOSAL GENERATOR */}
               {clients.length > 0 ? (
                 <DocumentGenerator 
-                  clientId={clients[0].id} // Default to first client, user can change via UI logic if needed
+                  clientId={clients[0].id} 
                   clientName={clients[0].name}
-                  clientCompany={clients[0].company}
+                  clientCompany={clients[0].company || "Individual Entity"}
                   contextItem={contextItem}
-                  defaultDocType={isDemand ? "LOI" : "FCO"} // Demands generate LOIs, Supplies generate FCOs
+                  defaultDocType={isDemand ? "LOI" : "FCO"} 
                   buttonStyle={`w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20`}
                 />
               ) : (
