@@ -18,25 +18,26 @@ export async function sendMessage(chatId: string, formData: FormData) {
   const content = formData.get("content") as string;
   if (!content || !content.trim()) return;
 
-  // 2. Save the message to the database
+  // 2. 🧠 SMART NOTIFICATION ENGINE: Detect @mentions BEFORE saving
+  // Regex to find all words starting with '@' (e.g., @JohnDoe)
+  const mentionMatches = content.match(/@(\w+)/g) || [];
+  
+  // Remove the '@' and convert to lowercase for clean database storage & matching
+  const mentionNames = mentionMatches.map(m => m.slice(1).toLowerCase());
+
+  // 3. Save the message to the database (Now storing the actual mentions!)
   await prisma.message.create({
     data: {
       content,
       chatRoomId: chatId,
       senderId: user.id,
       attachments: [], 
-      mentions: [],    
+      mentions: mentionNames, // <-- FIX: Saves the array of tagged names to DB
     }
   });
 
-  // 3. 🧠 SMART NOTIFICATION ENGINE: Detect @mentions
-  // Regex to find all words starting with '@' (e.g., @JohnDoe)
-  const mentionMatches = content.match(/@(\w+)/g);
-
-  if (mentionMatches && mentionMatches.length > 0) {
-    // Remove the '@' and convert to lowercase for matching
-    const mentionNames = mentionMatches.map(m => m.slice(1).toLowerCase());
-    
+  // 4. Cross-reference and Dispatch Notifications
+  if (mentionNames.length > 0) {
     // Fetch all internal users to cross-reference the tagged names
     const allUsers = await prisma.user.findMany({ 
       select: { id: true, firstName: true, lastName: true } 
@@ -44,19 +45,21 @@ export async function sendMessage(chatId: string, formData: FormData) {
 
     // Find the actual User IDs of the people mentioned
     const mentionedUserIds = allUsers
-      .filter(u => mentionNames.includes(`${u.firstName.toLowerCase()}${u.lastName.toLowerCase()}`))
+      .filter(u => 
+        u.id !== user.id && // PREVENT self-notifications
+        mentionNames.includes(`${u.firstName.toLowerCase()}${u.lastName.toLowerCase()}`)
+      )
       .map(u => u.id);
 
-    // Fetch the chat room to get the product title for a better alert message
-    const room = await prisma.chatRoom.findUnique({
-      where: { id: chatId },
-      include: { demand: true, supply: true }
-    });
-    
-    const productTitle = room?.demand?.title || room?.supply?.title || "a negotiation terminal";
-
-    // 4. Dispatch the Real-Time Notifications
+    // If we have valid users to notify, fetch the room context and dispatch!
     if (mentionedUserIds.length > 0) {
+      const room = await prisma.chatRoom.findUnique({
+        where: { id: chatId },
+        include: { demand: true, supply: true }
+      });
+      
+      const productTitle = room?.demand?.title || room?.supply?.title || "a negotiation terminal";
+
       await prisma.notification.createMany({
         data: mentionedUserIds.map(targetUserId => ({
           userId: targetUserId,
