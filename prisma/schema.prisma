@@ -54,6 +54,12 @@ enum DocumentType {
   OTHER
 }
 
+// NEW: Dual-Entity Support
+enum ClientType {
+  CORPORATE
+  INDIVIDUAL
+}
+
 // ==============================
 // 1. USER & CRM MODELS
 // ==============================
@@ -84,31 +90,40 @@ model User {
   createdAt       DateTime     @default(now())
 }
 
-// UPGRADED: From "ExternalBuyer" to full "Client" CRM Profile
+// UPGRADED: 360-Degree CRM Profile (B2B & B2C)
 model Client {
-  id              String    @id @default(cuid())
-  name            String
-  company         String
-  email           String    @unique
+  id              String     @id @default(cuid())
+  type            ClientType @default(CORPORATE) // Differentiates B2B vs B2C
+  
+  // Shared Core Details
+  name            String     // Primary Contact Person OR Individual's Full Name
+  email           String     @unique
   phone           String?
   address         String?
+  country         String?    
   notes           String?
   
-  // --- NEW: KYC & Compliance ---
-  kycStatus       KycStatus @default(PENDING)
-  tradeLicenseUrl String?   // Supabase link to trade license
-  passportUrl     String?   // Supabase link to signatory passport
+  // Corporate-Specific Fields
+  company         String?    // Optional: Only used if type is CORPORATE
+  registrationNo  String?    // Tax/VAT or Corporate ID
+  website         String?
+  
+  // KYC & Compliance Engine
+  kycStatus       KycStatus  @default(PENDING)
+  tradeLicenseUrl String?    // Supabase link to trade license
+  passportUrl     String?    // Supabase link to signatory passport
 
+  // Team Assignment
   assignedRepId   String?
-  assignedRep     User?     @relation(fields: [assignedRepId], references: [id])
+  assignedRep     User?      @relation(fields: [assignedRepId], references: [id])
 
-  // --- NEW: CRM Relations ---
+  // CRM Relations
   activities      ClientActivity[]
   tasks           Task[]
   documents       Document[]
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
 
 // NEW: CRM Interactive Timeline

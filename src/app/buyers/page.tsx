@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { assignRep } from "@/actions/buyerActions";
-import { Users, Building, Mail, Phone, ShieldCheck, CheckCircle2, AlertCircle, Briefcase, MapPin, ShieldAlert, Clock, ExternalLink } from "lucide-react";
+import { Users, Building, Mail, Phone, ShieldCheck, CheckCircle2, AlertCircle, Briefcase, MapPin, ShieldAlert, Clock, ExternalLink, User, Globe } from "lucide-react";
 import ClientModal from "@/components/ClientModal";
 import Link from "next/link";
 
 export default async function BuyersPage() {
-  // 1. Fetch from the newly renamed Client model
   const [clients, reps] = await Promise.all([
     prisma.client.findMany({
       orderBy: { createdAt: "desc" },
@@ -29,7 +28,7 @@ export default async function BuyersPage() {
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Client CRM Directory</h1>
             <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-              Secure database of verified corporate entities. Manage compliance, assign Account Executives, and track trading histories.
+              Secure database of verified corporate entities and individual traders. Manage compliance, assign Account Executives, and track trading histories.
             </p>
           </div>
         </div>
@@ -59,8 +58,8 @@ export default async function BuyersPage() {
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="sticky top-0 bg-slate-100 z-10 shadow-sm border-b border-slate-200">
               <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <th className="p-5">Entity Type</th>
                 <th className="p-5">Client Profile</th>
-                <th className="p-5">Corporate Entity</th>
                 <th className="p-5">Compliance (KYC)</th>
                 <th className="p-5">Contact Info</th>
                 <th className="p-5">Account Executive</th>
@@ -82,47 +81,51 @@ export default async function BuyersPage() {
                   return (
                     <tr key={client.id} className="hover:bg-indigo-50/30 transition-colors group">
                       
-                      {/* 1. Client Profile Link */}
+                      {/* 1. Entity Type Badge */}
+                      <td className="p-5">
+                        {client.type === "CORPORATE" ? (
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-2.5 py-1.5 rounded-lg border border-indigo-200">
+                            <Building size={14} /> Corporate
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                            <User size={14} /> Individual
+                          </span>
+                        )}
+                      </td>
+
+                      {/* 2. Client Profile Link & Info */}
                       <td className="p-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 border border-slate-200">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border shadow-sm ${client.type === 'CORPORATE' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                             {client.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <Link href={`/crm/${client.id}`} className="font-bold text-slate-900 text-sm hover:text-indigo-600 flex items-center gap-1.5 transition-colors">
-                              {client.name} <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
+                              {client.company ? client.company : client.name} <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
                             </Link>
-                            <p className="text-xs text-slate-500 mt-0.5">ID: #{client.id.substring(0,8).toUpperCase()}</p>
+                            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                               {client.company ? <User size={10} /> : <Globe size={10} />}
+                               {client.company ? client.name : (client.country || "Location Unspecified")}
+                            </p>
                           </div>
                         </div>
                       </td>
 
-                      {/* 2. Corporate Entity */}
-                      <td className="p-5">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-slate-900 text-sm font-bold">
-                            <Building size={14} className="text-indigo-500" /> {client.company}
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
-                            <MapPin size={12} className="text-rose-400" /> {client.address || "Location not specified"}
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* 3. NEW: Strict KYC Compliance Badge */}
+                      {/* 3. Strict KYC Compliance Badge */}
                       <td className="p-5">
                         {client.kycStatus === "VERIFIED" && (
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-sm">
                             <ShieldCheck size={14} /> Verified
                           </span>
                         )}
                         {client.kycStatus === "PENDING" && (
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1.5 rounded-lg border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1.5 rounded-lg border border-amber-200 shadow-sm">
                             <Clock size={14} /> Pending Docs
                           </span>
                         )}
                         {client.kycStatus === "REJECTED" && (
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1.5 rounded-lg border border-rose-200">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1.5 rounded-lg border border-rose-200 shadow-sm">
                             <ShieldAlert size={14} /> Rejected
                           </span>
                         )}

@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { 
   Building, Mail, Phone, MapPin, ShieldCheck, Clock, ShieldAlert, 
-  Briefcase, Activity, FileText, CheckCircle2, ChevronLeft, Plus, FileEdit
+  Briefcase, Activity, FileText, CheckCircle2, ChevronLeft, Plus, FileEdit,
+  User, FileBadge, Globe, ExternalLink
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
 
@@ -57,29 +58,52 @@ export default async function ClientProfilePage({ params }: { params: { clientId
           <ChevronLeft size={16} /> Back to Master Database
         </Link>
         
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shadow-slate-900/20 shrink-0">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+          
+          {/* Subtle Background Icon based on Entity Type */}
+          <div className="absolute right-0 top-0 opacity-[0.03] translate-x-10 -translate-y-10 pointer-events-none">
+            {client.type === "CORPORATE" ? <Building size={300} /> : <User size={300} />}
+          </div>
+
+          <div className="flex items-center gap-5 relative z-10">
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shrink-0 ${client.type === 'CORPORATE' ? 'bg-indigo-900 text-indigo-50 shadow-indigo-900/20' : 'bg-emerald-900 text-emerald-50 shadow-emerald-900/20'}`}>
               {client.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="flex items-center gap-3 mb-1">
+              <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">{client.name}</h1>
                 
+                {/* Type Badge */}
+                {client.type === "CORPORATE" ? (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200"><Building size={12} /> Corporate</span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><User size={12} /> Individual</span>
+                )}
+
                 {/* KYC Badge */}
                 {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><ShieldCheck size={14} /> Verified</span>}
                 {client.kycStatus === "PENDING" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200"><Clock size={14} /> Pending Docs</span>}
                 {client.kycStatus === "REJECTED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200"><ShieldAlert size={14} /> Rejected</span>}
               </div>
               
-              <div className="flex items-center gap-4 text-sm font-medium text-slate-600">
-                <span className="flex items-center gap-1.5"><Building size={16} className="text-indigo-400" /> {client.company}</span>
+              <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
+                {client.type === "CORPORATE" && client.company && (
+                  <span className="flex items-center gap-1.5"><Building size={16} className="text-indigo-400" /> {client.company}</span>
+                )}
+                {client.type === "CORPORATE" && client.registrationNo && (
+                  <span className="flex items-center gap-1.5"><FileBadge size={16} className="text-amber-500" /> {client.registrationNo}</span>
+                )}
                 <span className="flex items-center gap-1.5"><MapPin size={16} className="text-rose-400" /> {client.address || "Location N/A"}</span>
+                {client.type === "CORPORATE" && client.website && (
+                  <a href={client.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline">
+                    <Globe size={16} className="text-blue-400" /> {client.website.replace(/^https?:\/\//, '')}
+                  </a>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="text-right">
+          <div className="text-right relative z-10">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Account Executive</p>
             <p className="text-lg font-bold text-slate-900 flex items-center justify-end gap-2">
               <Briefcase size={18} className="text-indigo-500" /> 
@@ -118,20 +142,39 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
           </div>
 
-          {/* Document Vault Placeholder */}
+          {/* Smart Compliance Vault */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
               <ShieldCheck size={16} className="text-emerald-500" /> Compliance Vault
             </h3>
             <div className="space-y-3">
-              <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all text-left group">
-                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 flex items-center gap-2"><FileText size={16}/> Trade License</span>
-                {client.tradeLicenseUrl ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
-              </button>
-              <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all text-left group">
-                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 flex items-center gap-2"><FileText size={16}/> Signatory Passport</span>
-                {client.passportUrl ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
-              </button>
+              
+              {/* Corporate Only: Trade License */}
+              {client.type === "CORPORATE" && (
+                <a 
+                  href={client.tradeLicenseUrl || "#"} 
+                  target={client.tradeLicenseUrl ? "_blank" : "_self"}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}
+                >
+                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}>
+                    <FileText size={16}/> Trade License
+                  </span>
+                  {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-emerald-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
+                </a>
+              )}
+
+              {/* Both: Passport / National ID */}
+              <a 
+                href={client.passportUrl || "#"} 
+                target={client.passportUrl ? "_blank" : "_self"}
+                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}
+              >
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}>
+                  <FileText size={16}/> Signatory ID / Passport
+                </span>
+                {client.passportUrl ? <ExternalLink size={16} className="text-emerald-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
+              </a>
+              
             </div>
           </div>
 
@@ -146,14 +189,13 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             <div className="relative z-10">
               <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Document Generation Engine</h3>
               <p className="text-slate-400 text-sm mb-6 max-w-md">
-                Draft legally formatted Soft Corporate Offers (SCO) and Full Corporate Offers (FCO) to send directly to {client.company}.
+                Draft legally formatted Soft Corporate Offers (SCO) and Full Corporate Offers (FCO) to send directly to {client.company || client.name}.
               </p>
               
-              {/* THE NEW LIVE COMPONENT */}
               <DocumentGenerator 
                 clientId={client.id}
                 clientName={client.name}
-                clientCompany={client.company}
+                clientCompany={client.company || "Individual Entity"}
               />
               
             </div>
