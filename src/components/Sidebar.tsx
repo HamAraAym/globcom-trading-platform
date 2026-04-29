@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Globe, LayoutDashboard, FileBox, Box, ArrowRightLeft, Users, ShieldCheck
+  Globe, LayoutDashboard, FileBox, Box, ArrowRightLeft, Users, ShieldCheck, Settings
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -20,6 +20,7 @@ export default function Sidebar() {
     { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, allowedRoles: ["ADMIN", "TRADING_REP"] },
     { name: "Client CRM", href: "/buyers", icon: Users, allowedRoles: ["ADMIN"] },
     { name: "Audit & Compliance", href: "/audit", icon: ShieldCheck, allowedRoles: ["ADMIN"] },
+    { name: "Settings", href: "/settings", icon: Settings, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
   ];
 
   const visibleLinks = navLinks.filter(link => link.allowedRoles.includes(userRole));
@@ -58,7 +59,7 @@ export default function Sidebar() {
         )}
       </nav>
 
-      {/* Replaced Logout with a clean system version badge */}
+      {/* Footer Badge */}
       <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-center shrink-0">
         <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">
           GlobCom ERP v1.0

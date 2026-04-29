@@ -20,7 +20,7 @@ interface DocumentGeneratorProps {
   contextItem?: any; 
   defaultDocType?: DocumentType;
   buttonStyle?: string;
-  userLetterhead?: string | null; // NEW: The enterprise letterhead!
+  userLetterhead?: string | null; 
 }
 
 export default function DocumentGenerator({ 
@@ -56,16 +56,14 @@ export default function DocumentGenerator({
     const refNo = `GC-${docType}-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
     const product = contextItem?.title || "[Commodity Name]";
     
-    // NEW: Dynamic Quantity & Tolerance Formatting
     const unit = contextItem?.quantityUnit || "MT";
     const baseQty = contextItem?.quantity ? new Intl.NumberFormat().format(contextItem.quantity) : "[Quantity]";
     const toleranceStr = contextItem?.tolerance ? ` ${contextItem.tolerance}` : "";
-    const qtyDisplay = `${baseQty} ${unit}${toleranceStr}`; // e.g. "25,000 MT +/- 10% Vessel Option"
+    const qtyDisplay = `${baseQty} ${unit}${toleranceStr}`; 
     
     const rawPrice = contextItem?.targetPrice || contextItem?.price;
     const formattedPrice = rawPrice ? `USD ${new Intl.NumberFormat('en-US').format(rawPrice)} per ${unit}` : "USD ______ per metric tonne";
 
-    // Dynamic Specifications Builder
     let specsHtml = "";
     if (contextItem?.keyTerms && Array.isArray(contextItem.keyTerms) && contextItem.keyTerms.length > 0) {
       specsHtml = contextItem.keyTerms.map((term: any) => 
@@ -75,21 +73,15 @@ export default function DocumentGenerator({
       specsHtml = `<li><strong>Specifications:</strong> As per standard export quality.</li>`;
     }
 
-    // NEW: Dynamic Letterhead Injection
-    const letterheadHtml = userLetterhead 
-      ? `<div style="text-align: center; margin-bottom: 30px;"><img src="${userLetterhead}" style="max-width: 100%; max-height: 150px; object-fit: contain;" alt="Official Letterhead" /></div>` 
-      : ``;
-
+    // NOTE: We completely removed the inline <img> tag. The letterhead is now applied via CSS backgrounds!
     let htmlTemplate = "";
 
-    // 1. LETTER OF INTEREST
     if (docType === "LOI") {
       htmlTemplate = `
         <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
-          ${letterheadHtml}
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
-          <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">LETTER OF INTEREST</h2>
+          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">LETTER OF INTEREST</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
           <p><strong>SUBJECT: Purchase of ${product} in Bulk, Qty: ${qtyDisplay}</strong></p>
           <p>Dear Sir,</p>
@@ -114,21 +106,18 @@ export default function DocumentGenerator({
           <p>Any discrepancy in the quality or quantity, the discharge port report shall be considered as final and binding.</p>
           <p>All other terms and conditions shall be mutually discussed and agreed upon before finalising the contract.</p>
           <p>We look forward to receiving your firm offer at the earliest to proceed further accordingly.</p>
-          <br/><br/>
+          <br/>
           <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
         </div>
       `;
-    } 
-    // 2. FULL CORPORATE OFFER
-    else if (docType === "FCO") {
+    } else if (docType === "FCO") {
       htmlTemplate = `
         <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
-          ${letterheadHtml}
           <p><strong>Ref. No:</strong> ${refNo}</p>
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>TO:</strong> ${clientCompany}</p>
           <p><strong>Attn:</strong> ${clientName}</p>
-          <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SUBJECT: OFFER FOR ${product.toUpperCase()}</h2>
+          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SUBJECT: OFFER FOR ${product.toUpperCase()}</h2>
           <p>Dear Sir,</p>
           <p>We are pleased to offer the ${product} as per the terms and conditions.</p>
           <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
@@ -157,19 +146,16 @@ export default function DocumentGenerator({
             <li style="margin-top: 10px;"><strong>Validity:</strong> The above offer is valid until 18:00 Hrs., ${new Date(contextItem?.validityDate || Date.now() + 86400000).toLocaleDateString('en-GB')}, UAE time.</li>
           </ul>
           <p>We look forward to receiving your confirmation to establish our business cooperation with your esteemed company.</p>
-          <br/><br/>
+          <br/>
           <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
         </div>
       `;
-    }
-    // 3. SOFT CORPORATE OFFER
-    else {
+    } else {
         htmlTemplate = `
         <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
-          ${letterheadHtml}
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
-          <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SOFT CORPORATE OFFER (SCO)</h2>
+          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SOFT CORPORATE OFFER (SCO)</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
           <p>Dear Sir,</p>
           <p>For preliminary discussion purposes, we are pleased to outline the following soft offer for ${product}:</p>
@@ -197,7 +183,19 @@ export default function DocumentGenerator({
       
       const element = document.createElement("div");
       element.innerHTML = content;
-      element.style.padding = "1in"; 
+      
+      // THE FIX: Set the Letterhead as an exact 8.5x11 background that perfectly repeats per page
+      if (userLetterhead) {
+        element.style.backgroundImage = `url('${userLetterhead}')`;
+        element.style.backgroundSize = "8.5in 11in"; 
+        element.style.backgroundRepeat = "repeat-y"; 
+        element.style.backgroundPosition = "top center";
+        // Push the text down 1.8 inches from the top, and 1.5 inches from the bottom
+        element.style.padding = "1.8in 1in 1.5in 1in"; 
+        element.style.minHeight = "11in";
+      } else {
+        element.style.padding = "1in"; 
+      }
       
       const opt: any = {
         margin:       0, 
@@ -206,7 +204,6 @@ export default function DocumentGenerator({
         html2canvas:  { 
           scale: 2, 
           useCORS: true,
-          // FIX: Prevent html2canvas from crashing on modern Next.js/Tailwind CSS colors
           onclone: (clonedDoc: any) => {
             const styles = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
             styles.forEach((s: any) => s.remove());
@@ -291,7 +288,25 @@ export default function DocumentGenerator({
                   .quill { display: flex; flex-direction: column; height: auto; min-height: 100%; padding-bottom: 40px; }
                   .ql-toolbar { position: sticky; top: 0; z-index: 10; background: white; border: none !important; border-bottom: 1px solid #e2e8f0 !important; padding: 12px 24px !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); display: flex; justify-content: center; }
                   .ql-container { border: none !important; font-family: 'Times New Roman', Times, serif; font-size: 15px; }
-                  .ql-editor { background: white; min-height: 1056px; max-width: 816px; margin: 2rem auto; padding: 1in !important; box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); border: 1px solid #cbd5e1; }
+                  
+                  /* THE FIX: Applying the same background rules to the WYSIWYG editor UI */
+                  .ql-editor { 
+                    background-color: white; 
+                    ${userLetterhead ? `
+                      background-image: url('${userLetterhead}');
+                      background-size: 816px 1056px; /* 8.5in x 11in exactly */
+                      background-repeat: repeat-y;
+                      background-position: top center;
+                      padding: 1.8in 1in 1.5in 1in !important;
+                    ` : `
+                      padding: 1in !important; 
+                    `}
+                    min-height: 1056px; 
+                    max-width: 816px; 
+                    margin: 2rem auto; 
+                    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); 
+                    border: 1px solid #cbd5e1; 
+                  }
                 `}</style>
                 <ReactQuill 
                   theme="snow" 
