@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PlusCircle, MapPin, UploadCloud, FileText, Loader2, X, Image as ImageIcon, Package, Plus, Trash2, Calendar } from "lucide-react";
-import { createSupply } from "@/actions/supplyActions";
+import { PlusCircle, MapPin, UploadCloud, FileText, Loader2, X, Image as ImageIcon, Package, Plus, Trash2, Calendar, Edit } from "lucide-react";
+import { createSupply, updateSupply } from "@/actions/supplyActions"; // We will add updateSupply next!
 
-export default function SupplyForm() {
+interface SupplyFormProps {
+  supplyToEdit?: any; // Passing this turns the component into Edit Mode
+}
+
+export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,8 +17,17 @@ export default function SupplyForm() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
-  // Dynamic State for Commodity Specifications
-  const [keyTerms, setKeyTerms] = useState<{label: string, value: string}[]>([]);
+  // Initialize Dynamic JSON Terms safely from existing data
+  const [keyTerms, setKeyTerms] = useState<{label: string, value: string}[]>(() => {
+    if (supplyToEdit?.keyTerms) {
+      try {
+        return typeof supplyToEdit.keyTerms === "string" 
+          ? JSON.parse(supplyToEdit.keyTerms) 
+          : supplyToEdit.keyTerms;
+      } catch (e) { return []; }
+    }
+    return [];
+  });
 
   // Lock background scrolling when modal is open
   useEffect(() => {
@@ -22,6 +35,11 @@ export default function SupplyForm() {
     else document.body.style.overflow = 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
+
+  // --- Format Date for HTML Input ---
+  const defaultDate = supplyToEdit?.validityDate 
+    ? new Date(supplyToEdit.validityDate).toISOString().slice(0, 16) 
+    : "";
 
   // --- Image Handling ---
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,15 +94,23 @@ export default function SupplyForm() {
       const validKeyTerms = keyTerms.filter(t => t.label.trim() && t.value.trim());
       formData.append("keyTerms", JSON.stringify(validKeyTerms));
 
-      await createSupply(formData);
+      // Route to correct Server Action based on Mode
+      if (supplyToEdit) {
+        formData.append("id", supplyToEdit.id);
+        await updateSupply(formData);
+      } else {
+        await createSupply(formData);
+      }
       
       // Reset & Close
-      setImages([]); setImagePreviews([]); setPdfFile(null); setKeyTerms([]);
-      formRef.current?.reset();
+      if (!supplyToEdit) {
+        setImages([]); setImagePreviews([]); setPdfFile(null); setKeyTerms([]);
+        formRef.current?.reset();
+      }
       setIsOpen(false);
     } catch (error) {
       console.error(error);
-      alert("Failed to upload. Ensure files are under 10MB.");
+      alert("Failed to save changes.");
     } finally {
       setIsSubmitting(false);
     }
@@ -92,13 +118,24 @@ export default function SupplyForm() {
 
   return (
     <>
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition-all shrink-0"
-      >
-        <PlusCircle size={20} />
-        Post Supply
-      </button>
+      {/* DYNAMIC TRIGGER: Small Icon for tables, Big Button for header */}
+      {supplyToEdit ? (
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="p-2 bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 rounded-lg shadow-sm transition-colors"
+          title="Edit Deal"
+        >
+          <Edit size={16} />
+        </button>
+      ) : (
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition-all shrink-0"
+        >
+          <PlusCircle size={20} />
+          Post Supply
+        </button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -110,7 +147,7 @@ export default function SupplyForm() {
                 <div className="bg-emerald-100 p-2 rounded-lg">
                   <Package size={20} />
                 </div>
-                <h2 className="text-xl font-bold text-slate-900">Add New Inventory</h2>
+                <h2 className="text-xl font-bold text-slate-900">{supplyToEdit ? "Edit Inventory" : "Add New Inventory"}</h2>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-2 rounded-full transition-colors border border-slate-200 shadow-sm">
                 <X size={20} />
@@ -128,12 +165,12 @@ export default function SupplyForm() {
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Product Name <span className="text-red-500">*</span>
                     </label>
-                    <input type="text" name="title" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
+                    <input type="text" name="title" defaultValue={supplyToEdit?.title} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
                   </div>
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
-                    <input type="text" name="packaging" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
+                    <input type="text" name="packaging" defaultValue={supplyToEdit?.packaging} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,13 +180,13 @@ export default function SupplyForm() {
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Available Qty <span className="text-red-500">*</span>
                         </label>
-                        <input type="number" step="any" name="quantity" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
+                        <input type="number" step="any" name="quantity" defaultValue={supplyToEdit?.quantity} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
                       </div>
                       <div className="w-1/3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Unit <span className="text-red-500">*</span>
                         </label>
-                        <select name="quantityUnit" className="w-full mt-1.5 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium cursor-pointer">
+                        <select name="quantityUnit" defaultValue={supplyToEdit?.quantityUnit || "MT"} className="w-full mt-1.5 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium cursor-pointer">
                           <option value="MT">MT</option>
                           <option value="KG">KG</option>
                           <option value="BBL">BBL</option>
@@ -160,14 +197,14 @@ export default function SupplyForm() {
                     {/* PRICE (OPTIONAL) */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Price per unit ($)</label>
-                      <input type="number" step="0.01" name="price" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
+                      <input type="number" step="0.01" name="price" defaultValue={supplyToEdit?.price} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
                     </div>
                   </div>
 
-                  {/* NEW: TOLERANCE LEVEL */}
+                  {/* TOLERANCE LEVEL */}
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
-                    <input type="text" name="tolerance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Seller Option" />
+                    <input type="text" name="tolerance" defaultValue={supplyToEdit?.tolerance} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Seller Option" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -177,7 +214,7 @@ export default function SupplyForm() {
                       </label>
                       <div className="relative mt-1.5">
                         <MapPin className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
-                        <input type="text" name="location" required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. JAFZA Warehouse" />
+                        <input type="text" name="location" defaultValue={supplyToEdit?.location} required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. JAFZA Warehouse" />
                       </div>
                     </div>
                     <div>
@@ -186,7 +223,7 @@ export default function SupplyForm() {
                       </label>
                       <div className="relative mt-1.5">
                         <Calendar className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
-                        <input type="datetime-local" name="validityDate" required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" />
+                        <input type="datetime-local" name="validityDate" defaultValue={defaultDate} required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" />
                       </div>
                     </div>
                   </div>
@@ -198,36 +235,34 @@ export default function SupplyForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Origin</label>
-                      <input type="text" name="origin" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Oman / Middle East" />
+                      <input type="text" name="origin" defaultValue={supplyToEdit?.origin} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Oman / Middle East" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
-                      <input type="text" name="destination" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Any port in Thailand" />
+                      <input type="text" name="destination" defaultValue={supplyToEdit?.destination} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Any port in Thailand" />
                     </div>
 
-                    {/* NEW: LOAD PORT */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Load Port</label>
-                      <input type="text" name="loadPort" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Oman/Middle East Port" />
+                      <input type="text" name="loadPort" defaultValue={supplyToEdit?.loadPort} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Oman/Middle East Port" />
                     </div>
 
-                    {/* NEW: INSURANCE */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Insurance Terms</label>
-                      <input type="text" name="insurance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. To be covered by the buyer" />
+                      <input type="text" name="insurance" defaultValue={supplyToEdit?.insurance} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. To be covered by the buyer" />
                     </div>
 
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Incoterms</label>
-                      <input type="text" name="incoterms" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. CFR, FOB" />
+                      <input type="text" name="incoterms" defaultValue={supplyToEdit?.incoterms} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. CFR, FOB" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Terms</label>
-                      <input type="text" name="paymentTerms" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. 20% Advance, Balance against Docs" />
+                      <input type="text" name="paymentTerms" defaultValue={supplyToEdit?.paymentTerms} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. 20% Advance, Balance against Docs" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inspection</label>
-                      <input type="text" name="inspection" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Independent surveyor at load port" />
+                      <input type="text" name="inspection" defaultValue={supplyToEdit?.inspection} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Independent surveyor at load port" />
                     </div>
                   </div>
                 </div>
@@ -277,18 +312,18 @@ export default function SupplyForm() {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     General Notes / Summary <span className="text-red-500">*</span>
                   </label>
-                  <textarea name="specs" rows={3} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium"></textarea>
+                  <textarea name="specs" rows={3} defaultValue={supplyToEdit?.specs} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium"></textarea>
                 </div>
 
                 {/* SECTION 5: Media Uploads */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
+                  <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments (Upload New)</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Images */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
-                        <span>Reference Images</span>
+                        <span>Add Images</span>
                         <span className={images.length === 5 ? "text-rose-500" : "text-emerald-600"}>{images.length} / 5</span>
                       </label>
                       <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors relative mb-3">
@@ -313,7 +348,7 @@ export default function SupplyForm() {
 
                     {/* PDF */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl flex flex-col">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Official Spec Sheet (PDF)</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Upload New Spec Sheet (PDF)</label>
                       <div className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center transition-colors relative ${pdfFile ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
                         {pdfFile ? (
                           <div className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-emerald-100 shadow-sm relative z-20">
@@ -345,7 +380,7 @@ export default function SupplyForm() {
                 Cancel
               </button>
               <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition-all">
-                {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Publish to Board"}
+                {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : (supplyToEdit ? "Save Changes" : "Publish to Board")}
               </button>
             </div>
 

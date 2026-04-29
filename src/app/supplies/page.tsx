@@ -113,10 +113,8 @@ export default async function SuppliesPage() {
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         {canEdit && (
-                          <button className="p-2 bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 rounded-lg shadow-sm transition-colors" title="Edit Deal (Coming Soon Phase 4)">
-                            <Edit size={16} />
-                          </button>
-                        )}
+  <SupplyForm supplyToEdit={supply} />
+)}
                         {supply.chatRoom?.id ? (
                           <Link href={`/chat/${supply.chatRoom.id}`} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">
                             <Eye size={14} /> Deal Desk
