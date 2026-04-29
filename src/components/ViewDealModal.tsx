@@ -144,7 +144,7 @@ export default function ViewDealModal({ deal, type }: ViewDealModalProps) {
                 
                 {parsedTerms.length > 0 && (
                   <div className="grid grid-cols-2 gap-2 mb-3">
-                    {parsedTerms.map((term, idx) => (
+                    {parsedTerms.map((term: {label: string, value: string}, idx: number) => (
                       <div key={idx} className="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                         <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">{term.label}</p>
                         <p className="text-sm font-bold text-slate-900 truncate" title={term.value}>{term.value}</p>
@@ -165,7 +165,7 @@ export default function ViewDealModal({ deal, type }: ViewDealModalProps) {
                   
                   {docs.length > 0 && (
                     <div className="space-y-2">
-                      {docs.map((doc, idx) => (
+                      {docs.map((doc: string, idx: number) => (
                         <a key={idx} href={doc} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 p-3 rounded-xl transition-colors group">
                           <div className="bg-rose-100 p-2 rounded-lg text-rose-600 group-hover:bg-rose-200 transition-colors">
                             <FileText size={16} />
@@ -181,7 +181,7 @@ export default function ViewDealModal({ deal, type }: ViewDealModalProps) {
 
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                      {images.map((img, idx) => (
+                      {images.map((img: string, idx: number) => (
                         <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="block relative h-24 rounded-xl border border-slate-200 overflow-hidden hover:opacity-90 transition-opacity">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={img} alt="Deal Reference" className="w-full h-full object-cover" />

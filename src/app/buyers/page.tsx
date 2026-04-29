@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { assignRep } from "@/actions/buyerActions";
-import { Users, Building, Mail, Phone, ShieldCheck, CheckCircle2, AlertCircle, Briefcase, MapPin, ShieldAlert, Clock, ExternalLink, User, Globe } from "lucide-react";
+import { Users, Building, Mail, Phone, ShieldCheck, CheckCircle2, AlertCircle, Briefcase, MapPin, ShieldAlert, Clock, ExternalLink, User, Globe, UserMinus } from "lucide-react";
 import ClientModal from "@/components/ClientModal";
+import ExportButton from "@/components/ExportButton"; // Re-added the export engine
 import Link from "next/link";
 
 export default async function BuyersPage() {
@@ -15,6 +16,11 @@ export default async function BuyersPage() {
       orderBy: { firstName: "asc" }
     })
   ]);
+
+  // KPI Calculations based on your schema
+  const totalClients = clients.length;
+  const verifiedClients = clients.filter(c => c.kycStatus === "VERIFIED").length;
+  const unassignedClients = clients.filter(c => !c.assignedRepId).length;
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10 font-sans flex flex-col h-screen overflow-hidden">
@@ -32,12 +38,38 @@ export default async function BuyersPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-100 font-bold text-sm shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl border border-indigo-100 font-bold text-sm shadow-sm">
             <ShieldCheck size={18} /> KYC Controlled
           </div>
-          {/* THE MODAL BUTTON */}
+          <ExportButton data={clients} type="CRM_Database" />
           <ClientModal />
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="max-w-[1600px] mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 shrink-0">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600"><Briefcase size={24} /></div>
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Network</p>
+            <h3 className="text-2xl font-black text-slate-900">{totalClients} <span className="text-sm font-medium text-slate-400">Entities</span></h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600"><ShieldCheck size={24} /></div>
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">KYC Verified</p>
+            <h3 className="text-2xl font-black text-slate-900">{verifiedClients} <span className="text-sm font-medium text-slate-400">Cleared</span></h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-rose-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+          <div className="bg-rose-100 p-3 rounded-xl text-rose-600"><UserMinus size={24} /></div>
+          <div>
+            <p className="text-xs font-bold text-rose-600 uppercase tracking-widest">Action Required</p>
+            <h3 className="text-2xl font-black text-slate-900">{unassignedClients} <span className="text-sm font-medium text-slate-400">Unassigned</span></h3>
+          </div>
         </div>
       </div>
 
@@ -49,7 +81,7 @@ export default async function BuyersPage() {
             <Briefcase size={20} className="text-indigo-400" />
             <h2 className="text-xl font-bold tracking-wide">Enterprise Master Database</h2>
           </div>
-          <div className="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+          <div className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
             {clients.length} Registered Entities
           </div>
         </div>

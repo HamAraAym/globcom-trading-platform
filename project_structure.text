@@ -21,6 +21,7 @@
   - window.svg
 - src
   - actions
+    - adminActions.ts
     - buyerActions.ts
     - chatActions.ts
     - demandActions.ts
@@ -60,6 +61,9 @@
       - page.tsx
     - trading
       - page.tsx
+    - users
+      - UserManagementTable.tsx
+      - page.tsx
   - components
     - ChatInput.tsx
     - ClientModal.tsx
@@ -68,6 +72,7 @@
     - DemandForm.tsx
     - DocumentGenerator.tsx
     - EmailDispatcher.tsx
+    - ExportButton.tsx
     - LocationAutocomplete.tsx
     - MediaGallery.tsx
     - NotificationBell.tsx
@@ -77,6 +82,7 @@
     - SupplyCard.tsx
     - SupplyForm.tsx
     - TopBar.tsx
+    - ViewDealModal.tsx
   - lib
     - prisma.ts
     - supabase.ts
