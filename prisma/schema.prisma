@@ -72,6 +72,9 @@ model User {
   role            Role         @default(BUYER_REP)
   onlineStatus    OnlineStatus @default(OFFLINE)
   lastSeen        DateTime     @default(now())
+  
+  // NEW: Enterprise Branding
+  letterheadUrl   String?      // Supabase URL for official document header
 
   // Relations
   demands         Demand[]
@@ -190,6 +193,7 @@ model Demand {
   title         String
   quantity      Float      // CHANGED: Float to allow decimals (e.g. 25.5 MT)
   quantityUnit  String     @default("MT") // NEW: Unit of measurement
+  tolerance     String?    // NEW: e.g., "+/- 10% Vessel Option"
   targetPrice   Float?     // CHANGED: Optional Price
   timeline      String
   
@@ -225,6 +229,7 @@ model Supply {
   title         String
   quantity      Float      // CHANGED: Float to allow decimals (e.g. 25.5 MT)
   quantityUnit  String     @default("MT") // NEW: Unit of measurement
+  tolerance     String?    // NEW: e.g., "+/- 10% Seller Option"
   price         Float?     // CHANGED: Optional Price
   location      String
   

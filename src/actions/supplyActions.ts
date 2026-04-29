@@ -19,6 +19,9 @@ export async function createSupply(formData: FormData) {
   const quantity = parseFloat(formData.get("quantity") as string);
   const quantityUnit = (formData.get("quantityUnit") as string) || "MT";
   
+  // NEW: Tolerance Level (e.g., "+/- 10% Seller Option")
+  const tolerance = formData.get("tolerance") as string | null;
+  
   // CHANGED: Safely handling optional price
   const priceRaw = formData.get("price") as string | null;
   const price = priceRaw ? parseFloat(priceRaw) : null;
@@ -81,6 +84,7 @@ export async function createSupply(formData: FormData) {
       title, 
       quantity, 
       quantityUnit,
+      tolerance, // Injected Tolerance
       price, 
       location, 
       specs,

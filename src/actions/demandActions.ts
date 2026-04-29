@@ -19,6 +19,9 @@ export async function createDemand(formData: FormData) {
   const quantity = parseFloat(formData.get("quantity") as string);
   const quantityUnit = (formData.get("quantityUnit") as string) || "MT";
   
+  // NEW: Tolerance Level (e.g., "+/- 10% Vessel Option")
+  const tolerance = formData.get("tolerance") as string | null;
+  
   // CHANGED: Safely handling optional target price
   const targetPriceRaw = formData.get("targetPrice") as string | null;
   const targetPrice = targetPriceRaw ? parseFloat(targetPriceRaw) : null;
@@ -77,6 +80,7 @@ export async function createDemand(formData: FormData) {
       title, 
       quantity, 
       quantityUnit,
+      tolerance, // Injected Tolerance
       targetPrice, 
       timeline, 
       specs,

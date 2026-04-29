@@ -17,14 +17,19 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
   const resolvedParams = await params;
   const chatId = resolvedParams.chatId;
 
-  // 1. Secure Role Check
+  // 1. Secure Role & Enterprise Branding Check
   let userRole = "GUEST";
+  let userLetterhead: string | null = null;
+  
   if (session?.user?.email) {
     const dbUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { role: true }
+      select: { role: true, letterheadUrl: true } // Fetch the letterhead!
     });
-    if (dbUser) userRole = dbUser.role;
+    if (dbUser) {
+      userRole = dbUser.role;
+      userLetterhead = dbUser.letterheadUrl;
+    }
   }
 
   // 2. Fetch Room, Users, and Clients
@@ -32,8 +37,8 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
     prisma.chatRoom.findUnique({
       where: { id: chatId },
       include: {
-        demand: { include: { createdBy: true, documents: true } }, // ADD DOCUMENTS: TRUE
-        supply: { include: { createdBy: true, documents: true } }, // ADD DOCUMENTS: TRUE
+        demand: { include: { createdBy: true, documents: true } }, 
+        supply: { include: { createdBy: true, documents: true } }, 
         messages: {
           include: { sender: true },
           orderBy: { createdAt: "asc" }, 
@@ -192,12 +197,22 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
 
             {/* Core Metrics */}
             <div className="space-y-4 mb-8">
+              
+              {/* UPDATED: Quantity & Tolerance Display */}
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-slate-500"><Scale size={16}/> <span className="text-xs font-bold uppercase tracking-wider">Quantity</span></div>
-                <span className="font-bold text-slate-900">
-                  {new Intl.NumberFormat().format(contextItem?.quantity || 0)} <span className="text-xs text-slate-500 ml-1">{(contextItem as any)?.quantityUnit || "MT"}</span>
-                </span>
+                <div className="text-right">
+                  <span className="font-bold text-slate-900">
+                    {new Intl.NumberFormat().format(contextItem?.quantity || 0)} <span className="text-xs text-slate-500 ml-1">{(contextItem as any)?.quantityUnit || "MT"}</span>
+                  </span>
+                  {(contextItem as any)?.tolerance && (
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+                      {(contextItem as any).tolerance}
+                    </p>
+                  )}
+                </div>
               </div>
+              
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-slate-500"><CircleDollarSign size={16}/> <span className="text-xs font-bold uppercase tracking-wider">{isDemand ? 'Target Price' : 'Listing Price'}</span></div>
                 <span className={`font-bold ${rawPrice ? 'text-slate-900' : 'text-slate-400 italic text-sm'}`}>{displayPrice}</span>
@@ -266,7 +281,7 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
             
             <div className="mt-auto pt-6 border-t border-slate-100 space-y-4">
               
-              {/* SMART PROPOSAL GENERATOR */}
+              {/* SMART PROPOSAL GENERATOR - NOW ACCEPTS LETTERHEAD */}
               {clients.length > 0 ? (
                 <DocumentGenerator 
                   clientId={clients[0].id} 
@@ -275,6 +290,7 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
                   contextItem={contextItem}
                   defaultDocType={isDemand ? "LOI" : "FCO"} 
                   buttonStyle={`w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20`}
+                  userLetterhead={userLetterhead}
                 />
               ) : (
                 <div className="bg-rose-50 text-rose-600 text-xs font-bold p-3 rounded-xl border border-rose-100 flex items-center gap-2">

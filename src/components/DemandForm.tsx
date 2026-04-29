@@ -131,7 +131,6 @@ export default function DemandForm() {
                     <input type="text" name="title" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
                   </div>
 
-                  {/* PACKAGING MOVED HERE */}
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
                     <input type="text" name="packaging" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
@@ -163,6 +162,12 @@ export default function DemandForm() {
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Price ($)</label>
                       <input type="number" step="0.01" name="targetPrice" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
                     </div>
+                  </div>
+
+                  {/* NEW: TOLERANCE LEVEL */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
+                    <input type="text" name="tolerance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Vessel Option" />
                   </div>
 
                   <div>

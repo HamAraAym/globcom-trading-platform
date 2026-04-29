@@ -131,7 +131,6 @@ export default function SupplyForm() {
                     <input type="text" name="title" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
                   </div>
 
-                  {/* PACKAGING MOVED HERE */}
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
                     <input type="text" name="packaging" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
@@ -163,6 +162,12 @@ export default function SupplyForm() {
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Price per unit ($)</label>
                       <input type="number" step="0.01" name="price" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
                     </div>
+                  </div>
+
+                  {/* NEW: TOLERANCE LEVEL */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
+                    <input type="text" name="tolerance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Seller Option" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

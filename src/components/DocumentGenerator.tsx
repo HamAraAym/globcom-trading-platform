@@ -20,6 +20,7 @@ interface DocumentGeneratorProps {
   contextItem?: any; 
   defaultDocType?: DocumentType;
   buttonStyle?: string;
+  userLetterhead?: string | null; // NEW: The enterprise letterhead!
 }
 
 export default function DocumentGenerator({ 
@@ -28,7 +29,8 @@ export default function DocumentGenerator({
   clientCompany, 
   contextItem, 
   defaultDocType = "SCO",
-  buttonStyle = "bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+  buttonStyle = "bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2",
+  userLetterhead
 }: DocumentGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -54,8 +56,11 @@ export default function DocumentGenerator({
     const refNo = `GC-${docType}-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
     const product = contextItem?.title || "[Commodity Name]";
     
+    // NEW: Dynamic Quantity & Tolerance Formatting
     const unit = contextItem?.quantityUnit || "MT";
-    const qty = contextItem?.quantity ? `${new Intl.NumberFormat().format(contextItem.quantity)} ${unit}` : "[Quantity]";
+    const baseQty = contextItem?.quantity ? new Intl.NumberFormat().format(contextItem.quantity) : "[Quantity]";
+    const toleranceStr = contextItem?.tolerance ? ` ${contextItem.tolerance}` : "";
+    const qtyDisplay = `${baseQty} ${unit}${toleranceStr}`; // e.g. "25,000 MT +/- 10% Vessel Option"
     
     const rawPrice = contextItem?.targetPrice || contextItem?.price;
     const formattedPrice = rawPrice ? `USD ${new Intl.NumberFormat('en-US').format(rawPrice)} per ${unit}` : "USD ______ per metric tonne";
@@ -70,17 +75,23 @@ export default function DocumentGenerator({
       specsHtml = `<li><strong>Specifications:</strong> As per standard export quality.</li>`;
     }
 
+    // NEW: Dynamic Letterhead Injection
+    const letterheadHtml = userLetterhead 
+      ? `<div style="text-align: center; margin-bottom: 30px;"><img src="${userLetterhead}" style="max-width: 100%; max-height: 150px; object-fit: contain;" alt="Official Letterhead" /></div>` 
+      : ``;
+
     let htmlTemplate = "";
 
-    // 1. LETTER OF INTEREST (Matches your specific LOI layout)
+    // 1. LETTER OF INTEREST
     if (docType === "LOI") {
       htmlTemplate = `
         <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+          ${letterheadHtml}
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
           <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">LETTER OF INTEREST</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
-          <p><strong>SUBJECT: Purchase of ${product} in Bulk, Qty: ${qty} (+/- 10% Vessel's/Buyer Option)</strong></p>
+          <p><strong>SUBJECT: Purchase of ${product} in Bulk, Qty: ${qtyDisplay}</strong></p>
           <p>Dear Sir,</p>
           <p>We are pleased to hereby issue our Letter of Interest (LOI) for the same on the following basis:</p>
           <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
@@ -89,7 +100,7 @@ export default function DocumentGenerator({
             <ul style="margin-top: 5px; margin-bottom: 15px;">
               ${specsHtml}
             </ul>
-            <li><strong>Quantity:</strong> ${qty} (±10% at vessel/buyer’s option)</li>
+            <li><strong>Quantity:</strong> ${qtyDisplay}</li>
             <li><strong>Origin:</strong> ${contextItem?.origin || 'UAE / Oman'}</li>
             <li><strong>Destination:</strong> ${contextItem?.destination || 'Open as per buyer option'}</li>
             <li><strong>Shipment:</strong> ${contextItem?.timeline || '1st week January 2026'}</li>
@@ -108,10 +119,11 @@ export default function DocumentGenerator({
         </div>
       `;
     } 
-    // 2. FULL CORPORATE OFFER (Matches your specific FCO layout)
+    // 2. FULL CORPORATE OFFER
     else if (docType === "FCO") {
       htmlTemplate = `
         <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+          ${letterheadHtml}
           <p><strong>Ref. No:</strong> ${refNo}</p>
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>TO:</strong> ${clientCompany}</p>
@@ -121,7 +133,7 @@ export default function DocumentGenerator({
           <p>We are pleased to offer the ${product} as per the terms and conditions.</p>
           <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
             <li><strong>Commodity:</strong> ${product}</li>
-            <li><strong>Quantity:</strong> ${qty} (+/- 10%) Seller Option.</li>
+            <li><strong>Quantity:</strong> ${qtyDisplay}</li>
             <li style="margin-top: 10px;"><strong><u>Quality:</u></strong></li>
             <ul style="margin-top: 5px; margin-bottom: 15px;">
               ${specsHtml}
@@ -150,10 +162,11 @@ export default function DocumentGenerator({
         </div>
       `;
     }
-    // 3. SOFT CORPORATE OFFER (Lightweight version)
+    // 3. SOFT CORPORATE OFFER
     else {
         htmlTemplate = `
         <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+          ${letterheadHtml}
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
           <h2 style="text-align: center; margin-top: 30px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SOFT CORPORATE OFFER (SCO)</h2>
@@ -162,7 +175,7 @@ export default function DocumentGenerator({
           <p>For preliminary discussion purposes, we are pleased to outline the following soft offer for ${product}:</p>
           <ul>
             <li><strong>Commodity:</strong> ${product}</li>
-            <li><strong>Quantity Available:</strong> ${qty}</li>
+            <li><strong>Quantity Available:</strong> ${qtyDisplay}</li>
             <li><strong>Indicative Price:</strong> ${formattedPrice}</li>
             <li><strong>Origin:</strong> ${contextItem?.origin || 'TBA'}</li>
             <li><strong>Proposed Incoterms:</strong> ${contextItem?.incoterms || 'TBA'} ${contextItem?.destination || ''}</li>
@@ -175,7 +188,7 @@ export default function DocumentGenerator({
     }
 
     setContent(htmlTemplate);
-  }, [isOpen, docType, contextItem, clientCompany, clientName]);
+  }, [isOpen, docType, contextItem, clientCompany, clientName, userLetterhead]);
 
   const handleGeneratePdf = async () => {
     setIsGenerating(true);
