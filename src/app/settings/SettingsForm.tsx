@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { User, Mail, Shield, Image as ImageIcon, UploadCloud, Loader2, Save, X, Building } from "lucide-react";
-import { updateUserProfile } from "@/actions/userActions";
+import { User, Mail, Shield, Image as ImageIcon, UploadCloud, Loader2, Save, X, Building, Globe, FileText } from "lucide-react";import { updateUserProfile } from "@/actions/userActions";
+import { updateGlobalSettings } from "@/actions/adminActions";
 
 interface SettingsFormProps {
   user: {
@@ -12,21 +12,35 @@ interface SettingsFormProps {
     role: string;
     letterheadUrl: string | null;
   };
+  // NEW: Pass down the global config for Admins
+  systemSettings?: {
+    companyName: string;
+    companyLogoUrl: string | null;
+  };
 }
 
-export default function SettingsForm({ user }: SettingsFormProps) {
+export default function SettingsForm({ user, systemSettings }: SettingsFormProps) {
+  // --- Personal Profile State ---
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [preview, setPreview] = useState<string | null>(user.letterheadUrl);
   const [file, setFile] = useState<File | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // --- Global Config State (Admins Only) ---
+  const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false);
+  const [globalPreview, setGlobalPreview] = useState<string | null>(systemSettings?.companyLogoUrl || null);
+  const [globalFile, setGlobalFile] = useState<File | null>(null);
+  const globalFormRef = useRef<HTMLFormElement>(null);
+
+  const isAdmin = user.role === "ADMIN";
+
+  // ==========================================
+  // PERSONAL PROFILE HANDLERS
+  // ==========================================
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 5242880) {
-        alert("Please upload an image smaller than 5MB.");
-        return;
-      }
+      if (selectedFile.size > 5242880) return alert("Please upload an image smaller than 5MB.");
       setFile(selectedFile);
       setPreview(URL.createObjectURL(selectedFile));
     }
@@ -40,18 +54,11 @@ export default function SettingsForm({ user }: SettingsFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const formData = new FormData(e.currentTarget);
-      
-      // Handle Image
       formData.delete("letterhead"); 
-      if (file) {
-        formData.append("letterhead", file);
-      } else if (!preview) {
-        // TELL THE BACKEND TO WIPE IT
-        formData.append("removeLetterhead", "true");
-      }
+      if (file) formData.append("letterhead", file);
+      else if (!preview) formData.append("removeLetterhead", "true");
 
       await updateUserProfile(formData);
       alert("✅ Profile successfully updated!");
@@ -63,11 +70,47 @@ export default function SettingsForm({ user }: SettingsFormProps) {
     }
   };
 
+  // ==========================================
+  // GLOBAL CONFIG HANDLERS
+  // ==========================================
+  const handleGlobalImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 5242880) return alert("Please upload an image smaller than 5MB.");
+      setGlobalFile(selectedFile);
+      setGlobalPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const clearGlobalImage = () => {
+    setGlobalFile(null);
+    setGlobalPreview(null);
+  };
+
+  const handleGlobalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsGlobalSubmitting(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      formData.delete("logo");
+      if (globalFile) formData.append("logo", globalFile);
+      else if (!globalPreview) formData.append("removeLogo", "true");
+
+      await updateGlobalSettings(formData);
+      alert("✅ Enterprise Branding successfully updated!");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update enterprise branding.");
+    } finally {
+      setIsGlobalSubmitting(false);
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto w-full">
+    <div className="max-w-4xl mx-auto w-full space-y-8">
+      
+      {/* 1. PERSONAL PROFILE FORM */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        
-        {/* Header */}
         <div className="bg-slate-900 px-8 py-6 text-white flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl font-black border border-indigo-500/30">
             {user.firstName.charAt(0)}{user.lastName.charAt(0)}
@@ -85,8 +128,6 @@ export default function SettingsForm({ user }: SettingsFormProps) {
         </div>
 
         <form ref={formRef} onSubmit={handleSubmit} className="p-8 space-y-8">
-          
-          {/* Personal Details */}
           <div>
             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <User size={16} className="text-indigo-500" /> Account Details
@@ -105,13 +146,12 @@ export default function SettingsForm({ user }: SettingsFormProps) {
 
           <hr className="border-slate-100" />
 
-          {/* Letterhead Engine Upload */}
           <div>
             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Building size={16} className="text-indigo-500" /> Enterprise Branding
+              <FileText size={16} className="text-indigo-500" /> Document Letterhead
             </h3>
             <p className="text-sm text-slate-500 mb-4 max-w-2xl">
-              Upload your official company letterhead (High-Res PNG or JPG). This will be automatically injected into all FCOs and LOIs you generate in the Deal Desk.
+              Upload your personal or branch letterhead (High-Res PNG or JPG). This will be automatically injected into all FCOs and LOIs you generate.
             </p>
             
             <div className="bg-slate-50 p-6 border border-slate-200 rounded-2xl">
@@ -128,25 +168,70 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                   <input type="file" accept="image/png, image/jpeg" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageChange} />
                   <UploadCloud className="mx-auto text-indigo-400 mb-3" size={32} />
                   <p className="text-sm font-bold text-slate-700">Drop your Letterhead image here</p>
-                  <p className="text-xs font-medium text-slate-400 mt-1">Recommended: Wide format (e.g., 2000x400px)</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end pt-4">
-            <button 
-              type="submit" 
-              disabled={isSubmitting} 
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all"
-            >
+            <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all">
               {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving Profile...</> : <><Save size={18} /> Update Profile Settings</>}
             </button>
           </div>
-
         </form>
       </div>
+
+      {/* 2. GLOBAL SYSTEM CONFIGURATION (ADMIN ONLY) */}
+      {isAdmin && (
+        <div className="bg-white rounded-3xl shadow-sm border border-rose-200 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+          
+          <div className="bg-rose-50 px-8 py-4 border-b border-rose-100 flex items-center gap-3">
+            <div className="bg-rose-500 p-2 rounded-lg text-white shadow-sm">
+              <Globe size={18} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-rose-900 tracking-tight">Global Enterprise Branding</h2>
+              <p className="text-xs text-rose-600 font-medium">Changes here will apply system-wide to all users and sidebars.</p>
+            </div>
+          </div>
+
+          <form ref={globalFormRef} onSubmit={handleGlobalSubmit} className="p-8 space-y-6">
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Name</label>
+              <input type="text" name="companyName" defaultValue={systemSettings?.companyName} required className="w-full max-w-md mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all text-slate-900 font-medium block" />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Global Sidebar Logo</label>
+              <div className="bg-slate-50 p-6 border border-slate-200 rounded-2xl max-w-md">
+                {globalPreview ? (
+                  <div className="relative border-2 border-slate-200 rounded-xl overflow-hidden bg-white flex justify-center p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={globalPreview} alt="Logo Preview" className="max-h-24 object-contain" />
+                    <button type="button" onClick={clearGlobalImage} className="absolute top-2 right-2 bg-rose-500 text-white p-1.5 rounded-lg hover:bg-rose-600 transition-colors shadow-md">
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-100 transition-colors relative">
+                    <input type="file" accept="image/png, image/jpeg" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleGlobalImageChange} />
+                    <Building className="mx-auto text-slate-400 mb-3" size={32} />
+                    <p className="text-sm font-bold text-slate-700">Drop square logo here</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex pt-4">
+              <button type="submit" disabled={isGlobalSubmitting} className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-rose-600/20 transition-all">
+                {isGlobalSubmitting ? <><Loader2 size={18} className="animate-spin" /> Applying Global Changes...</> : <><Save size={18} /> Publish Enterprise Brand</>}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
     </div>
   );
 }

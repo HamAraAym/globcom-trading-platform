@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import SettingsForm from "./SettingsForm";
+import { getGlobalSettings } from "@/actions/adminActions"; // NEW: Fetch global config
 
 export const metadata = {
   title: "Account Settings | GlobCom CRM",
@@ -28,6 +29,9 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
+  // 3. Fetch Global System Settings (Required for the Admin form)
+  const systemSettings = await getGlobalSettings();
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10 overflow-y-auto custom-scrollbar">
       <div className="max-w-4xl mx-auto mb-6">
@@ -35,7 +39,7 @@ export default async function SettingsPage() {
         <p className="text-sm text-slate-500 mt-1">Manage your enterprise profile and formal document branding.</p>
       </div>
 
-      <SettingsForm user={user} />
+      <SettingsForm user={user} systemSettings={systemSettings} />
     </div>
   );
 }
