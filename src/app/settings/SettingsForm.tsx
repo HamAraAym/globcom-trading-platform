@@ -49,8 +49,8 @@ export default function SettingsForm({ user }: SettingsFormProps) {
       if (file) {
         formData.append("letterhead", file);
       } else if (!preview) {
-        // If they cleared the preview, we might want to handle deletion in the future.
-        // For now, submitting empty just skips the upload.
+        // TELL THE BACKEND TO WIPE IT
+        formData.append("removeLetterhead", "true");
       }
 
       await updateUserProfile(formData);

@@ -15,11 +15,16 @@ export async function updateUserProfile(formData: FormData) {
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const letterhead = formData.get("letterhead") as File | null;
+  const removeLetterhead = formData.get("removeLetterhead") === "true"; // Catch the wipe signal
 
   let letterheadUrl = user.letterheadUrl; // Default to existing
 
-  // If the user uploaded a new letterhead, send it to Supabase
-  if (letterhead && letterhead.size > 0 && letterhead.name !== "undefined") {
+  // 1. If user cleared the image, wipe it from DB
+  if (removeLetterhead) {
+    letterheadUrl = null;
+  } 
+  // 2. Otherwise, if they uploaded a new one, save it to Supabase
+  else if (letterhead && letterhead.size > 0 && letterhead.name !== "undefined") {
     if (letterhead.size > 5242880) throw new Error("Image exceeds 5MB limit."); // 5MB limit
     const url = await uploadFileToSupabase(letterhead);
     if (url) letterheadUrl = url;
