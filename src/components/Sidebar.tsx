@@ -1,15 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Globe, LayoutDashboard, FileBox, Box, ArrowRightLeft, Users, ShieldCheck, Settings
+  Globe, LayoutDashboard, FileBox, Box, ArrowRightLeft, Users, ShieldCheck, Settings, UserCog
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+
+// We will build this action in the very next step!
+import { getGlobalSettings } from "@/actions/adminActions"; 
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  
+  // Dynamic Enterprise Branding State
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
+  const [brandName, setBrandName] = useState("GlobCom International FZE");
+
+  useEffect(() => {
+    // Fetch the global settings when the sidebar mounts
+    const fetchSettings = async () => {
+      try {
+        const config = await getGlobalSettings();
+        if (config) {
+          if (config.companyLogoUrl) setBrandLogo(config.companyLogoUrl);
+          if (config.companyName) setBrandName(config.companyName);
+        }
+      } catch (error) {
+        console.error("Failed to load enterprise branding", error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const userRole = (session?.user as any)?.role || "GUEST";
 
@@ -19,24 +43,44 @@ export default function Sidebar() {
     { name: "Supply Inventory", href: "/supplies", icon: Box, allowedRoles: ["ADMIN", "TRADING_REP", "SUPPLIER_REP"] },
     { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, allowedRoles: ["ADMIN", "TRADING_REP"] },
     { name: "Client CRM", href: "/buyers", icon: Users, allowedRoles: ["ADMIN"] },
+    { name: "Team & Access", href: "/users", icon: UserCog, allowedRoles: ["ADMIN"] }, // NEW: User Management
     { name: "Audit & Compliance", href: "/audit", icon: ShieldCheck, allowedRoles: ["ADMIN"] },
     { name: "Settings", href: "/settings", icon: Settings, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
   ];
 
   const visibleLinks = navLinks.filter(link => link.allowedRoles.includes(userRole));
 
+  // Auto-format the company name to fit nicely (splits the first word from the rest)
+  const nameParts = brandName.split(" ");
+  const primaryName = nameParts[0];
+  const secondaryName = nameParts.slice(1).join(" ");
+
   return (
     <div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen fixed left-0 top-0 border-r border-slate-800 shadow-2xl z-50">
       
       <div className="h-20 flex items-center px-6 border-b border-slate-800 bg-slate-950/50 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-900/20">
-            <Globe className="text-white" size={24} />
+        <div className="flex items-center gap-3 w-full">
+          
+          {/* Dynamic Logo Engine */}
+          {brandLogo ? (
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center border border-slate-700 shrink-0 shadow-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={brandLogo} alt="Company Logo" className="w-full h-full object-contain p-0.5" />
+            </div>
+          ) : (
+            <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-900/20 shrink-0">
+              <Globe className="text-white" size={24} />
+            </div>
+          )}
+          
+          {/* Dynamic Name Engine */}
+          <div className="flex flex-col justify-center overflow-hidden w-full">
+            <h1 className="text-white font-bold text-lg leading-tight tracking-wide truncate">{primaryName}</h1>
+            {secondaryName && (
+              <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-widest truncate">{secondaryName}</p>
+            )}
           </div>
-          <div>
-            <h1 className="text-white font-bold text-lg leading-tight tracking-wide">GlobCom</h1>
-            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">International FZE</p>
-          </div>
+
         </div>
       </div>
 
@@ -62,7 +106,7 @@ export default function Sidebar() {
       {/* Footer Badge */}
       <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-center shrink-0">
         <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">
-          GlobCom ERP v1.0
+          {primaryName} ERP v1.0
         </p>
       </div>
     </div>
