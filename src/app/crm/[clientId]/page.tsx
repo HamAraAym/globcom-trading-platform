@@ -6,7 +6,8 @@ import Link from "next/link";
 import { 
   Building, Mail, Phone, MapPin, ShieldCheck, Clock, ShieldAlert, 
   Briefcase, Activity, FileText, CheckCircle2, ChevronLeft, Plus, FileEdit,
-  User, FileBadge, Globe, ExternalLink, Trash2, Edit, Send, Download
+  User, FileBadge, Globe, ExternalLink, Trash2, Edit, Send, Download,
+  Package, ArrowRight
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
 
@@ -17,11 +18,17 @@ export default async function ClientProfilePage({ params }: { params: { clientId
   const resolvedParams = await params;
   const clientId = resolvedParams.clientId;
 
-  // Fetch the full 360-degree profile
+  // Fetch the full 360-degree profile including Demands & Supplies
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
       assignedRep: true,
+      demands: {
+        orderBy: { createdAt: "desc" }
+      },
+      supplies: {
+        orderBy: { createdAt: "desc" }
+      },
       activities: { 
         orderBy: { createdAt: "desc" },
         include: { user: true }
@@ -56,7 +63,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
   
   const deleteEntity = async () => {
     "use server";
-    // Cascades and deletes all associated timeline activities and documents automatically!
     await prisma.client.delete({ where: { id: clientId } });
     redirect("/buyers");
   };
@@ -90,14 +96,12 @@ export default async function ClientProfilePage({ params }: { params: { clientId
         
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
           
-          {/* Subtle Background Icon based on Entity Type */}
           <div className="absolute right-0 top-0 opacity-[0.03] translate-x-10 -translate-y-10 pointer-events-none">
             {client.type === "CORPORATE" ? <Building size={300} /> : <User size={300} />}
           </div>
 
-          {/* NEW: Action Controls (Edit & Delete) */}
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
-             <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 rounded-xl transition-all shadow-sm" title="Edit Entity">
+             <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 rounded-xl transition-all shadow-sm" title="Edit Entity (Coming Phase 4)">
                <Edit size={16} />
              </Link>
              <form action={deleteEntity}>
@@ -113,7 +117,7 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{client.name}</h1>
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{client.company || client.name}</h1>
                 
                 {/* Type Badge */}
                 {client.type === "CORPORATE" ? (
@@ -130,12 +134,12 @@ export default async function ClientProfilePage({ params }: { params: { clientId
               
               <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                 {client.type === "CORPORATE" && client.company && (
-                  <span className="flex items-center gap-1.5"><Building size={16} className="text-indigo-400" /> {client.company}</span>
+                  <span className="flex items-center gap-1.5"><User size={16} className="text-indigo-400" /> Rep: {client.name}</span>
                 )}
                 {client.type === "CORPORATE" && client.registrationNo && (
                   <span className="flex items-center gap-1.5"><FileBadge size={16} className="text-amber-500" /> {client.registrationNo}</span>
                 )}
-                <span className="flex items-center gap-1.5"><MapPin size={16} className="text-rose-400" /> {client.address || "Location N/A"}</span>
+                <span className="flex items-center gap-1.5"><MapPin size={16} className="text-rose-400" /> {client.address || client.country || "Location N/A"}</span>
                 {client.type === "CORPORATE" && client.website && (
                   <a href={client.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline">
                     <Globe size={16} className="text-blue-400" /> {client.website.replace(/^https?:\/\//, '')}
@@ -206,7 +210,7 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
           </div>
 
-          {/* NEW: Generated Contracts Vault */}
+          {/* Generated Contracts Vault */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
               <FileBadge size={16} className="text-indigo-500" /> Generated Contracts
@@ -244,7 +248,7 @@ export default async function ClientProfilePage({ params }: { params: { clientId
 
         </div>
 
-        {/* RIGHT COLUMN: Dynamic Timeline & Engine */}
+        {/* RIGHT COLUMN: Deal History & Activity */}
         <div className="lg:col-span-2 space-y-8">
           
           {/* THE PROPOSAL ENGINE LAUNCHER */}
@@ -265,8 +269,55 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
           </div>
 
+          {/* NEW: Live Deal History */}
+          {(client.demands.length > 0 || client.supplies.length > 0) && (
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2 shrink-0">
+                <Package size={16} className="text-blue-500" /> Live Deal Pipeline
+              </h3>
+              
+              <div className="space-y-3">
+                {/* Render Demands */}
+                {client.demands.map((demand: any) => (
+                  <div key={demand.id} className="p-4 border border-blue-100 bg-blue-50/30 rounded-2xl flex items-center justify-between group hover:border-blue-300 transition-colors">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Demand</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${demand.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{demand.status.replace("_", " ")}</span>
+                      </div>
+                      <p className="text-sm font-bold text-slate-900">{demand.title} <span className="text-slate-400 font-medium ml-1">• {demand.quantity} {demand.quantityUnit}</span></p>
+                    </div>
+                    {demand.chatRoomId && (
+                      <Link href={`/chat/${demand.chatRoomId}`} className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                        View Desk <ExternalLink size={12} />
+                      </Link>
+                    )}
+                  </div>
+                ))}
+
+                {/* Render Supplies */}
+                {client.supplies.map((supply: any) => (
+                  <div key={supply.id} className="p-4 border border-emerald-100 bg-emerald-50/30 rounded-2xl flex items-center justify-between group hover:border-emerald-300 transition-colors">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Supply</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${supply.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{supply.status.replace("_", " ")}</span>
+                      </div>
+                      <p className="text-sm font-bold text-slate-900">{supply.title} <span className="text-slate-400 font-medium ml-1">• {supply.quantity} {supply.quantityUnit}</span></p>
+                    </div>
+                    {supply.chatRoomId && (
+                      <Link href={`/chat/${supply.chatRoomId}`} className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                        View Desk <ExternalLink size={12} />
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Activity Timeline */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col h-[500px]">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col max-h-[500px]">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2 shrink-0">
               <Activity size={16} className="text-rose-500" /> Activity Timeline
             </h3>
@@ -281,7 +332,7 @@ export default async function ClientProfilePage({ params }: { params: { clientId
                   <p className="text-xs mt-1 text-center max-w-xs">Generated documents, sent emails, and calls will appear here.</p>
                 </div>
               ) : (
-                client.activities.map((activity) => (
+                client.activities.map((activity: any) => (
                   <div key={activity.id} className="flex gap-4 relative z-10">
                     <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
                       <Activity size={16} className="text-slate-400" />
@@ -295,7 +346,7 @@ export default async function ClientProfilePage({ params }: { params: { clientId
                         {activity.description}
                       </p>
                       <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
-                        Logged by: {activity.user.firstName} {activity.user.lastName}
+                        Logged by: {activity.user?.firstName || "System"} {activity.user?.lastName || ""}
                       </p>
                     </div>
                   </div>
