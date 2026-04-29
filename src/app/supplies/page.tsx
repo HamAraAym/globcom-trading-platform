@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { Package, ArrowRight, Eye, Edit } from "lucide-react";
 import SupplyForm from "@/components/SupplyForm";
-import ExportButton from "@/components/ExportButton"; // NEW: Export Engine
+import ExportButton from "@/components/ExportButton";
+import ViewDealModal from "@/components/ViewDealModal"; // NEW: Quick View Modal
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 
@@ -18,7 +19,7 @@ export default async function SuppliesPage() {
   }
   
   const canCreate = userRole === "ADMIN" || userRole === "SUPPLIER_REP" || userRole === "SUPPLIER";
-  const canEdit = userRole === "ADMIN" || userRole === "TRADING_REP"; // Admins & Traders can edit
+  const canEdit = userRole === "ADMIN" || userRole === "TRADING_REP"; 
 
   // Fetch Supplies + Ensure we grab the associated ChatRoom ID for routing
   const supplies = await prisma.supply.findMany({
@@ -111,10 +112,17 @@ export default async function SuppliesPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        
+                        {/* 1. Quick View Modal */}
+                        <ViewDealModal deal={supply} type="Supply" />
+
+                        {/* 2. Edit Modal */}
                         {canEdit && (
-  <SupplyForm supplyToEdit={supply} />
-)}
+                          <SupplyForm supplyToEdit={supply} />
+                        )}
+
+                        {/* 3. Deal Desk Link */}
                         {supply.chatRoom?.id ? (
                           <Link href={`/chat/${supply.chatRoom.id}`} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">
                             <Eye size={14} /> Deal Desk

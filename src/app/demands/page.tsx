@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { FileBox, ArrowRight, Eye, Edit } from "lucide-react";
 import DemandForm from "@/components/DemandForm";
-import ExportButton from "@/components/ExportButton"; // NEW: Export Engine
+import ExportButton from "@/components/ExportButton";
+import ViewDealModal from "@/components/ViewDealModal"; // NEW: Quick View Modal
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 
@@ -18,7 +19,7 @@ export default async function DemandsPage() {
   }
   
   const canCreate = userRole === "ADMIN" || userRole === "BUYER_REP" || userRole === "BUYER";
-  const canEdit = userRole === "ADMIN" || userRole === "TRADING_REP"; // Admins & Traders can edit
+  const canEdit = userRole === "ADMIN" || userRole === "TRADING_REP"; 
 
   // Fetch Demands + Ensure we grab the associated ChatRoom ID for routing
   const demands = await prisma.demand.findMany({
@@ -111,10 +112,18 @@ export default async function DemandsPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      {/* Added items-center here so all buttons align perfectly */}
+                      <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        
+                        {/* 1. Quick View Modal */}
+                        <ViewDealModal deal={demand} type="Demand" />
+                        
+                        {/* 2. Edit Modal */}
                         {canEdit && (
-    <DemandForm demandToEdit={demand} />
-  )}
+                          <DemandForm demandToEdit={demand} />
+                        )}
+
+                        {/* 3. Deal Desk Link */}
                         {demand.chatRoom?.id ? (
                           <Link href={`/chat/${demand.chatRoom.id}`} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">
                             <Eye size={14} /> Deal Desk
