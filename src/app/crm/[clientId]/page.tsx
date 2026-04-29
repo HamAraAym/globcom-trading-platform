@@ -10,7 +10,7 @@ import {
   Package, ArrowRight
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
-import { updateKycStatus } from "@/actions/buyerActions"; // NEW: KYC Updater
+import KycStatusUpdater from "@/components/KycStatusUpdater"; 
 
 export default async function ClientProfilePage({ params }: { params: { clientId: string } }) {
   const session = await getServerSession();
@@ -126,24 +126,8 @@ export default async function ClientProfilePage({ params }: { params: { clientId
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><User size={12} /> Individual</span>
                 )}
 
-                {/* NEW: Interactive KYC Badge for Admins */}
                 {isAdmin ? (
-                  <form action={updateKycStatus.bind(null, client.id)} className="inline-flex items-center">
-                    <select 
-                      name="kycStatus" 
-                      defaultValue={client.kycStatus}
-                      onChange={(e) => e.target.form?.requestSubmit()}
-                      className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${
-                        client.kycStatus === "VERIFIED" ? "text-emerald-700 bg-emerald-100 border-emerald-200" :
-                        client.kycStatus === "PENDING" ? "text-amber-700 bg-amber-100 border-amber-200" :
-                        "text-rose-700 bg-rose-100 border-rose-200"
-                      }`}
-                    >
-                      <option value="PENDING">Pending Docs</option>
-                      <option value="VERIFIED">Verified</option>
-                      <option value="REJECTED">Rejected</option>
-                    </select>
-                  </form>
+                  <KycStatusUpdater clientId={client.id} currentStatus={client.kycStatus} />
                 ) : (
                   <>
                     {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><ShieldCheck size={14} /> Verified</span>}
