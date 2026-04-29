@@ -29,6 +29,7 @@
     - messageActions.ts
     - notificationActions.ts
     - supplyActions.ts
+    - userActions.ts
   - app
     - api
       - auth
@@ -52,6 +53,9 @@
     - login
       - page.tsx
     - page.tsx
+    - settings
+      - SettingsForm.tsx
+      - page.tsx
     - supplies
       - page.tsx
     - trading

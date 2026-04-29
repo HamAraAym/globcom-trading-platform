@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PlusCircle, Calendar, UploadCloud, FileText, Loader2, X, Image as ImageIcon, FileBox, Plus, Trash2 } from "lucide-react";
-import { createDemand } from "@/actions/demandActions";
+import { PlusCircle, Calendar, UploadCloud, FileText, Loader2, X, Image as ImageIcon, FileBox, Plus, Trash2, Edit } from "lucide-react";
+import { createDemand, updateDemand } from "@/actions/demandActions"; // We will build updateDemand next!
 
-export default function DemandForm() {
+interface DemandFormProps {
+  demandToEdit?: any; // Passing this turns the component into Edit Mode
+}
+
+export default function DemandForm({ demandToEdit }: DemandFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,8 +17,17 @@ export default function DemandForm() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
-  // Dynamic State for Commodity Specifications
-  const [keyTerms, setKeyTerms] = useState<{label: string, value: string}[]>([]);
+  // Initialize Dynamic JSON Terms safely from existing data
+  const [keyTerms, setKeyTerms] = useState<{label: string, value: string}[]>(() => {
+    if (demandToEdit?.keyTerms) {
+      try {
+        return typeof demandToEdit.keyTerms === "string" 
+          ? JSON.parse(demandToEdit.keyTerms) 
+          : demandToEdit.keyTerms;
+      } catch (e) { return []; }
+    }
+    return [];
+  });
 
   // Lock background scrolling when modal is open
   useEffect(() => {
@@ -72,19 +85,27 @@ export default function DemandForm() {
       images.forEach(img => formData.append("images", img));
       if (pdfFile) formData.append("pdf", pdfFile);
 
-      // Handle Dynamic JSON terms (only save rows that have both a label and a value)
+      // Handle Dynamic JSON terms 
       const validKeyTerms = keyTerms.filter(t => t.label.trim() && t.value.trim());
       formData.append("keyTerms", JSON.stringify(validKeyTerms));
 
-      await createDemand(formData);
+      // Route to correct Server Action based on Mode
+      if (demandToEdit) {
+        formData.append("id", demandToEdit.id);
+        await updateDemand(formData);
+      } else {
+        await createDemand(formData);
+      }
       
       // Reset State
-      setImages([]); setImagePreviews([]); setPdfFile(null); setKeyTerms([]);
-      formRef.current?.reset();
+      if (!demandToEdit) {
+        setImages([]); setImagePreviews([]); setPdfFile(null); setKeyTerms([]);
+        formRef.current?.reset();
+      }
       setIsOpen(false);
     } catch (error) {
       console.error(error);
-      alert("Failed to upload. Ensure files are under 10MB.");
+      alert("Failed to save changes.");
     } finally {
       setIsSubmitting(false);
     }
@@ -92,13 +113,24 @@ export default function DemandForm() {
 
   return (
     <>
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all shrink-0"
-      >
-        <PlusCircle size={20} />
-        Post Demand
-      </button>
+      {/* DYNAMIC TRIGGER: Small Icon for tables, Big Button for header */}
+      {demandToEdit ? (
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="p-2 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm transition-colors"
+          title="Edit Deal"
+        >
+          <Edit size={16} />
+        </button>
+      ) : (
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all shrink-0"
+        >
+          <PlusCircle size={20} />
+          Post Demand
+        </button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -110,7 +142,7 @@ export default function DemandForm() {
                 <div className="bg-blue-100 p-2 rounded-lg">
                   <FileBox size={20} />
                 </div>
-                <h2 className="text-xl font-bold text-slate-900">Post Client Request</h2>
+                <h2 className="text-xl font-bold text-slate-900">{demandToEdit ? "Edit Client Request" : "Post Client Request"}</h2>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-2 rounded-full transition-colors border border-slate-200 shadow-sm">
                 <X size={20} />
@@ -128,12 +160,12 @@ export default function DemandForm() {
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Product Required <span className="text-red-500">*</span>
                     </label>
-                    <input type="text" name="title" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
+                    <input type="text" name="title" defaultValue={demandToEdit?.title} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
                   </div>
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
-                    <input type="text" name="packaging" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
+                    <input type="text" name="packaging" defaultValue={demandToEdit?.packaging} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,13 +175,13 @@ export default function DemandForm() {
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Quantity <span className="text-red-500">*</span>
                         </label>
-                        <input type="number" step="any" name="quantity" required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
+                        <input type="number" step="any" name="quantity" defaultValue={demandToEdit?.quantity} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
                       </div>
                       <div className="w-1/3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Unit <span className="text-red-500">*</span>
                         </label>
-                        <select name="quantityUnit" className="w-full mt-1.5 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer">
+                        <select name="quantityUnit" defaultValue={demandToEdit?.quantityUnit || "MT"} className="w-full mt-1.5 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer">
                           <option value="MT">MT</option>
                           <option value="KG">KG</option>
                           <option value="BBL">BBL</option>
@@ -157,17 +189,17 @@ export default function DemandForm() {
                       </div>
                     </div>
                     
-                    {/* TARGET PRICE (OPTIONAL) */}
+                    {/* TARGET PRICE */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Price ($)</label>
-                      <input type="number" step="0.01" name="targetPrice" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
+                      <input type="number" step="0.01" name="targetPrice" defaultValue={demandToEdit?.targetPrice} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
                     </div>
                   </div>
 
-                  {/* NEW: TOLERANCE LEVEL */}
+                  {/* TOLERANCE LEVEL */}
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
-                    <input type="text" name="tolerance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Vessel Option" />
+                    <input type="text" name="tolerance" defaultValue={demandToEdit?.tolerance} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Vessel Option" />
                   </div>
 
                   <div>
@@ -176,7 +208,7 @@ export default function DemandForm() {
                     </label>
                     <div className="relative mt-1.5">
                       <Calendar className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
-                      <input type="text" name="timeline" required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 1st week January 2026" />
+                      <input type="text" name="timeline" defaultValue={demandToEdit?.timeline} required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 1st week January 2026" />
                     </div>
                   </div>
                 </div>
@@ -187,36 +219,34 @@ export default function DemandForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Origin</label>
-                      <input type="text" name="origin" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. UAE / Oman" />
+                      <input type="text" name="origin" defaultValue={demandToEdit?.origin} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. UAE / Oman" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
-                      <input type="text" name="destination" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Any port in India" />
+                      <input type="text" name="destination" defaultValue={demandToEdit?.destination} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Any port in India" />
                     </div>
                     
-                    {/* NEW: LOAD PORT */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Load Port</label>
-                      <input type="text" name="loadPort" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. One safe port, Oman" />
+                      <input type="text" name="loadPort" defaultValue={demandToEdit?.loadPort} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. One safe port, Oman" />
                     </div>
 
-                    {/* NEW: INSURANCE */}
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Insurance Terms</label>
-                      <input type="text" name="insurance" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. To be covered by the seller" />
+                      <input type="text" name="insurance" defaultValue={demandToEdit?.insurance} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. To be covered by the seller" />
                     </div>
 
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Incoterms</label>
-                      <input type="text" name="incoterms" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. CIF, FOB" />
+                      <input type="text" name="incoterms" defaultValue={demandToEdit?.incoterms} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. CIF, FOB" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Terms</label>
-                      <input type="text" name="paymentTerms" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. 100% LC at sight" />
+                      <input type="text" name="paymentTerms" defaultValue={demandToEdit?.paymentTerms} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. 100% LC at sight" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inspection</label>
-                      <input type="text" name="inspection" className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. SGS at loading port" />
+                      <input type="text" name="inspection" defaultValue={demandToEdit?.inspection} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. SGS at loading port" />
                     </div>
                   </div>
                 </div>
@@ -266,18 +296,18 @@ export default function DemandForm() {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     General Notes / Summary <span className="text-red-500">*</span>
                   </label>
-                  <textarea name="specs" rows={3} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium"></textarea>
+                  <textarea name="specs" rows={3} defaultValue={demandToEdit?.specs} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium"></textarea>
                 </div>
 
                 {/* SECTION 5: Media Uploads */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
+                  <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments (Upload New)</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Images */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
-                        <span>Reference Images</span>
+                        <span>Add Images</span>
                         <span className={images.length === 5 ? "text-rose-500" : "text-blue-600"}>{images.length} / 5</span>
                       </label>
                       <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors relative mb-3">
@@ -302,7 +332,7 @@ export default function DemandForm() {
 
                     {/* PDF */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl flex flex-col">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Client RFQ (PDF)</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Upload New RFQ (PDF)</label>
                       <div className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center transition-colors relative ${pdfFile ? 'border-blue-300 bg-blue-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
                         {pdfFile ? (
                           <div className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-blue-100 shadow-sm relative z-20">
@@ -334,7 +364,7 @@ export default function DemandForm() {
                 Cancel
               </button>
               <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all">
-                {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Publish to Board"}
+                {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : (demandToEdit ? "Save Changes" : "Publish to Board")}
               </button>
             </div>
 
