@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { assignRep } from "@/actions/buyerActions";
 import { Users, Building, Mail, Phone, ShieldCheck, CheckCircle2, AlertCircle, Briefcase, MapPin, ShieldAlert, Clock, ExternalLink, User, Globe, UserMinus } from "lucide-react";
 import ClientModal from "@/components/ClientModal";
-import ExportButton from "@/components/ExportButton"; // Re-added the export engine
+import ExportButton from "@/components/ExportButton"; 
 import Link from "next/link";
 
 export default async function BuyersPage() {

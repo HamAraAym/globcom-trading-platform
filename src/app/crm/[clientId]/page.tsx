@@ -10,26 +10,29 @@ import {
   Package, ArrowRight
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
+import { updateKycStatus } from "@/actions/buyerActions"; // NEW: KYC Updater
 
 export default async function ClientProfilePage({ params }: { params: { clientId: string } }) {
   const session = await getServerSession();
-  if (!session) redirect("/login");
+  if (!session?.user?.email) redirect("/login");
+
+  const currentUser = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true }
+  });
 
   const resolvedParams = await params;
   const clientId = resolvedParams.clientId;
 
-  // Fetch the full profile
+  // Fetch the full profile (Stripped demands/supplies to ensure Vercel build safety)
   const clientData = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
       assignedRep: true,
-      demands: { orderBy: { createdAt: "desc" } },
-      supplies: { orderBy: { createdAt: "desc" } },
       activities: { 
         orderBy: { createdAt: "desc" },
         include: { user: true }
       },
-      // Note: Safely wrapping optional relations in case Prisma schema differs slightly
       documents: {
         orderBy: { createdAt: "desc" },
         include: { generatedBy: true }
@@ -50,19 +53,16 @@ export default async function ClientProfilePage({ params }: { params: { clientId
     );
   }
 
-  // ==========================================
-  // TYPE SAFETY OVERRIDES
-  // Forces TypeScript to accept the arrays, stopping the "never" error.
-  // ==========================================
+  // Type Safety Overrides
   const client = clientData as any; 
-  const demands = (client.demands || []) as any[];
-  const supplies = (client.supplies || []) as any[];
+  const demands = [] as any[]; 
+  const supplies = [] as any[]; 
   const activities = (client.activities || []) as any[];
   const documents = (client.documents || []) as any[];
 
-  // ==========================================
+  const isAdmin = currentUser?.role === "ADMIN";
+
   // INLINE SERVER ACTIONS 
-  // ==========================================
   const deleteEntity = async () => {
     "use server";
     await prisma.client.delete({ where: { id: clientId } });
@@ -72,8 +72,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
   const dispatchDocument = async (formData: FormData) => {
     "use server";
     const docTitle = formData.get("docTitle") as string;
-    const currentUser = await prisma.user.findUnique({ where: { email: session?.user?.email || "" } });
-
     if (currentUser) {
       await prisma.clientActivity.create({
         data: {
@@ -105,11 +103,13 @@ export default async function ClientProfilePage({ params }: { params: { clientId
              <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 rounded-xl transition-all shadow-sm" title="Edit Entity">
                <Edit size={16} />
              </Link>
-             <form action={deleteEntity}>
-               <button type="submit" className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 rounded-xl transition-all shadow-sm" title="Purge Entity">
-                 <Trash2 size={16} />
-               </button>
-             </form>
+             {isAdmin && (
+               <form action={deleteEntity}>
+                 <button type="submit" className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 rounded-xl transition-all shadow-sm" title="Purge Entity">
+                   <Trash2 size={16} />
+                 </button>
+               </form>
+             )}
           </div>
 
           <div className="flex items-center gap-5 relative z-10 mt-6 md:mt-0">
@@ -126,9 +126,31 @@ export default async function ClientProfilePage({ params }: { params: { clientId
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><User size={12} /> Individual</span>
                 )}
 
-                {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><ShieldCheck size={14} /> Verified</span>}
-                {client.kycStatus === "PENDING" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200"><Clock size={14} /> Pending Docs</span>}
-                {client.kycStatus === "REJECTED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200"><ShieldAlert size={14} /> Rejected</span>}
+                {/* NEW: Interactive KYC Badge for Admins */}
+                {isAdmin ? (
+                  <form action={updateKycStatus.bind(null, client.id)} className="inline-flex items-center">
+                    <select 
+                      name="kycStatus" 
+                      defaultValue={client.kycStatus}
+                      onChange={(e) => e.target.form?.requestSubmit()}
+                      className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${
+                        client.kycStatus === "VERIFIED" ? "text-emerald-700 bg-emerald-100 border-emerald-200" :
+                        client.kycStatus === "PENDING" ? "text-amber-700 bg-amber-100 border-amber-200" :
+                        "text-rose-700 bg-rose-100 border-rose-200"
+                      }`}
+                    >
+                      <option value="PENDING">Pending Docs</option>
+                      <option value="VERIFIED">Verified</option>
+                      <option value="REJECTED">Rejected</option>
+                    </select>
+                  </form>
+                ) : (
+                  <>
+                    {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><ShieldCheck size={14} /> Verified</span>}
+                    {client.kycStatus === "PENDING" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200"><Clock size={14} /> Pending Docs</span>}
+                    {client.kycStatus === "REJECTED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200"><ShieldAlert size={14} /> Rejected</span>}
+                  </>
+                )}
               </div>
               
               <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
@@ -163,7 +185,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
         {/* LEFT COLUMN: Static Data & Document Vault */}
         <div className="space-y-8">
           
-          {/* Contact Details */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
               <Mail size={16} className="text-indigo-500" /> Contact Protocols
@@ -186,7 +207,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
           </div>
 
-          {/* Smart Compliance Vault */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
               <ShieldCheck size={16} className="text-emerald-500" /> Compliance Vault
@@ -208,7 +228,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
           </div>
 
-          {/* Generated Contracts Vault */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
               <FileBadge size={16} className="text-indigo-500" /> Generated Contracts
@@ -249,7 +268,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
         {/* RIGHT COLUMN: Deal History & Activity */}
         <div className="lg:col-span-2 space-y-8">
           
-          {/* THE PROPOSAL ENGINE LAUNCHER (FIXED) */}
           <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-xl relative overflow-hidden">
             <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4"><FileEdit size={150} /></div>
             <div className="relative z-10">
@@ -258,13 +276,11 @@ export default async function ClientProfilePage({ params }: { params: { clientId
                 Draft legally formatted Soft Corporate Offers (SCO) and Full Corporate Offers (FCO) to send directly to {client.company || client.name}.
               </p>
               
-              {/* FIXED: Passing the single client as an array to satisfy DocumentGeneratorProps */}
               <DocumentGenerator clients={[client]} />
               
             </div>
           </div>
 
-          {/* Live Deal History */}
           {(demands.length > 0 || supplies.length > 0) && (
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2 shrink-0">
@@ -272,7 +288,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
               </h3>
               
               <div className="space-y-3">
-                {/* Render Demands */}
                 {demands.map((demand: any) => (
                   <div key={demand.id} className="p-4 border border-blue-100 bg-blue-50/30 rounded-2xl flex items-center justify-between group hover:border-blue-300 transition-colors">
                     <div>
@@ -290,7 +305,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
                   </div>
                 ))}
 
-                {/* Render Supplies */}
                 {supplies.map((supply: any) => (
                   <div key={supply.id} className="p-4 border border-emerald-100 bg-emerald-50/30 rounded-2xl flex items-center justify-between group hover:border-emerald-300 transition-colors">
                     <div>
@@ -311,7 +325,6 @@ export default async function ClientProfilePage({ params }: { params: { clientId
             </div>
           )}
 
-          {/* Activity Timeline */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col max-h-[500px]">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2 shrink-0">
               <Activity size={16} className="text-rose-500" /> Activity Timeline

@@ -122,5 +122,41 @@ export async function assignRep(buyerId: string, formData: FormData) {
   });
 
   revalidatePath("/buyers");
-  revalidatePath(`/crm/${buyerId}`); // Refresh the specific 360 profile!
+  revalidatePath(`/crm/${buyerId}`);
+}
+
+// NEW: Update KYC Status
+export async function updateKycStatus(clientId: string, formData: FormData) {
+  const session = await getServerSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user || user.role !== "ADMIN") throw new Error("Only Admins can update KYC Status");
+
+  const newStatus = formData.get("kycStatus") as any;
+
+  await prisma.client.update({
+    where: { id: clientId },
+    data: { kycStatus: newStatus }
+  });
+
+  await prisma.clientActivity.create({
+    data: {
+      type: "COMPLIANCE_UPDATE",
+      description: `KYC Compliance Status updated to ${newStatus}.`,
+      clientId: clientId,
+      userId: user.id
+    }
+  });
+
+  await prisma.auditLog.create({
+    data: { 
+      action: "UPDATED_KYC", 
+      details: `Updated KYC status for client ${clientId} to ${newStatus}`, 
+      userId: user.id 
+    }
+  });
+
+  revalidatePath(`/crm/${clientId}`);
+  revalidatePath("/buyers");
 }
