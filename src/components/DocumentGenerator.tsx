@@ -7,7 +7,7 @@ import { FileEdit, X, Loader2, Download, FileText, CheckCircle2, User } from "lu
 import { saveGeneratedDocument } from "@/actions/documentActions";
 import { DocumentType } from "@prisma/client";
 
-// Dynamically import React Quill
+// Dynamically import React Quill for rich text editing without SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 // @ts-ignore
@@ -63,7 +63,7 @@ export default function DocumentGenerator({
     const rawPrice = contextItem?.targetPrice || contextItem?.price;
     const formattedPrice = rawPrice ? `USD ${new Intl.NumberFormat('en-US').format(rawPrice)} per ${unit}` : "USD ______ per metric tonne";
 
-    const clientCompany = activeClient.company || "Individual Entity";
+    const clientCompany = activeClient.company || "Independent Entity";
     const clientName = activeClient.name;
 
     let specsHtml = "";
@@ -249,12 +249,13 @@ export default function DocumentGenerator({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-sm">
       <div className="bg-slate-100 rounded-2xl w-full max-w-5xl h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-700">
         
+        {/* Modal Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 text-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-500 p-2 rounded-lg"><FileText size={20} /></div>
+            <div className="bg-indigo-500 p-2 rounded-lg shadow-sm"><FileText size={20} /></div>
             <h2 className="text-lg font-bold tracking-wide">Live Contract Editor</h2>
           </div>
-          <button onClick={() => setIsOpen(false)} disabled={isGenerating} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800 rounded-full disabled:opacity-50">
+          <button onClick={() => setIsOpen(false)} disabled={isGenerating} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full disabled:opacity-50">
             <X size={20} />
           </button>
         </div>
@@ -262,14 +263,15 @@ export default function DocumentGenerator({
         <div className="flex-1 overflow-hidden flex flex-col relative">
           {success ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 z-50">
-              <CheckCircle2 size={64} className="mb-4 animate-bounce" />
+              <CheckCircle2 size={64} className="mb-4 animate-bounce drop-shadow-sm" />
               <h2 className="text-2xl font-black">Document Generated & Saved!</h2>
               <p className="text-sm font-bold text-emerald-700/70 mt-2">Added to CRM Activity Timeline.</p>
             </div>
           ) : (
             <>
+              {/* Document Controls */}
               <div className="p-4 bg-white border-b border-slate-200 flex flex-wrap items-center gap-4 shrink-0 shadow-sm z-20">
-                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 shadow-inner">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Type:</label>
                   <select 
                     value={docType} 
@@ -282,7 +284,7 @@ export default function DocumentGenerator({
                   </select>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 shadow-inner">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><User size={12}/> Client:</label>
                   <select 
                     value={selectedClientId} 
@@ -296,10 +298,11 @@ export default function DocumentGenerator({
                 </div>
 
                 <p className="text-xs font-medium text-slate-400 ml-auto flex items-center gap-2">
-                  <FileEdit size={14} className="text-indigo-400"/> Modify text before exporting
+                  <FileEdit size={14} className="text-indigo-400"/> Modify text below before exporting
                 </p>
               </div>
               
+              {/* Rich Text Editor */}
               <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-200 relative">
                 <style>{`
                   .quill { display: flex; flex-direction: column; height: auto; min-height: 100%; padding-bottom: 40px; }
