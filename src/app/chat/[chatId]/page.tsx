@@ -281,12 +281,10 @@ export default async function ChatRoomPage({ params }: { params: { chatId: strin
             
             <div className="mt-auto pt-6 border-t border-slate-100 space-y-4">
               
-              {/* SMART PROPOSAL GENERATOR - NOW ACCEPTS LETTERHEAD */}
+              {/* SMART PROPOSAL GENERATOR - NOW ACCEPTS CLIENTS ARRAY */}
               {clients.length > 0 ? (
                 <DocumentGenerator 
-                  clientId={clients[0].id} 
-                  clientName={clients[0].name}
-                  clientCompany={clients[0].company || "Individual Entity"}
+                  clients={clients} 
                   contextItem={contextItem}
                   defaultDocType={isDemand ? "LOI" : "FCO"} 
                   buttonStyle={`w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20`}

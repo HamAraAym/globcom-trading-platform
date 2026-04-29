@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
-import { FileEdit, X, Loader2, Download, FileText, CheckCircle2 } from "lucide-react";
+import { FileEdit, X, Loader2, Download, FileText, CheckCircle2, User } from "lucide-react";
 import { saveGeneratedDocument } from "@/actions/documentActions";
 import { DocumentType } from "@prisma/client";
 
@@ -14,9 +14,7 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
 interface DocumentGeneratorProps {
-  clientId: string;
-  clientName: string;
-  clientCompany: string;
+  clients: { id: string; name: string; company: string | null }[]; 
   contextItem?: any; 
   defaultDocType?: DocumentType;
   buttonStyle?: string;
@@ -24,9 +22,7 @@ interface DocumentGeneratorProps {
 }
 
 export default function DocumentGenerator({ 
-  clientId, 
-  clientName, 
-  clientCompany, 
+  clients, 
   contextItem, 
   defaultDocType = "SCO",
   buttonStyle = "bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2",
@@ -38,7 +34,10 @@ export default function DocumentGenerator({
   const [success, setSuccess] = useState(false);
   
   const [docType, setDocType] = useState<DocumentType>(defaultDocType);
+  const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
   const [content, setContent] = useState<string>("");
+
+  const activeClient = clients.find(c => c.id === selectedClientId) || clients[0];
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -48,9 +47,9 @@ export default function DocumentGenerator({
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  // SMART DATA & TEMPLATE INJECTION
+  // SMART DATA & TEMPLATE INJECTION - Tighter Formal Spacing
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !activeClient) return;
 
     const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const refNo = `GC-${docType}-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
@@ -64,32 +63,35 @@ export default function DocumentGenerator({
     const rawPrice = contextItem?.targetPrice || contextItem?.price;
     const formattedPrice = rawPrice ? `USD ${new Intl.NumberFormat('en-US').format(rawPrice)} per ${unit}` : "USD ______ per metric tonne";
 
+    const clientCompany = activeClient.company || "Individual Entity";
+    const clientName = activeClient.name;
+
     let specsHtml = "";
     if (contextItem?.keyTerms && Array.isArray(contextItem.keyTerms) && contextItem.keyTerms.length > 0) {
       specsHtml = contextItem.keyTerms.map((term: any) => 
-        `<li style="margin-bottom: 4px;"><strong>${term.label}:</strong> ${term.value}</li>`
+        `<li style="margin-bottom: 2px;"><strong>${term.label}:</strong> ${term.value}</li>`
       ).join("");
     } else {
       specsHtml = `<li><strong>Specifications:</strong> As per standard export quality.</li>`;
     }
 
-    // NOTE: We completely removed the inline <img> tag. The letterhead is now applied via CSS backgrounds!
     let htmlTemplate = "";
 
+    // FORMATTING UPGRADE: font-size: 13.5px, line-height: 1.4 for perfect A4 fit
     if (docType === "LOI") {
       htmlTemplate = `
-        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.4; color: #000; font-size: 13.5px;">
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
-          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">LETTER OF INTEREST</h2>
+          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 15px; text-decoration: underline; font-size: 16px;">LETTER OF INTEREST</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
           <p><strong>SUBJECT: Purchase of ${product} in Bulk, Qty: ${qtyDisplay}</strong></p>
           <p>Dear Sir,</p>
           <p>We are pleased to hereby issue our Letter of Interest (LOI) for the same on the following basis:</p>
-          <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
+          <ul style="list-style-type: none; padding-left: 0; margin-bottom: 15px;">
             <li><strong>Product:</strong> ${product} in Bulk</li>
-            <li style="margin-top: 10px;"><strong><u>Specifications:</u></strong></li>
-            <ul style="margin-top: 5px; margin-bottom: 15px;">
+            <li style="margin-top: 6px;"><strong><u>Specifications:</u></strong></li>
+            <ul style="margin-top: 4px; margin-bottom: 10px;">
               ${specsHtml}
             </ul>
             <li><strong>Quantity:</strong> ${qtyDisplay}</li>
@@ -106,25 +108,26 @@ export default function DocumentGenerator({
           <p>Any discrepancy in the quality or quantity, the discharge port report shall be considered as final and binding.</p>
           <p>All other terms and conditions shall be mutually discussed and agreed upon before finalising the contract.</p>
           <p>We look forward to receiving your firm offer at the earliest to proceed further accordingly.</p>
-          <br/>
-          <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+          <div style="page-break-inside: avoid; margin-top: 20px;">
+            <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+          </div>
         </div>
       `;
     } else if (docType === "FCO") {
       htmlTemplate = `
-        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.4; color: #000; font-size: 13.5px;">
           <p><strong>Ref. No:</strong> ${refNo}</p>
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>TO:</strong> ${clientCompany}</p>
           <p><strong>Attn:</strong> ${clientName}</p>
-          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SUBJECT: OFFER FOR ${product.toUpperCase()}</h2>
+          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 15px; text-decoration: underline; font-size: 16px;">SUBJECT: OFFER FOR ${product.toUpperCase()}</h2>
           <p>Dear Sir,</p>
           <p>We are pleased to offer the ${product} as per the terms and conditions.</p>
-          <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">
+          <ul style="list-style-type: none; padding-left: 0; margin-bottom: 15px;">
             <li><strong>Commodity:</strong> ${product}</li>
             <li><strong>Quantity:</strong> ${qtyDisplay}</li>
-            <li style="margin-top: 10px;"><strong><u>Quality:</u></strong></li>
-            <ul style="margin-top: 5px; margin-bottom: 15px;">
+            <li style="margin-top: 6px;"><strong><u>Quality:</u></strong></li>
+            <ul style="margin-top: 4px; margin-bottom: 10px;">
               ${specsHtml}
             </ul>
             <li><strong>Packing:</strong> ${contextItem?.packaging || 'In Bulk.'}</li>
@@ -136,30 +139,31 @@ export default function DocumentGenerator({
             <li><strong>Currency:</strong> USD, or in case of AED Payment, the Exchange rate of 1 USD = 3.6725 AED shall be applicable.</li>
             <li><strong>Inspection of Quality / Quantity:</strong> Q&Q will be determined by an independent inspection agency appointed by the seller at the load port. The results of the loading port shall be final and binding on both the buyer and seller.</li>
             <li><strong>Insurance:</strong> ${contextItem?.insurance || 'To be covered by the buyer.'}</li>
-            <li style="margin-top: 10px;"><strong><u>Shipping Terms:</u></strong></li>
+            <li style="margin-top: 6px;"><strong><u>Shipping Terms:</u></strong></li>
             <ul>
                <li><strong>Loading port:</strong> ${contextItem?.loadPort || 'Middle East Port'}</li>
                <li><strong>Discharge Port:</strong> CFR ${contextItem?.destination || 'Any Port'}</li>
                <li><strong>Discharge Rate:</strong> 10,000 Mt per day SHHINC PWWD</li>
             </ul>
-            <li style="margin-top: 10px;"><strong>Other Terms:</strong> All other terms and conditions as per Incoterms 2020 or to be further discussed for the contract.</li>
-            <li style="margin-top: 10px;"><strong>Validity:</strong> The above offer is valid until 18:00 Hrs., ${new Date(contextItem?.validityDate || Date.now() + 86400000).toLocaleDateString('en-GB')}, UAE time.</li>
+            <li style="margin-top: 6px;"><strong>Other Terms:</strong> All other terms and conditions as per Incoterms 2020 or to be further discussed for the contract.</li>
+            <li style="margin-top: 6px;"><strong>Validity:</strong> The above offer is valid until 18:00 Hrs., ${new Date(contextItem?.validityDate || Date.now() + 86400000).toLocaleDateString('en-GB')}, UAE time.</li>
           </ul>
           <p>We look forward to receiving your confirmation to establish our business cooperation with your esteemed company.</p>
-          <br/>
-          <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+          <div style="page-break-inside: avoid; margin-top: 20px;">
+            <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong><br/>(AUTHORIZED SIGNATORY)</p>
+          </div>
         </div>
       `;
     } else {
         htmlTemplate = `
-        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; font-size: 14px;">
+        <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.4; color: #000; font-size: 13.5px;">
           <p><strong>Date:</strong> ${dateStr}</p>
           <p><strong>Ref No.:</strong> ${refNo}</p>
-          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 20px; text-decoration: underline; font-size: 18px;">SOFT CORPORATE OFFER (SCO)</h2>
+          <h2 style="text-align: center; margin-top: 10px; margin-bottom: 15px; text-decoration: underline; font-size: 16px;">SOFT CORPORATE OFFER (SCO)</h2>
           <p><strong>To:</strong><br/>${clientCompany}<br/>ATTN: ${clientName}</p>
           <p>Dear Sir,</p>
           <p>For preliminary discussion purposes, we are pleased to outline the following soft offer for ${product}:</p>
-          <ul>
+          <ul style="margin-bottom: 15px;">
             <li><strong>Commodity:</strong> ${product}</li>
             <li><strong>Quantity Available:</strong> ${qtyDisplay}</li>
             <li><strong>Indicative Price:</strong> ${formattedPrice}</li>
@@ -167,14 +171,15 @@ export default function DocumentGenerator({
             <li><strong>Proposed Incoterms:</strong> ${contextItem?.incoterms || 'TBA'} ${contextItem?.destination || ''}</li>
           </ul>
           <p>Please note this is a Soft Offer and is not legally binding. A Full Corporate Offer (FCO) and draft contract will follow upon agreement of these preliminary terms.</p>
-          <br/><br/>
-          <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong></p>
+          <div style="page-break-inside: avoid; margin-top: 20px;">
+            <p>Thanks & Regards,<br/><br/><strong>GLOBCOM INTERNATIONAL FZE</strong></p>
+          </div>
         </div>
       `;
     }
 
     setContent(htmlTemplate);
-  }, [isOpen, docType, contextItem, clientCompany, clientName, userLetterhead]);
+  }, [isOpen, docType, selectedClientId, contextItem, activeClient]);
 
   const handleGeneratePdf = async () => {
     setIsGenerating(true);
@@ -184,13 +189,11 @@ export default function DocumentGenerator({
       const element = document.createElement("div");
       element.innerHTML = content;
       
-      // THE FIX: Set the Letterhead as an exact 8.5x11 background that perfectly repeats per page
       if (userLetterhead) {
         element.style.backgroundImage = `url('${userLetterhead}')`;
         element.style.backgroundSize = "8.5in 11in"; 
         element.style.backgroundRepeat = "repeat-y"; 
         element.style.backgroundPosition = "top center";
-        // Push the text down 1.8 inches from the top, and 1.5 inches from the bottom
         element.style.padding = "1.8in 1in 1.5in 1in"; 
         element.style.minHeight = "11in";
       } else {
@@ -199,7 +202,7 @@ export default function DocumentGenerator({
       
       const opt: any = {
         margin:       0, 
-        filename:     `${docType}_${clientCompany.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+        filename:     `${docType}_${(activeClient?.company || "Client").replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { 
           scale: 2, 
@@ -216,7 +219,7 @@ export default function DocumentGenerator({
       const pdfFile = new File([pdfBlob], opt.filename, { type: "application/pdf" });
 
       const formData = new FormData();
-      formData.append("clientId", clientId);
+      formData.append("clientId", activeClient.id);
       formData.append("title", `${docType} - ${contextItem?.title || "Commodity"}`);
       formData.append("type", docType);
       formData.append("pdf", pdfFile);
@@ -278,8 +281,22 @@ export default function DocumentGenerator({
                     <option value="LOI">Letter of Interest (LOI)</option>
                   </select>
                 </div>
+                
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><User size={12}/> Client:</label>
+                  <select 
+                    value={selectedClientId} 
+                    onChange={(e) => setSelectedClientId(e.target.value)}
+                    className="bg-transparent text-sm font-bold text-indigo-700 focus:outline-none cursor-pointer max-w-[200px] truncate"
+                  >
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id}>{c.company || c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <p className="text-xs font-medium text-slate-400 ml-auto flex items-center gap-2">
-                  <FileEdit size={14} className="text-indigo-400"/> Modify the legal text below before exporting
+                  <FileEdit size={14} className="text-indigo-400"/> Modify text before exporting
                 </p>
               </div>
               
@@ -287,14 +304,12 @@ export default function DocumentGenerator({
                 <style>{`
                   .quill { display: flex; flex-direction: column; height: auto; min-height: 100%; padding-bottom: 40px; }
                   .ql-toolbar { position: sticky; top: 0; z-index: 10; background: white; border: none !important; border-bottom: 1px solid #e2e8f0 !important; padding: 12px 24px !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); display: flex; justify-content: center; }
-                  .ql-container { border: none !important; font-family: 'Times New Roman', Times, serif; font-size: 15px; }
-                  
-                  /* THE FIX: Applying the same background rules to the WYSIWYG editor UI */
+                  .ql-container { border: none !important; font-family: 'Times New Roman', Times, serif; font-size: 13.5px; }
                   .ql-editor { 
                     background-color: white; 
                     ${userLetterhead ? `
                       background-image: url('${userLetterhead}');
-                      background-size: 816px 1056px; /* 8.5in x 11in exactly */
+                      background-size: 816px 1056px; 
                       background-repeat: repeat-y;
                       background-position: top center;
                       padding: 1.8in 1in 1.5in 1in !important;
@@ -327,10 +342,7 @@ export default function DocumentGenerator({
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-between items-center shrink-0 z-20">
-          <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
-            Target Client: <span className="text-slate-900 bg-slate-100 px-2 py-1 rounded-md">{clientCompany || clientName}</span>
-          </p>
+        <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-end items-center shrink-0 z-20">
           <div className="flex gap-3">
             <button onClick={() => setIsOpen(false)} disabled={isGenerating} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
               Cancel
