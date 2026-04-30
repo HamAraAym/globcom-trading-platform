@@ -29,6 +29,25 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
   const [mentionQuery, setMentionQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Tailwind safe-mapping for dynamic colors
+  const colorMap = {
+    blue: {
+      lightBg: "bg-blue-50",
+      text: "text-blue-700",
+      ring: "focus:ring-blue-500/30",
+      border: "focus:border-blue-500",
+      hover: "hover:bg-blue-600",
+    },
+    emerald: {
+      lightBg: "bg-emerald-50",
+      text: "text-emerald-700",
+      ring: "focus:ring-emerald-500/30",
+      border: "focus:border-emerald-500",
+      hover: "hover:bg-emerald-600",
+    }
+  };
+  const theme = colorMap[themeColor as keyof typeof colorMap] || colorMap.blue;
+
   // Filter users based on what is typed after the '@'
   const filteredUsers = users.filter((u) => 
     `${u.firstName} ${u.lastName}`.toLowerCase().includes(mentionQuery.toLowerCase()) ||
@@ -128,12 +147,12 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
       
       {/* THE MENTION DROPDOWN */}
       {showMentions && filteredUsers.length > 0 && (
-        <div className="absolute bottom-full left-16 mb-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
-          <div className="bg-slate-50 px-3 py-2 border-b border-slate-100 flex items-center gap-2">
+        <div className="absolute bottom-full left-16 mb-3 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="bg-slate-50 px-3 py-2.5 border-b border-slate-100 flex items-center gap-2">
             <AtSign size={14} className="text-slate-400" />
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tag Team Member</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tag Team Member</span>
           </div>
-          <div className="p-1">
+          <div className="p-1.5 space-y-0.5">
             {filteredUsers.map((user, idx) => (
               <button
                 key={user.id}
@@ -141,13 +160,13 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
                 onClick={() => insertMention(user)}
                 onMouseEnter={() => setSelectedIndex(idx)}
                 className={`w-full text-left px-3 py-2 rounded-xl flex flex-col transition-colors ${
-                  idx === selectedIndex ? `bg-${themeColor}-50` : "hover:bg-slate-50"
+                  idx === selectedIndex ? theme.lightBg : "hover:bg-slate-50"
                 }`}
               >
-                <span className={`text-sm font-bold ${idx === selectedIndex ? `text-${themeColor}-700` : 'text-slate-900'}`}>
+                <span className={`text-sm font-bold ${idx === selectedIndex ? theme.text : 'text-slate-900'}`}>
                   {user.firstName} {user.lastName}
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
                   {user.role.replace("_", " ")}
                 </span>
               </button>
@@ -172,14 +191,14 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
             rows={2}
             placeholder="Type your message... (Use @ to tag your team)"
             required
-            className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-${themeColor}-500/30 focus:border-${themeColor}-500 transition-all resize-none custom-scrollbar`}
+            className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} transition-all resize-none custom-scrollbar`}
           />
         </div>
         
         <button 
           type="submit" 
           disabled={!content.trim() || isSubmitting}
-          className={`p-3.5 bg-slate-900 hover:bg-${themeColor}-600 disabled:bg-slate-300 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg shadow-slate-900/20 group shrink-0`}
+          className={`p-3.5 bg-slate-900 ${theme.hover} disabled:bg-slate-200 disabled:text-slate-400 disabled:opacity-100 text-white rounded-xl transition-all shadow-lg shadow-slate-900/10 group shrink-0`}
         >
           {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
         </button>
