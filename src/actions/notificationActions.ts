@@ -4,38 +4,44 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 
+// 1. Fetch Notifications for the current user
 export async function getMyNotifications() {
   const session = await getServerSession();
   if (!session?.user?.email) return [];
 
   const user = await prisma.user.findUnique({ 
-    where: { email: session.user.email } 
+    where: { email: session.user.email },
+    select: { id: true } 
   });
   
   if (!user) return [];
 
-  // Fetch the 10 most recent notifications for this user
   return prisma.notification.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
-    take: 10,
+    take: 25, // Only load the 25 most recent alerts
   });
 }
 
+// 2. Mark a single notification as read
 export async function markAsRead(notificationId: string) {
+  const session = await getServerSession();
+  if (!session) return;
+
   await prisma.notification.update({
     where: { id: notificationId },
     data: { isRead: true }
   });
-  revalidatePath("/"); // Force the UI to update the unread count
 }
 
+// 3. Mark all notifications as read
 export async function markAllAsRead() {
   const session = await getServerSession();
   if (!session?.user?.email) return;
 
   const user = await prisma.user.findUnique({ 
-    where: { email: session.user.email } 
+    where: { email: session.user.email },
+    select: { id: true }
   });
   
   if (!user) return;
@@ -44,31 +50,30 @@ export async function markAllAsRead() {
     where: { userId: user.id, isRead: false },
     data: { isRead: true }
   });
-  revalidatePath("/");
 }
 
-// NEW: Send a direct 1-on-1 Ping to a specific user
+// 4. Send a Direct Ping to a Team Member
 export async function sendPing(targetUserId: string) {
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
 
-  // Find who is sending the ping
-  const sender = await prisma.user.findUnique({
-    where: { email: session.user.email }
+  const sender = await prisma.user.findUnique({ 
+    where: { email: session.user.email },
+    select: { firstName: true, lastName: true }
   });
+  
+  if (!sender) throw new Error("User not found");
 
-  if (!sender) throw new Error("Sender not found");
-
-  // Create the notification for the target user
   await prisma.notification.create({
     data: {
       userId: targetUserId,
-      title: "Direct Ping",
-      message: `${sender.firstName} ${sender.lastName} just pinged you.`,
-      link: null, // Generic pings don't need a specific link
+      title: "Incoming Team Ping",
+      message: `${sender.firstName} ${sender.lastName} has directly pinged you from the Command Center.`,
+      link: "/", // You can update this to route to a specific chat/deal later if needed
       isRead: false,
     }
   });
 
-  revalidatePath("/");
+  // Revalidate the layout so the target user's bell updates instantly if they refresh
+  revalidatePath("/", "layout");
 }
