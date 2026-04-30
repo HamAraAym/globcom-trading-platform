@@ -17,17 +17,17 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
     );
   }
 
-  // 2. MAIN APPLICATION: Render Sidebar/TopBar and apply your margin logic
+  // 2. MAIN APPLICATION: Render Sidebar/TopBar and apply margin logic matching the new w-72 Sidebar
   return (
     <>
       <Sidebar />
       <main 
-        className="flex-1 min-h-screen flex flex-col bg-slate-50 transition-all duration-300 ease-in-out ml-64 w-[calc(100%-16rem)]"
+        className="flex-1 min-h-screen flex flex-col bg-slate-50 transition-all duration-300 ease-in-out ml-72 w-[calc(100%-18rem)]"
       >
         <TopBar />
         
-        {/* The w-[calc...] ensures that the main content doesn't overflow horizontally 
-          when the 64-width (16rem) sidebar is active.
+        {/* The w-[calc(100%-18rem)] ensures that the main content doesn't overflow horizontally 
+          when the 72-width (18rem) sidebar is active.
         */}
         <div className="flex-1 flex flex-col">
           {children}
