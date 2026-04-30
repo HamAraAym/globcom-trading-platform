@@ -73,6 +73,7 @@
     - DocumentGenerator.tsx
     - EmailDispatcher.tsx
     - ExportButton.tsx
+    - KycStatusUpdater.tsx
     - LocationAutocomplete.tsx
     - MediaGallery.tsx
     - NotificationBell.tsx
