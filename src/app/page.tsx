@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Activity, Box, FileBox, Globe, ShieldCheck, Users, CheckCircle2, BarChart3, Wallet } from "lucide-react";
 import Link from "next/link";
+import MatchingEngine from "@/components/MatchingEngine"; // NEW: Automated Matching Engine
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -121,6 +122,11 @@ export default async function DashboardPage() {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2 group-hover:text-slate-700 transition-colors"><Users size={14} className="text-slate-500"/> Client Network</p>
             <h2 className="text-3xl font-black text-slate-900">{buyerCount} <span className="text-sm text-slate-400 font-medium ml-1">Entities</span></h2>
           </Link>
+        </div>
+
+        {/* THE NEW AUTOMATED MATCHING ENGINE */}
+        <div className="my-8">
+           <MatchingEngine />
         </div>
 
         {/* Lower Section: Action & Compliance */}

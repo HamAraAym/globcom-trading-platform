@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Mail, Building, FileText, Loader2, X, ShieldAlert, User, Package, CircleDollarSign, Calendar, FileBadge, CheckSquare, Square } from "lucide-react";
+import { Send, Mail, Building, FileText, Loader2, X, User, Package, CircleDollarSign, Calendar, FileBadge, CheckSquare, Square } from "lucide-react";
 import { dispatchToClient } from "@/actions/emailActions";
 
 interface Buyer {
@@ -14,9 +14,9 @@ interface Buyer {
 
 interface DispatcherProps {
   buyers: Buyer[];
-  contextItem: any; // This will now include .documents from the database!
+  contextItem: any; // Includes .documents from the database
   type: "DEMAND" | "SUPPLY";
-  themeColor: string;
+  themeColor: string; // 'blue' or 'emerald'
 }
 
 type DispatchType = "GENERAL" | "LOI" | "FCO" | "SCO";
@@ -25,11 +25,35 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // New States for our Deal Desk upgrades!
   const [selectedBuyer, setSelectedBuyer] = useState<string>("");
   const [dispatchType, setDispatchType] = useState<DispatchType>(type === "DEMAND" ? "LOI" : "FCO");
   const [customMessage, setCustomMessage] = useState("");
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+
+  // Tailwind safe-mapping for dynamic colors to prevent purging
+  const colorMap = {
+    blue: {
+      bg: "bg-blue-600",
+      hover: "hover:bg-blue-700",
+      lightBg: "bg-blue-50",
+      border: "border-blue-400",
+      ring: "ring-blue-500/10",
+      text: "text-blue-900",
+      icon: "text-blue-500",
+      shadow: "shadow-blue-600/20"
+    },
+    emerald: {
+      bg: "bg-emerald-600",
+      hover: "hover:bg-emerald-700",
+      lightBg: "bg-emerald-50",
+      border: "border-emerald-400",
+      ring: "ring-emerald-500/10",
+      text: "text-emerald-900",
+      icon: "text-emerald-500",
+      shadow: "shadow-emerald-600/20"
+    }
+  };
+  const theme = colorMap[themeColor as keyof typeof colorMap] || colorMap.blue;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,25 +61,29 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
     
     setIsSubmitting(true);
     try {
+      const activeBuyer = buyers.find(b => b.id === selectedBuyer);
+      if(!activeBuyer) throw new Error("Buyer not found");
+
+      // Construct the FormData payload expected by our updated server action
       const formData = new FormData();
-      formData.append("buyerId", selectedBuyer);
+      formData.append("buyerId", activeBuyer.id);
       formData.append("contextId", contextItem.id);
       formData.append("contextType", type);
       formData.append("title", contextItem.title);
       formData.append("dispatchType", dispatchType);
-      formData.append("customMessage", customMessage); // Send custom message
-      formData.append("attachedDocs", JSON.stringify(selectedDocs)); // Send selected generated PDFs
-      
+      formData.append("customMessage", customMessage);
+      formData.append("attachedDocs", JSON.stringify(selectedDocs)); 
+
+      // Send to backend!
       await dispatchToClient(formData);
+
       setIsOpen(false);
-      
-      // Reset forms
       setCustomMessage("");
       setSelectedDocs([]);
       alert(`✅ ${dispatchType} successfully dispatched to client.`);
     } catch (error) {
       console.error(error);
-      alert("Failed to send email. Check console.");
+      alert("Failed to send email. Check your SMTP settings and console logs.");
     } finally {
       setIsSubmitting(false);
     }
@@ -92,7 +120,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className={`w-full mt-6 flex items-center justify-center gap-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-${themeColor}-600/20 group`}
+        className={`w-full mt-6 flex items-center justify-center gap-2 ${theme.bg} ${theme.hover} text-white py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg ${theme.shadow} group`}
       >
         <Mail size={18} className="group-hover:scale-110 transition-transform" />
         Dispatch to External Client
@@ -104,7 +132,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
             
             <div className={`px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white shrink-0`}>
               <div className="flex items-center gap-3">
-                <div className={`bg-${themeColor}-500 p-2 rounded-lg`}><Send size={20} /></div>
+                <div className={`${theme.icon.replace('text', 'bg')}/20 ${theme.icon} p-2 rounded-lg border border-${themeColor}-500/30`}><Send size={20} /></div>
                 <h2 className="text-xl font-bold tracking-wide">External Dispatcher</h2>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800 rounded-full">
@@ -129,11 +157,11 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                           key={buyer.id}
                           onClick={() => {
                             setSelectedBuyer(buyer.id);
-                            setSelectedDocs([]); // Clear docs when switching clients
+                            setSelectedDocs([]); 
                           }}
                           className={`text-left p-3.5 rounded-2xl border transition-all duration-200 ${
                             selectedBuyer === buyer.id 
-                              ? `bg-${themeColor}-50 border-${themeColor}-400 ring-4 ring-${themeColor}-500/10 shadow-md` 
+                              ? `${theme.lightBg} ${theme.border} ring-4 ${theme.ring} shadow-md` 
                               : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
@@ -162,12 +190,12 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                         onClick={() => setDispatchType(btn.id as DispatchType)}
                         className={`p-3 rounded-xl border text-left transition-all ${
                           dispatchType === btn.id 
-                            ? `bg-${themeColor}-600 border-${themeColor}-700 text-white shadow-md` 
+                            ? `${theme.bg} border-transparent text-white shadow-md` 
                             : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
                         <p className={`text-sm font-black ${dispatchType === btn.id ? 'text-white' : 'text-slate-900'}`}>{btn.label}</p>
-                        <p className={`text-[10px] font-medium mt-0.5 ${dispatchType === btn.id ? `text-${themeColor}-100` : 'text-slate-500'}`}>{btn.desc}</p>
+                        <p className={`text-[10px] font-medium mt-0.5 ${dispatchType === btn.id ? `text-white/70` : 'text-slate-500'}`}>{btn.desc}</p>
                       </button>
                     ))}
                   </div>
@@ -177,7 +205,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                 {selectedBuyer && (
                   <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                     <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <FileBadge size={16} className={`text-${themeColor}-500`} /> 3. Attach Official Documents
+                      <FileBadge size={16} className={theme.icon} /> 3. Attach Official Documents
                     </h3>
                     {availableDocs.length === 0 ? (
                       <p className="text-xs text-slate-500 p-4 bg-white border border-slate-200 rounded-xl italic">
@@ -191,13 +219,13 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                             <div 
                               key={doc.id}
                               onClick={() => toggleDoc(doc.fileUrl)}
-                              className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${isSelected ? `bg-${themeColor}-50 border-${themeColor}-300` : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                              className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${isSelected ? `${theme.lightBg} ${theme.border}` : 'bg-white border-slate-200 hover:border-slate-300'}`}
                             >
-                              <div className={`text-${isSelected ? themeColor : 'slate'}-500`}>
+                              <div className={isSelected ? theme.icon : 'text-slate-400'}>
                                 {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
                               </div>
                               <div className="flex-1 overflow-hidden">
-                                <p className={`text-sm font-bold truncate ${isSelected ? `text-${themeColor}-900` : 'text-slate-700'}`}>{doc.title}</p>
+                                <p className={`text-sm font-bold truncate ${isSelected ? theme.text : 'text-slate-700'}`}>{doc.title}</p>
                                 <p className="text-[10px] text-slate-400 font-bold mt-0.5">Generated {new Date(doc.createdAt).toLocaleDateString()}</p>
                               </div>
                             </div>
@@ -216,7 +244,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                      onChange={(e) => setCustomMessage(e.target.value)}
                      placeholder="Type a personal greeting or negotiation note here..."
                      rows={3}
-                     className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-${themeColor}-500/30 focus:border-${themeColor}-500 transition-all resize-none`}
+                     className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${theme.ring} transition-all resize-none`}
                    />
                 </div>
 
@@ -234,7 +262,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                   <div className="bg-slate-50 border-b border-slate-100 p-5 space-y-3 shrink-0">
                     <div className="flex items-center gap-4 text-sm">
                       <span className="w-16 text-slate-400 font-medium text-right">From:</span>
-                      <span className="font-bold text-slate-700 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">trading@globcom.com</span>
+                      <span className="font-bold text-slate-700 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">{process.env.NEXT_PUBLIC_SMTP_FROM_EMAIL || "sales@globcomfze.com"}</span>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <span className="w-16 text-slate-400 font-medium text-right">To:</span>
@@ -265,10 +293,10 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                     
                     {/* Modern Product Card */}
                     <div className="my-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                      <div className={`h-1.5 w-full bg-${themeColor}-500`}></div>
+                      <div className={`h-1.5 w-full ${theme.bg}`}></div>
                       <div className="p-5">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className={`p-2 bg-${themeColor}-50 text-${themeColor}-600 rounded-xl`}>
+                          <div className={`p-2 ${theme.lightBg} ${theme.icon} rounded-xl`}>
                             <Package size={20} />
                           </div>
                           <h4 className="font-black text-slate-900 text-lg tracking-tight">{contextItem.title}</h4>
@@ -312,9 +340,9 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900">
-                          {selectedDocs.length + (contextItem.attachments?.length || 0)} Documents Attached
+                          {selectedDocs.length} Documents Attached
                         </p>
-                        <p className="text-[10px] font-medium text-slate-500">Includes {selectedDocs.length} Official Contracts & {contextItem.attachments?.length || 0} Standard Specs</p>
+                        <p className="text-[10px] font-medium text-slate-500">Includes {selectedDocs.length} Official Contracts</p>
                       </div>
                     </div>
                   </div>
@@ -328,7 +356,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
               <button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting || !selectedBuyer} 
-                className={`flex items-center gap-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 disabled:bg-slate-300 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-${themeColor}-600/20 transition-all`}
+                className={`flex items-center gap-2 ${theme.bg} ${theme.hover} disabled:bg-slate-300 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg ${theme.shadow} transition-all`}
               >
                 {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Sending Transmission...</> : <><Send size={18} /> Confirm & Send {dispatchType}</>}
               </button>
