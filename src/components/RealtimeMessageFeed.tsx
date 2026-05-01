@@ -1,14 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
+import Pusher from "pusher-js";
 import { MessageSquare } from "lucide-react";
-
-// Initialize the Supabase client for listening to real-time events
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface Message {
   id: string;
@@ -41,38 +35,28 @@ export default function RealtimeMessageFeed({ initialMessages, chatId, currentUs
   }, [messages]);
 
   useEffect(() => {
-    // 1. Subscribe to INSERT events on the "Message" table for this specific chat room
-    const channel = supabase
-      .channel(`realtime:chat:${chatId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "Message",
-          filter: `chatRoomId=eq.${chatId}`,
-        },
-        (payload) => {
-          // 2. When a new message hits the database, we receive the payload here.
-          // Because the payload only contains the foreign keys (senderId), 
-          // we gracefully append it to the UI. 
-          
-          // Note: In a production app with complex joins, you might fetch the full 
-          // sender details here. For now, we update the state to trigger a re-render.
-          const newMessage = payload.new as Message;
-          
-          // Avoid duplicating messages if the sender is the one who just pushed it
-          setMessages((current) => {
-            if (current.find((m) => m.id === newMessage.id)) return current;
-            return [...current, newMessage];
-          });
-        }
-      )
-      .subscribe();
+    // 1. Initialize Pusher Client SDK
+    // We do this inside useEffect so it only runs on the client browser
+    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
 
-    // 3. Cleanup the subscription when the user leaves the room
+    // 2. Subscribe to this specific chat room's secure channel
+    const channel = pusherClient.subscribe(`chat-${chatId}`);
+
+    // 3. Listen for the 'new-message' event we broadcast from the server
+    channel.bind("new-message", (newMessage: Message) => {
+      setMessages((current) => {
+        // Prevent duplicates if React StrictMode fires twice
+        if (current.find((m) => m.id === newMessage.id)) return current;
+        return [...current, newMessage];
+      });
+    });
+
+    // 4. Cleanup the connection when the user leaves the room
     return () => {
-      supabase.removeChannel(channel);
+      pusherClient.unsubscribe(`chat-${chatId}`);
+      pusherClient.disconnect();
     };
   }, [chatId]);
 
