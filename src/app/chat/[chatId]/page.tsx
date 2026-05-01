@@ -12,7 +12,7 @@ import EmailDispatcher from "@/components/EmailDispatcher";
 import DealStatusManager from "@/components/DealStatusManager";
 import DocumentGenerator from "@/components/DocumentGenerator"; 
 
-export default async function ChatRoomPage({ params }: { params: { chatId: string } }) {
+export default async function ChatRoomPage({ params }: { params: Promise<{ chatId: string }> }) {
   const session = await getServerSession();
   const resolvedParams = await params;
   const chatId = resolvedParams.chatId;

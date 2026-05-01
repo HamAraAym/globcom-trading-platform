@@ -12,7 +12,7 @@ import {
 import DocumentGenerator from "@/components/DocumentGenerator";
 import KycStatusUpdater from "@/components/KycStatusUpdater"; 
 
-export default async function ClientProfilePage({ params }: { params: { clientId: string } }) {
+export default async function ClientProfilePage({ params }: { params: Promise<{ clientId: string }> }) {
   const session = await getServerSession();
   if (!session?.user?.email) redirect("/login");
 
