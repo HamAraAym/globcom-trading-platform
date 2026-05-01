@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { uploadFileToSupabase } from "@/lib/supabase";
+import { put } from "@vercel/blob"; // NEW: Vercel Blob Storage
 
 export async function updateUserProfile(formData: FormData) {
   const session = await getServerSession();
@@ -23,11 +23,16 @@ export async function updateUserProfile(formData: FormData) {
   if (removeLetterhead) {
     letterheadUrl = null;
   } 
-  // 2. Otherwise, if they uploaded a new one, save it to Supabase
+  // 2. Otherwise, if they uploaded a new one, save it to Vercel Blob
   else if (letterhead && letterhead.size > 0 && letterhead.name !== "undefined") {
     if (letterhead.size > 5242880) throw new Error("Image exceeds 5MB limit."); // 5MB limit
-    const url = await uploadFileToSupabase(letterhead);
-    if (url) letterheadUrl = url;
+    
+    const timestamp = Date.now();
+    const cleanFileName = letterhead.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`users/${timestamp}-${cleanFileName}`, letterhead, {
+      access: 'public',
+    });
+    letterheadUrl = blob.url;
   }
 
   // Update the database

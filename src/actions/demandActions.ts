@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { uploadFileToSupabase } from "@/lib/supabase";
+import { put } from "@vercel/blob"; // NEW: Vercel Blob Storage
 
 // ==========================================
 // 1. CREATE DEMAND
@@ -50,7 +50,7 @@ export async function createDemand(formData: FormData) {
 
   const uploadedUrls: string[] = [];
 
-  // 1. Process Images
+  // 1. Process Images using Vercel Blob
   const images = formData.getAll("images") as File[];
   const validImages = images.filter(file => file.size > 0 && file.name !== 'undefined');
   
@@ -58,16 +58,24 @@ export async function createDemand(formData: FormData) {
 
   for (const file of validImages) {
     if (file.size > 10485760) throw new Error("File exceeds 10MB limit.");
-    const url = await uploadFileToSupabase(file);
-    if (url) uploadedUrls.push(url);
+    const timestamp = Date.now();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`demands/${timestamp}-${cleanFileName}`, file, {
+      access: 'public',
+    });
+    uploadedUrls.push(blob.url);
   }
 
-  // 2. Process PDF
+  // 2. Process PDF using Vercel Blob
   const pdf = formData.get("pdf") as File | null;
   if (pdf && pdf.size > 0 && pdf.name !== 'undefined') {
     if (pdf.size > 10485760) throw new Error("PDF exceeds 10MB limit.");
-    const url = await uploadFileToSupabase(pdf);
-    if (url) uploadedUrls.push(url);
+    const timestamp = Date.now();
+    const cleanFileName = pdf.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`demands/${timestamp}-${cleanFileName}`, pdf, {
+      access: 'public',
+    });
+    uploadedUrls.push(blob.url);
   }
 
   // Save to Database via Prisma
@@ -147,22 +155,30 @@ export async function updateDemand(formData: FormData) {
 
   const uploadedUrls: string[] = [];
 
-  // 1. Process New Images
+  // 1. Process New Images using Vercel Blob
   const images = formData.getAll("images") as File[];
   const validImages = images.filter(file => file.size > 0 && file.name !== 'undefined');
   
   for (const file of validImages) {
     if (file.size > 10485760) throw new Error("File exceeds 10MB limit.");
-    const url = await uploadFileToSupabase(file);
-    if (url) uploadedUrls.push(url);
+    const timestamp = Date.now();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`demands/${timestamp}-${cleanFileName}`, file, {
+      access: 'public',
+    });
+    uploadedUrls.push(blob.url);
   }
 
-  // 2. Process New PDF
+  // 2. Process New PDF using Vercel Blob
   const pdf = formData.get("pdf") as File | null;
   if (pdf && pdf.size > 0 && pdf.name !== 'undefined') {
     if (pdf.size > 10485760) throw new Error("PDF exceeds 10MB limit.");
-    const url = await uploadFileToSupabase(pdf);
-    if (url) uploadedUrls.push(url);
+    const timestamp = Date.now();
+    const cleanFileName = pdf.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`demands/${timestamp}-${cleanFileName}`, pdf, {
+      access: 'public',
+    });
+    uploadedUrls.push(blob.url);
   }
 
   // Combine existing attachments with any newly uploaded files

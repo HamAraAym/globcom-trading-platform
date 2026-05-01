@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { uploadFileToSupabase } from "@/lib/supabase";
+import { put } from "@vercel/blob"; // NEW: Vercel Blob Storage
 import { DocumentType } from "@prisma/client";
 
 export async function saveGeneratedDocument(formData: FormData) {
@@ -26,8 +26,14 @@ export async function saveGeneratedDocument(formData: FormData) {
       throw new Error("No valid PDF generated.");
     }
 
-    // 1. Upload the generated PDF to Supabase secure storage
-    const fileUrl = await uploadFileToSupabase(pdfFile);
+    // 1. Upload the generated PDF to Vercel Blob
+    const timestamp = Date.now();
+    const cleanFileName = pdfFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`documents/${timestamp}-${cleanFileName}`, pdfFile, {
+      access: 'public',
+    });
+    const fileUrl = blob.url;
+
     if (!fileUrl) {
       throw new Error("Failed to upload document to secure storage.");
     }

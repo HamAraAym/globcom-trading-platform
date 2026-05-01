@@ -4,6 +4,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==============================
@@ -69,7 +71,7 @@ model User {
   password        String       
   role            Role         @default(BUYER_REP)
   
-  // NEW: Enterprise User Management & Permissions
+  // Enterprise User Management & Permissions
   isActive        Boolean      @default(true) // Admins can toggle to suspend accounts
   canAddDeals     Boolean      @default(true) // Restrict who can post to the board
   canEditDeals    Boolean      @default(true) // Restrict who can modify existing deals
@@ -78,7 +80,7 @@ model User {
   onlineStatus    OnlineStatus @default(OFFLINE)
   lastSeen        DateTime     @default(now())
   
-  letterheadUrl   String?      // Supabase URL for official document header
+  letterheadUrl   String?      // Vercel Blob URL for official document header
 
   // Relations
   demands         Demand[]
@@ -310,7 +312,6 @@ model Notification {
 // ==============================
 // 5. SYSTEM CONFIGURATION
 // ==============================
-// NEW: Global Settings managed by Admins
 model SystemSettings {
   id              String   @id @default("global") // Enforce a single row
   companyName     String   @default("GlobCom International FZE")

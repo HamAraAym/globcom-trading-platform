@@ -35,6 +35,7 @@
     - messageActions.ts
     - notificationActions.ts
     - supplyActions.ts
+    - uploadActions.ts
     - userActions.ts
   - app
     - api
@@ -94,6 +95,5 @@
     - ViewDealModal.tsx
   - lib
     - prisma.ts
-    - supabase.ts
   - proxy.ts
 - tsconfig.json
