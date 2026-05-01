@@ -11,6 +11,7 @@ import ChatInput from "@/components/ChatInput";
 import EmailDispatcher from "@/components/EmailDispatcher";
 import DealStatusManager from "@/components/DealStatusManager";
 import DocumentGenerator from "@/components/DocumentGenerator"; 
+import RealtimeMessageFeed from "@/components/RealtimeMessageFeed"; // NEW: Realtime Websocket Feed
 
 export default async function ChatRoomPage({ params }: { params: Promise<{ chatId: string }> }) {
   const session = await getServerSession();
@@ -124,44 +125,13 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 custom-scrollbar relative">
-            {room.messages.length === 0 ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                <MessageSquare size={48} className="mb-4 opacity-20" />
-                <p className="text-sm font-bold text-slate-600">Secure connection established.</p>
-                <p className="text-xs mt-1">Begin the negotiation process below.</p>
-              </div>
-            ) : (
-              room.messages.map((msg) => {
-                const isMe = msg.sender.email === session?.user?.email;
-
-                return (
-                  <div key={msg.id} className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}>
-                    <div className={`flex flex-col max-w-[80%] lg:max-w-[65%] ${isMe ? "items-end" : "items-start"}`}>
-                      <div className="flex items-center gap-2 mb-1.5 px-1">
-                        <span className="text-xs font-bold text-slate-700">{msg.sender.firstName} {msg.sender.lastName}</span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
-                          {msg.sender.role.replace("_", " ")}
-                        </span>
-                      </div>
-                      
-                      <div className={`px-5 py-3.5 text-sm leading-relaxed shadow-sm ${
-                        isMe 
-                          ? `bg-${themeColor}-600 text-white rounded-2xl rounded-tr-sm` 
-                          : "bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm"
-                      }`}>
-                        {msg.content}
-                      </div>
-                      
-                      <span className="text-[9px] font-bold text-slate-400 mt-1.5 px-1 tracking-widest uppercase">
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+          {/* REALTIME WEBSOCKET MESSAGE FEED */}
+          <RealtimeMessageFeed 
+            initialMessages={room.messages as any} 
+            chatId={chatId} 
+            currentUserEmail={session?.user?.email || undefined} 
+            themeColor={themeColor} 
+          />
 
           <ChatInput 
             chatId={chatId} 

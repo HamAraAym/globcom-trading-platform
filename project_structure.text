@@ -16,9 +16,13 @@
 - public
   - file.svg
   - globe.svg
+  - manifest.json
   - next.svg
+  - sw.js
+  - swe-worker-5c72df51bb1f6ee0.js
   - vercel.svg
   - window.svg
+  - workbox-f1770938.js
 - src
   - actions
     - adminActions.ts
@@ -78,9 +82,11 @@
     - LocationAutocomplete.tsx
     - MatchingEngine.tsx
     - MediaGallery.tsx
+    - MobileNav.tsx
     - NotificationBell.tsx
     - PageWrapper.tsx
     - Providers.tsx
+    - RealtimeMessageFeed.tsx
     - Sidebar.tsx
     - SupplyCard.tsx
     - SupplyForm.tsx
