@@ -22,9 +22,15 @@ export const metadata: Metadata = {
   authors: [{ name: "GlobCom International FZE" }],
   generator: "Next.js",
   keywords: ["Commodity Trading", "ERP", "GlobCom", "CRM", "Logistics", "Hamriyah Free Zone"],
+  manifest: "/manifest.json", // NEW: Links your PWA Manifest!
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "GlobCom",
+  },
   icons: {
     icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    apple: "/globe.svg", // Serves as the Apple Touch Icon for now
   },
 };
 
