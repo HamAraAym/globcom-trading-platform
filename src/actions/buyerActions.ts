@@ -2,9 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { uploadFileToSupabase } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { ClientType } from "@prisma/client";
+import { put } from "@vercel/blob"; // NEW: Vercel Blob Storage
 
 export async function createBuyer(formData: FormData) {
   // 1. Authenticate the action for audit logging
@@ -34,20 +34,30 @@ export async function createBuyer(formData: FormData) {
   const addressParts = [area, city, country].filter(Boolean);
   const address = addressParts.length > 0 ? addressParts.join(", ") : null;
 
-  // 5. Handle KYC Document Uploads to Supabase
+  // 5. Handle KYC Document Uploads directly to Vercel Blob
   let tradeLicenseUrl = null;
   let passportUrl = null;
 
   if (type === "CORPORATE") {
     const tradeLicenseFile = formData.get("tradeLicense") as File | null;
     if (tradeLicenseFile && tradeLicenseFile.size > 0 && tradeLicenseFile.name !== 'undefined') {
-      tradeLicenseUrl = await uploadFileToSupabase(tradeLicenseFile);
+      const timestamp = Date.now();
+      const cleanFileName = tradeLicenseFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+      const blob = await put(`kyc/${timestamp}-${cleanFileName}`, tradeLicenseFile, {
+        access: 'public',
+      });
+      tradeLicenseUrl = blob.url;
     }
   }
 
   const passportFile = formData.get("passport") as File | null;
   if (passportFile && passportFile.size > 0 && passportFile.name !== 'undefined') {
-    passportUrl = await uploadFileToSupabase(passportFile);
+    const timestamp = Date.now();
+    const cleanFileName = passportFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`kyc/${timestamp}-${cleanFileName}`, passportFile, {
+      access: 'public',
+    });
+    passportUrl = blob.url;
   }
 
   // 6. Save to Database
