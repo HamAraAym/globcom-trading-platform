@@ -6,7 +6,6 @@ const withPWA = withPWAInit({
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
-  swcMinify: true,
   // We disable the PWA service worker in development so it doesn't mess with hot-reloading.
   // It will automatically activate when you push to Vercel (Production).
   disable: process.env.NODE_ENV === "development",
