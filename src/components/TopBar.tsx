@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Signal, Send, User as UserIcon, LogOut, ChevronDown, CheckCircle2, Settings } from "lucide-react";
+import { Signal, Send, User as UserIcon, LogOut, ChevronDown, CheckCircle2, Settings, Globe } from "lucide-react";
 import Link from "next/link";
 import NotificationBell from "./NotificationBell";
-import { sendPing } from "@/actions/notificationActions"; // We will add this action next!
+import { sendPing } from "@/actions/notificationActions"; 
 
 export default function TopBar() {
   const { data: session } = useSession();
@@ -22,7 +22,7 @@ export default function TopBar() {
     ? userName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() 
     : "?";
 
-  // Mock list of online users (we will wire this to Prisma later to fetch real online users)
+  // Mock list of online users
   const onlineTeam = [
     { id: "1", name: "Sarah Jenkins", role: "TRADING REP" },
     { id: "2", name: "Mike Ross", role: "BUYER REP" },
@@ -41,17 +41,12 @@ export default function TopBar() {
 
   // Handle the 1-on-1 direct ping
   const handlePing = async (userId: string) => {
-    // Optimistic UI update (show the green checkmark)
     setPingedUsers(prev => [...prev, userId]);
-    
     try {
-      // Dispatch the actual notification to their database row
       await sendPing(userId);
     } catch (error) {
       console.error("Failed to ping user", error);
     }
-    
-    // Close the dropdown after 2 seconds
     setTimeout(() => {
       setPingedUsers(prev => prev.filter(id => id !== userId));
       setIsPingOpen(false);
@@ -59,100 +54,112 @@ export default function TopBar() {
   };
 
   return (
-    <div className="h-20 px-8 flex items-center justify-end gap-6 bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+    <div className="h-20 px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shrink-0">
       
-      {/* 1. Quick Ping Directory */}
-      <div className="relative" ref={pingRef}>
-        <button 
-          onClick={() => { setIsPingOpen(!isPingOpen); setIsProfileOpen(false); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 rounded-full text-sm font-bold text-slate-700 shadow-sm transition-all"
-        >
-          <Signal size={16} className="text-indigo-600" />
-          Ping Team
-        </button>
+      {/* MOBILE LOGO: Shows only on phones so users know where they are */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md">
+          <Globe size={18} />
+        </div>
+        <span className="font-black text-slate-900 tracking-tight text-lg">GlobCom</span>
+      </div>
 
-        {isPingOpen && (
-          <div className="absolute top-full right-0 mt-3 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 pt-2 pb-2 border-b border-slate-100 mb-1">Direct Ping (Online Members)</p>
-            {onlineTeam.map(user => (
-              <button 
-                key={user.id} 
-                onClick={() => handlePing(user.id)}
-                className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors group"
+      {/* RIGHT SIDE ACTIONS */}
+      <div className="flex items-center gap-3 lg:gap-6">
+        
+        {/* 1. Quick Ping Directory */}
+        <div className="relative" ref={pingRef}>
+          <button 
+            onClick={() => { setIsPingOpen(!isPingOpen); setIsProfileOpen(false); }}
+            className="flex items-center gap-2 px-3 lg:px-4 py-2 lg:py-2.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 rounded-full text-xs lg:text-sm font-bold text-slate-700 shadow-sm transition-all"
+          >
+            <Signal size={16} className="text-indigo-600" />
+            <span className="hidden sm:inline">Ping Team</span>
+          </button>
+
+          {isPingOpen && (
+            <div className="absolute top-full right-0 mt-3 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 pt-2 pb-2 border-b border-slate-100 mb-1">Direct Ping (Online Members)</p>
+              {onlineTeam.map(user => (
+                <button 
+                  key={user.id} 
+                  onClick={() => handlePing(user.id)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)] shrink-0"></div>
+                    <div className="text-left overflow-hidden">
+                      <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{user.role}</p>
+                    </div>
+                  </div>
+                  {pingedUsers.includes(user.id) ? (
+                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                  ) : (
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0">
+                      PING <Send size={12} />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 2. Notification Bell */}
+        <div className="bg-white p-1.5 lg:p-1 rounded-full border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors cursor-pointer">
+          <NotificationBell />
+        </div>
+
+        {/* 3. User Identity & Profile Dropdown */}
+        <div className="relative border-l border-slate-200 pl-3 lg:pl-6" ref={profileRef}>
+          <button 
+            onClick={() => { setIsProfileOpen(!isProfileOpen); setIsPingOpen(false); }}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none group"
+          >
+            <div className="text-right hidden lg:block">
+              <p className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{userName}</p>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{userRole.replace("_", " ")}</p>
+            </div>
+            <div className="relative flex items-center gap-1">
+              <div className="w-9 h-9 lg:w-10 lg:h-10 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-xs lg:text-sm">
+                {initials}
+              </div>
+              {/* Green Online Dot */}
+              <span className="absolute bottom-0 right-3 lg:right-4 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-[0_0_5px_rgba(16,185,129,0.5)] z-20"></span>
+              <ChevronDown size={14} className="text-slate-400 ml-1 group-hover:text-indigo-500 transition-colors hidden sm:block" />
+            </div>
+          </button>
+
+          {/* The Profile Dropdown */}
+          {isProfileOpen && (
+            <div className="absolute top-full right-0 mt-3 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="px-3 py-3 border-b border-slate-100 mb-1 lg:hidden">
+                  <p className="text-sm font-bold text-slate-900 truncate">{userName}</p>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{userRole.replace("_", " ")}</p>
+              </div>
+              
+              <Link 
+                href="/settings"
+                onClick={() => setIsProfileOpen(false)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition-colors mb-1"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)] shrink-0"></div>
-                  <div className="text-left overflow-hidden">
-                    <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{user.role}</p>
-                  </div>
-                </div>
-                {pingedUsers.includes(user.id) ? (
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                ) : (
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0">
-                    PING <Send size={12} />
-                  </div>
-                )}
+                <Settings size={16} className="text-slate-400" />
+                Account Settings
+              </Link>
+
+              <button 
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+              >
+                <LogOut size={16} className="text-rose-400" />
+                Secure Logout
               </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 2. Notification Bell */}
-      <div className="bg-white p-1 rounded-full border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors cursor-pointer">
-        <NotificationBell />
-      </div>
-
-      {/* 3. User Identity & Profile Dropdown */}
-      <div className="relative border-l border-slate-200 pl-6" ref={profileRef}>
-        <button 
-          onClick={() => { setIsProfileOpen(!isProfileOpen); setIsPingOpen(false); }}
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none group"
-        >
-          <div className="text-right hidden md:block">
-            <p className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{userName}</p>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{userRole.replace("_", " ")}</p>
-          </div>
-          <div className="relative flex items-center gap-1">
-            <div className="w-10 h-10 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-sm">
-              {initials}
             </div>
-            {/* Green Online Dot */}
-            <span className="absolute bottom-0 right-4 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-[0_0_5px_rgba(16,185,129,0.5)] z-20"></span>
-            <ChevronDown size={14} className="text-slate-400 ml-1 group-hover:text-indigo-500 transition-colors" />
-          </div>
-        </button>
+          )}
+        </div>
 
-        {/* The Profile Dropdown */}
-        {isProfileOpen && (
-          <div className="absolute top-full right-0 mt-3 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
-            <div className="px-3 py-3 border-b border-slate-100 mb-1 md:hidden">
-                <p className="text-sm font-bold text-slate-900 truncate">{userName}</p>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{userRole.replace("_", " ")}</p>
-            </div>
-            
-            <Link 
-              href="/settings"
-              onClick={() => setIsProfileOpen(false)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition-colors mb-1"
-            >
-              <Settings size={16} className="text-slate-400" />
-              Account Settings
-            </Link>
-
-            <button 
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-            >
-              <LogOut size={16} className="text-rose-400" />
-              Secure Logout
-            </button>
-          </div>
-        )}
       </div>
-
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
+import MobileNav from "@/components/MobileNav";
 
 export default function PageWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,22 +18,30 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
     );
   }
 
-  // 2. MAIN APPLICATION: Render Sidebar/TopBar and apply margin logic matching the new w-72 Sidebar
+  // 2. MAIN APPLICATION: Responsive layout
   return (
-    <>
-      <Sidebar />
+    <div className="flex h-screen bg-slate-50 overflow-hidden relative">
+      
+      {/* DESKTOP SIDEBAR: Hidden on mobile screens */}
+      <div className="hidden lg:block z-20">
+        <Sidebar />
+      </div>
+
+      {/* MAIN CONTENT AREA */}
       <main 
-        className="flex-1 min-h-screen flex flex-col bg-slate-50 transition-all duration-300 ease-in-out ml-72 w-[calc(100%-18rem)]"
+        className="flex-1 min-h-screen flex flex-col bg-slate-50 transition-all duration-300 ease-in-out w-full lg:ml-72 lg:w-[calc(100%-18rem)] relative"
       >
         <TopBar />
         
-        {/* The w-[calc(100%-18rem)] ensures that the main content doesn't overflow horizontally 
-          when the 72-width (18rem) sidebar is active.
-        */}
-        <div className="flex-1 flex flex-col">
+        {/* pb-24 adds padding at the bottom of the phone so the MobileNav doesn't block content */}
+        <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar pb-24 lg:pb-0">
           {children}
         </div>
+
+        {/* MOBILE BOTTOM NAVIGATION: Hidden on desktop */}
+        <MobileNav />
       </main>
-    </>
+
+    </div>
   );
 }
