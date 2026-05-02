@@ -143,13 +143,13 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
   };
 
   return (
-    <div className="relative p-4 bg-white border-t border-slate-200 shrink-0 z-20">
+    <div className="relative p-2 md:p-4 bg-white border-t border-slate-200 shrink-0 z-20 pb-safe">
       
-      {/* THE MENTION DROPDOWN */}
+      {/* THE MENTION DROPDOWN (Responsive Width & Position) */}
       {showMentions && filteredUsers.length > 0 && (
-        <div className="absolute bottom-full left-16 mb-3 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
+        <div className="absolute bottom-full left-2 right-2 md:right-auto md:left-14 mb-2 md:mb-3 md:w-72 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
           <div className="bg-slate-50 px-3 py-2.5 border-b border-slate-100 flex items-center gap-2">
-            <AtSign size={14} className="text-slate-400" />
+            <AtSign size={14} className="text-slate-400 shrink-0" />
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tag Team Member</span>
           </div>
           <div className="p-1.5 space-y-0.5">
@@ -176,9 +176,9 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
       )}
 
       {/* THE INPUT BAR */}
-      <form ref={formRef} onSubmit={handleSubmit} className="flex items-end gap-3">
-        <button type="button" className="p-3.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors border border-transparent hover:border-slate-200 shrink-0">
-          <Paperclip size={20} />
+      <form ref={formRef} onSubmit={handleSubmit} className="flex items-end gap-2 md:gap-3">
+        <button type="button" className="p-3 md:p-3.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors border border-transparent hover:border-slate-200 shrink-0">
+          <Paperclip size={20} className="w-5 h-5" />
         </button>
         
         <div className="flex-1 relative">
@@ -189,18 +189,19 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             rows={2}
-            placeholder="Type your message... (Use @ to tag your team)"
+            placeholder="Type your message... (@ to tag)"
             required
-            className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} transition-all resize-none custom-scrollbar`}
+            // CRITICAL FIX: text-base on mobile prevents iOS keyboard zoom, md:text-sm for desktop
+            className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2.5 md:py-3.5 text-base md:text-sm focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} transition-all resize-none custom-scrollbar`}
           />
         </div>
         
         <button 
           type="submit" 
           disabled={!content.trim() || isSubmitting}
-          className={`p-3.5 bg-slate-900 ${theme.hover} disabled:bg-slate-200 disabled:text-slate-400 disabled:opacity-100 text-white rounded-xl transition-all shadow-lg shadow-slate-900/10 group shrink-0`}
+          className={`p-3 md:p-3.5 bg-slate-900 ${theme.hover} disabled:bg-slate-200 disabled:text-slate-400 disabled:opacity-100 text-white rounded-xl transition-all shadow-lg shadow-slate-900/10 group shrink-0`}
         >
-          {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
+          {isSubmitting ? <Loader2 size={20} className="animate-spin w-5 h-5" /> : <Send size={20} className="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
         </button>
       </form>
     </div>

@@ -36,7 +36,6 @@ export default function RealtimeMessageFeed({ initialMessages, chatId, currentUs
 
   useEffect(() => {
     // 1. Initialize Pusher Client SDK
-    // We do this inside useEffect so it only runs on the client browser
     const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     });
@@ -62,40 +61,43 @@ export default function RealtimeMessageFeed({ initialMessages, chatId, currentUs
 
   if (messages.length === 0) {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-        <MessageSquare size={48} className="mb-4 opacity-20" />
-        <p className="text-sm font-bold text-slate-600">Secure connection established.</p>
-        <p className="text-xs mt-1">Begin the negotiation process below.</p>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+        <MessageSquare className="mb-3 md:mb-4 opacity-20 w-10 h-10 md:w-12 md:h-12" />
+        <p className="text-xs md:text-sm font-bold text-slate-600">Secure connection established.</p>
+        <p className="text-[10px] md:text-xs mt-1">Begin the negotiation process below.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 custom-scrollbar relative" ref={scrollRef}>
+    <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 bg-slate-50/50 custom-scrollbar relative" ref={scrollRef}>
       {messages.map((msg) => {
         const isMe = msg.sender?.email === currentUserEmail;
 
+        // FIXED: Safe dynamic color rendering for Tailwind Purger
+        const bubbleColor = isMe 
+          ? (themeColor === "blue" ? "bg-blue-600 text-white" : "bg-emerald-600 text-white")
+          : "bg-white border border-slate-200 text-slate-800";
+
         return (
           <div key={msg.id} className={`flex w-full ${isMe ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2`}>
-            <div className={`flex flex-col max-w-[80%] lg:max-w-[65%] ${isMe ? "items-end" : "items-start"}`}>
-              <div className="flex items-center gap-2 mb-1.5 px-1">
-                <span className="text-xs font-bold text-slate-700">
+            <div className={`flex flex-col max-w-[85%] md:max-w-[75%] lg:max-w-[65%] ${isMe ? "items-end" : "items-start"}`}>
+              <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5 px-1">
+                <span className="text-[10px] md:text-xs font-bold text-slate-700">
                   {msg.sender?.firstName || "Unknown"} {msg.sender?.lastName || ""}
                 </span>
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
+                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
                   {msg.sender?.role?.replace("_", " ") || "USER"}
                 </span>
               </div>
               
-              <div className={`px-5 py-3.5 text-sm leading-relaxed shadow-sm ${
-                isMe 
-                  ? `bg-${themeColor}-600 text-white rounded-2xl rounded-tr-sm` 
-                  : "bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm"
+              <div className={`px-4 py-3 md:px-5 md:py-3.5 text-xs md:text-sm leading-relaxed shadow-sm ${bubbleColor} ${
+                isMe ? "rounded-2xl rounded-tr-sm" : "rounded-2xl rounded-tl-sm"
               }`}>
                 {msg.content}
               </div>
               
-              <span className="text-[9px] font-bold text-slate-400 mt-1.5 px-1 tracking-widest uppercase">
+              <span className="text-[8px] md:text-[9px] font-bold text-slate-400 mt-1 md:mt-1.5 px-1 tracking-widest uppercase">
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
