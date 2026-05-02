@@ -14,9 +14,9 @@ interface Buyer {
 
 interface DispatcherProps {
   buyers: Buyer[];
-  contextItem: any; // Includes .documents from the database
+  contextItem: any; 
   type: "DEMAND" | "SUPPLY";
-  themeColor: string; // 'blue' or 'emerald'
+  themeColor: string; 
 }
 
 type DispatchType = "GENERAL" | "LOI" | "FCO" | "SCO";
@@ -30,27 +30,16 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
   const [customMessage, setCustomMessage] = useState("");
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
 
-  // Tailwind safe-mapping for dynamic colors to prevent purging
   const colorMap = {
     blue: {
-      bg: "bg-blue-600",
-      hover: "hover:bg-blue-700",
-      lightBg: "bg-blue-50",
-      border: "border-blue-400",
-      ring: "ring-blue-500/10",
-      text: "text-blue-900",
-      icon: "text-blue-500",
-      shadow: "shadow-blue-600/20"
+      bg: "bg-blue-600", hover: "hover:bg-blue-700", lightBg: "bg-blue-50",
+      border: "border-blue-400", ring: "ring-blue-500/10", text: "text-blue-900",
+      icon: "text-blue-500", shadow: "shadow-blue-600/20"
     },
     emerald: {
-      bg: "bg-emerald-600",
-      hover: "hover:bg-emerald-700",
-      lightBg: "bg-emerald-50",
-      border: "border-emerald-400",
-      ring: "ring-emerald-500/10",
-      text: "text-emerald-900",
-      icon: "text-emerald-500",
-      shadow: "shadow-emerald-600/20"
+      bg: "bg-emerald-600", hover: "hover:bg-emerald-700", lightBg: "bg-emerald-50",
+      border: "border-emerald-400", ring: "ring-emerald-500/10", text: "text-emerald-900",
+      icon: "text-emerald-500", shadow: "shadow-emerald-600/20"
     }
   };
   const theme = colorMap[themeColor as keyof typeof colorMap] || colorMap.blue;
@@ -64,7 +53,6 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
       const activeBuyer = buyers.find(b => b.id === selectedBuyer);
       if(!activeBuyer) throw new Error("Buyer not found");
 
-      // Construct the FormData payload expected by our updated server action
       const formData = new FormData();
       formData.append("buyerId", activeBuyer.id);
       formData.append("contextId", contextItem.id);
@@ -74,7 +62,6 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
       formData.append("customMessage", customMessage);
       formData.append("attachedDocs", JSON.stringify(selectedDocs)); 
 
-      // Send to backend!
       await dispatchToClient(formData);
 
       setIsOpen(false);
@@ -90,8 +77,6 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
   };
 
   const activeBuyer = buyers.find(b => b.id === selectedBuyer);
-
-  // Filter generated documents to only show ones made for the selected buyer
   const availableDocs = contextItem?.documents?.filter((doc: any) => doc.clientId === selectedBuyer) || [];
 
   const toggleDoc = (docUrl: string) => {
@@ -120,37 +105,37 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className={`w-full mt-6 flex items-center justify-center gap-2 ${theme.bg} ${theme.hover} text-white py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg ${theme.shadow} group`}
+        className={`w-full mt-4 md:mt-6 flex items-center justify-center gap-2 ${theme.bg} ${theme.hover} text-white py-3 md:py-3.5 rounded-xl text-xs md:text-sm font-bold transition-all shadow-lg ${theme.shadow} group shrink-0`}
       >
-        <Mail size={18} className="group-hover:scale-110 transition-transform" />
+        <Mail size={16} className="md:w-4 md:h-4 group-hover:scale-110 transition-transform" />
         Dispatch to External Client
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-6xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/70 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl md:rounded-3xl w-full max-w-6xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
-            <div className={`px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white shrink-0`}>
-              <div className="flex items-center gap-3">
-                <div className={`${theme.icon.replace('text', 'bg')}/20 ${theme.icon} p-2 rounded-lg border border-${themeColor}-500/30`}><Send size={20} /></div>
-                <h2 className="text-xl font-bold tracking-wide">External Dispatcher</h2>
+            <div className={`px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white shrink-0`}>
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className={`${theme.icon.replace('text', 'bg')}/20 ${theme.icon} p-1.5 md:p-2 rounded-lg border border-${themeColor}-500/30`}><Send size={18} className="md:w-5 md:h-5" /></div>
+                <h2 className="text-lg md:text-xl font-bold tracking-wide">External Dispatcher</h2>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800 rounded-full">
-                <X size={20} />
+              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1.5 md:p-2 bg-slate-800 rounded-full shrink-0">
+                <X size={18} className="md:w-5 md:h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 bg-slate-50 flex flex-col lg:flex-row gap-8">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 bg-slate-50 flex flex-col lg:flex-row gap-6 md:gap-8">
               
               {/* LEFT COLUMN: Controls & Selections */}
-              <div className="w-full lg:w-[45%] space-y-8 flex flex-col">
+              <div className="w-full lg:w-[45%] space-y-6 md:space-y-8 flex flex-col">
                 
                 {/* 1. Client Selection */}
                 <div>
-                  <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">1. Target Client</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
+                  <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2 md:mb-3">1. Target Client</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] md:max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
                     {buyers.length === 0 ? (
-                       <div className="text-sm font-bold text-slate-500 p-6 bg-white rounded-2xl border border-slate-200 text-center col-span-2 shadow-sm">No clients in CRM.</div>
+                       <div className="text-xs md:text-sm font-bold text-slate-500 p-4 md:p-6 bg-white rounded-xl md:rounded-2xl border border-slate-200 text-center col-span-1 sm:col-span-2 shadow-sm">No clients in CRM.</div>
                     ) : (
                       buyers.map(buyer => (
                         <button
@@ -159,15 +144,15 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                             setSelectedBuyer(buyer.id);
                             setSelectedDocs([]); 
                           }}
-                          className={`text-left p-3.5 rounded-2xl border transition-all duration-200 ${
+                          className={`text-left p-3 md:p-3.5 rounded-xl md:rounded-2xl border transition-all duration-200 ${
                             selectedBuyer === buyer.id 
-                              ? `${theme.lightBg} ${theme.border} ring-4 ${theme.ring} shadow-md` 
+                              ? `${theme.lightBg} ${theme.border} ring-2 md:ring-4 ${theme.ring} shadow-md` 
                               : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          <p className="font-bold text-slate-900 text-sm leading-tight truncate">{buyer.company || buyer.name}</p>
-                          <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5 mt-1">
-                            {buyer.type === "CORPORATE" ? <><Building size={12} className="text-indigo-400"/> {buyer.name}</> : <><User size={12} className="text-emerald-400"/> Individual</>}
+                          <p className="font-bold text-slate-900 text-xs md:text-sm leading-tight truncate">{buyer.company || buyer.name}</p>
+                          <p className="text-[10px] md:text-xs font-medium text-slate-500 flex items-center gap-1 md:gap-1.5 mt-1 truncate">
+                            {buyer.type === "CORPORATE" ? <><Building size={10} className="md:w-3 md:h-3 text-indigo-400 shrink-0"/> <span className="truncate">{buyer.name}</span></> : <><User size={10} className="md:w-3 md:h-3 text-emerald-400 shrink-0"/> Individual</>}
                           </p>
                         </button>
                       ))
@@ -177,7 +162,7 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
 
                 {/* 2. Dispatch Type */}
                 <div>
-                  <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">2. Formal Dispatch Type</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2 md:mb-3">2. Formal Dispatch Type</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: "LOI", label: "LOI", desc: "Letter of Interest" },
@@ -188,14 +173,14 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                       <button
                         key={btn.id}
                         onClick={() => setDispatchType(btn.id as DispatchType)}
-                        className={`p-3 rounded-xl border text-left transition-all ${
+                        className={`p-2.5 md:p-3 rounded-lg md:rounded-xl border text-left transition-all ${
                           dispatchType === btn.id 
                             ? `${theme.bg} border-transparent text-white shadow-md` 
                             : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
-                        <p className={`text-sm font-black ${dispatchType === btn.id ? 'text-white' : 'text-slate-900'}`}>{btn.label}</p>
-                        <p className={`text-[10px] font-medium mt-0.5 ${dispatchType === btn.id ? `text-white/70` : 'text-slate-500'}`}>{btn.desc}</p>
+                        <p className={`text-xs md:text-sm font-black ${dispatchType === btn.id ? 'text-white' : 'text-slate-900'}`}>{btn.label}</p>
+                        <p className={`text-[9px] md:text-[10px] font-medium mt-0.5 ${dispatchType === btn.id ? `text-white/70` : 'text-slate-500'} truncate`}>{btn.desc}</p>
                       </button>
                     ))}
                   </div>
@@ -204,11 +189,11 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                 {/* 3. Official Document Attachments */}
                 {selectedBuyer && (
                   <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <FileBadge size={16} className={theme.icon} /> 3. Attach Official Documents
+                    <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2">
+                      <FileBadge size={14} className={`${theme.icon} md:w-4 md:h-4`} /> 3. Attach Official Documents
                     </h3>
                     {availableDocs.length === 0 ? (
-                      <p className="text-xs text-slate-500 p-4 bg-white border border-slate-200 rounded-xl italic">
+                      <p className="text-[10px] md:text-xs text-slate-500 p-3 md:p-4 bg-white border border-slate-200 rounded-lg md:rounded-xl italic">
                         No official documents generated for this client on this deal yet. Use the Document Generator first!
                       </p>
                     ) : (
@@ -219,14 +204,14 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
                             <div 
                               key={doc.id}
                               onClick={() => toggleDoc(doc.fileUrl)}
-                              className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${isSelected ? `${theme.lightBg} ${theme.border}` : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                              className={`flex items-center gap-2 md:gap-3 p-2.5 md:p-3 border rounded-lg md:rounded-xl cursor-pointer transition-all ${isSelected ? `${theme.lightBg} ${theme.border}` : 'bg-white border-slate-200 hover:border-slate-300'}`}
                             >
                               <div className={isSelected ? theme.icon : 'text-slate-400'}>
-                                {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                                {isSelected ? <CheckSquare size={16} className="md:w-4 md:h-4" /> : <Square size={16} className="md:w-4 md:h-4" />}
                               </div>
                               <div className="flex-1 overflow-hidden">
-                                <p className={`text-sm font-bold truncate ${isSelected ? theme.text : 'text-slate-700'}`}>{doc.title}</p>
-                                <p className="text-[10px] text-slate-400 font-bold mt-0.5">Generated {new Date(doc.createdAt).toLocaleDateString()}</p>
+                                <p className={`text-xs md:text-sm font-bold truncate ${isSelected ? theme.text : 'text-slate-700'}`}>{doc.title}</p>
+                                <p className="text-[9px] md:text-[10px] text-slate-400 font-bold mt-0.5">Generated {new Date(doc.createdAt).toLocaleDateString()}</p>
                               </div>
                             </div>
                           )
@@ -238,111 +223,112 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
 
                 {/* 4. Custom Message Input */}
                 <div>
-                   <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">4. Custom Message (Optional)</h3>
+                   <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2 md:mb-3">4. Custom Message (Optional)</h3>
+                   {/* text-base prevents iOS keyboard auto-zoom */}
                    <textarea
                      value={customMessage}
                      onChange={(e) => setCustomMessage(e.target.value)}
-                     placeholder="Type a personal greeting or negotiation note here..."
+                     placeholder="Type a personal greeting or note..."
                      rows={3}
-                     className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${theme.ring} transition-all resize-none`}
+                     className={`w-full bg-white border border-slate-200 rounded-lg md:rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:border-transparent ${theme.ring} transition-all resize-none`}
                    />
                 </div>
 
               </div>
 
               {/* RIGHT COLUMN: Sleek Email Preview */}
-              <div className="w-full lg:w-[55%] flex flex-col h-full">
-                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 shrink-0">
+              <div className="w-full lg:w-[55%] flex flex-col h-full mt-6 lg:mt-0">
+                <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2 shrink-0">
                    Email Preview
                 </h3>
                 
-                <div className="flex-1 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden font-sans">
+                <div className="flex-1 bg-white border border-slate-200 rounded-2xl md:rounded-3xl shadow-sm flex flex-col overflow-hidden font-sans max-h-[500px] lg:max-h-none">
                   
                   {/* Email Headers */}
-                  <div className="bg-slate-50 border-b border-slate-100 p-5 space-y-3 shrink-0">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="w-16 text-slate-400 font-medium text-right">From:</span>
-                      <span className="font-bold text-slate-700 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">{process.env.NEXT_PUBLIC_SMTP_FROM_EMAIL || "sales@globcomfze.com"}</span>
+                  <div className="bg-slate-50 border-b border-slate-100 p-3 md:p-5 space-y-2 md:space-y-3 shrink-0">
+                    <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">
+                      <span className="w-12 md:w-16 text-slate-400 font-medium text-right shrink-0">From:</span>
+                      <span className="font-bold text-slate-700 bg-white px-2.5 md:px-3 py-1 rounded-full border border-slate-200 shadow-sm truncate">{process.env.NEXT_PUBLIC_SMTP_FROM_EMAIL || "sales@globcomfze.com"}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="w-16 text-slate-400 font-medium text-right">To:</span>
+                    <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">
+                      <span className="w-12 md:w-16 text-slate-400 font-medium text-right shrink-0">To:</span>
                       {activeBuyer ? (
-                         <span className="font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200 shadow-sm">{activeBuyer.email}</span>
+                         <span className="font-bold text-indigo-700 bg-indigo-50 px-2.5 md:px-3 py-1 rounded-full border border-indigo-200 shadow-sm truncate">{activeBuyer.email}</span>
                       ) : (
                          <span className="text-slate-400 italic font-medium">Select a client...</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-sm pt-2">
-                      <span className="w-16 text-slate-400 font-medium text-right">Subject:</span>
+                    <div className="flex items-start gap-2 md:gap-4 text-xs md:text-sm pt-1 md:pt-2">
+                      <span className="w-12 md:w-16 text-slate-400 font-medium text-right shrink-0 mt-0.5">Subject:</span>
                       <span className="font-bold text-slate-900 tracking-tight">{getSubject()}</span>
                     </div>
                   </div>
 
                   {/* Email Body */}
-                  <div className="p-6 md:p-8 flex-1 text-slate-700 text-sm leading-relaxed overflow-y-auto custom-scrollbar">
+                  <div className="p-4 md:p-6 lg:p-8 flex-1 text-slate-700 text-xs md:text-sm leading-relaxed overflow-y-auto custom-scrollbar">
                     <p className="font-medium">Dear {activeBuyer ? activeBuyer.name : "[Client Name]"},</p>
                     
                     {/* INJECTED CUSTOM MESSAGE */}
                     {customMessage && (
-                      <div className="mt-4 p-4 bg-slate-50 border-l-4 border-slate-300 rounded-r-xl text-slate-800 whitespace-pre-wrap font-medium italic shadow-sm">
+                      <div className="mt-3 md:mt-4 p-3 md:p-4 bg-slate-50 border-l-4 border-slate-300 rounded-r-lg md:rounded-r-xl text-slate-800 whitespace-pre-wrap font-medium italic shadow-sm">
                         "{customMessage}"
                       </div>
                     )}
 
-                    <p className="mt-4">{getOpeningText()}</p>
+                    <p className="mt-3 md:mt-4">{getOpeningText()}</p>
                     
                     {/* Modern Product Card */}
-                    <div className="my-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                      <div className={`h-1.5 w-full ${theme.bg}`}></div>
-                      <div className="p-5">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className={`p-2 ${theme.lightBg} ${theme.icon} rounded-xl`}>
-                            <Package size={20} />
+                    <div className="my-4 md:my-6 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm overflow-hidden">
+                      <div className={`h-1 md:h-1.5 w-full ${theme.bg}`}></div>
+                      <div className="p-4 md:p-5">
+                        <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                          <div className={`p-1.5 md:p-2 ${theme.lightBg} ${theme.icon} rounded-lg md:rounded-xl shrink-0`}>
+                            <Package size={18} className="md:w-5 md:h-5" />
                           </div>
-                          <h4 className="font-black text-slate-900 text-lg tracking-tight">{contextItem.title}</h4>
+                          <h4 className="font-black text-slate-900 text-base md:text-lg tracking-tight leading-tight">{contextItem.title}</h4>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                           <div className="flex items-center gap-2">
-                            <CircleDollarSign size={16} className="text-slate-400" />
-                            <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">Price:</span>
-                            <span className="text-sm font-black text-emerald-600">
+                            <CircleDollarSign size={14} className="md:w-4 md:h-4 text-slate-400 shrink-0" />
+                            <span className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider font-bold">Price:</span>
+                            <span className="text-xs md:text-sm font-black text-emerald-600 truncate">
                               {(contextItem.price || contextItem.targetPrice) ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(contextItem.price || contextItem.targetPrice) : "TBD"}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Package size={16} className="text-slate-400" />
-                            <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">Volume:</span>
-                            <span className="text-sm font-bold text-slate-900">{new Intl.NumberFormat().format(contextItem.quantity)} {contextItem.quantityUnit || "MT"}</span>
+                            <Package size={14} className="md:w-4 md:h-4 text-slate-400 shrink-0" />
+                            <span className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider font-bold">Volume:</span>
+                            <span className="text-xs md:text-sm font-bold text-slate-900 truncate">{new Intl.NumberFormat().format(contextItem.quantity)} {contextItem.quantityUnit || "MT"}</span>
                           </div>
-                          <div className="flex items-center gap-2 sm:col-span-2">
-                            <Calendar size={16} className="text-slate-400" />
-                            <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">Timeline/Location:</span>
-                            <span className="text-sm font-bold text-slate-900">{contextItem.location || contextItem.timeline}</span>
+                          <div className="flex items-start sm:items-center gap-2 sm:col-span-2">
+                            <Calendar size={14} className="md:w-4 md:h-4 text-slate-400 shrink-0 mt-0.5 sm:mt-0" />
+                            <span className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider font-bold shrink-0">Timeline/Location:</span>
+                            <span className="text-xs md:text-sm font-bold text-slate-900">{contextItem.location || contextItem.timeline}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <p className="text-slate-600 whitespace-pre-wrap mt-6">{contextItem.specs}</p>
+                    <p className="text-slate-600 whitespace-pre-wrap mt-4 md:mt-6">{contextItem.specs}</p>
                     
-                    <div className="mt-8 pt-6 border-t border-slate-100">
+                    <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-slate-100">
                       <p className="font-medium text-slate-900">Best Regards,</p>
-                      <p className="font-black text-slate-900 mt-1">GlobCom Trading Team</p>
+                      <p className="font-black text-slate-900 mt-0.5 md:mt-1">GlobCom Trading Team</p>
                     </div>
                   </div>
 
                   {/* Attachment Footer */}
-                  <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex flex-col gap-3 shrink-0">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 bg-white border border-slate-200 rounded-lg shadow-sm text-slate-500">
-                        <FileText size={16} />
+                  <div className="bg-slate-50 border-t border-slate-100 px-4 md:px-6 py-3 md:py-4 flex flex-col gap-2 md:gap-3 shrink-0">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 bg-white border border-slate-200 rounded-md md:rounded-lg shadow-sm text-slate-500 shrink-0">
+                        <FileText size={14} className="md:w-4 md:h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-900">
                           {selectedDocs.length} Documents Attached
                         </p>
-                        <p className="text-[10px] font-medium text-slate-500">Includes {selectedDocs.length} Official Contracts</p>
+                        <p className="text-[9px] md:text-[10px] font-medium text-slate-500">Includes {selectedDocs.length} Official Contracts</p>
                       </div>
                     </div>
                   </div>
@@ -351,14 +337,14 @@ export default function EmailDispatcher({ buyers, contextItem, type, themeColor 
 
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
-              <button onClick={() => setIsOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+            <div className="px-4 md:px-6 py-3 md:py-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0">
+              <button onClick={() => setIsOpen(false)} className="px-4 py-2.5 text-xs md:text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto">Cancel</button>
               <button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting || !selectedBuyer} 
-                className={`flex items-center gap-2 ${theme.bg} ${theme.hover} disabled:bg-slate-300 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg ${theme.shadow} transition-all`}
+                className={`flex items-center justify-center gap-2 ${theme.bg} ${theme.hover} disabled:bg-slate-300 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg ${theme.shadow} transition-all w-full sm:w-auto shrink-0`}
               >
-                {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Sending Transmission...</> : <><Send size={18} /> Confirm & Send {dispatchType}</>}
+                {isSubmitting ? <><Loader2 size={16} className="md:w-4 md:h-4 animate-spin" /> Sending...</> : <><Send size={16} className="md:w-4 md:h-4" /> Confirm & Send</>}
               </button>
             </div>
 
