@@ -77,6 +77,7 @@
   - components
     - ChatInput.tsx
     - ClientModal.tsx
+    - DashboardCharts.tsx
     - DealStatusManager.tsx
     - DemandCard.tsx
     - DemandForm.tsx

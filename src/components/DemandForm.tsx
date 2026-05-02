@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { PlusCircle, Calendar, UploadCloud, FileText, Loader2, X, Image as ImageIcon, FileBox, Plus, Trash2, Edit } from "lucide-react";
-import { createDemand, updateDemand } from "@/actions/demandActions"; // We will build updateDemand next!
+import { createDemand, updateDemand } from "@/actions/demandActions"; 
 
 interface DemandFormProps {
-  demandToEdit?: any; // Passing this turns the component into Edit Mode
+  demandToEdit?: any; 
 }
 
 export default function DemandForm({ demandToEdit }: DemandFormProps) {
@@ -117,7 +117,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
       {demandToEdit ? (
         <button 
           onClick={() => setIsOpen(true)}
-          className="p-2 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm transition-colors"
+          className="p-1.5 md:p-2 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm transition-colors"
           title="Edit Deal"
         >
           <Edit size={16} />
@@ -125,63 +125,63 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
       ) : (
         <button 
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all shrink-0"
+          className="flex items-center justify-center gap-1.5 md:gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-blue-600/20 transition-all shrink-0 w-full sm:w-auto"
         >
-          <PlusCircle size={20} />
+          <PlusCircle size={18} className="md:w-5 md:h-5" />
           Post Demand
         </button>
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
           
-          <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl md:rounded-3xl w-full max-w-3xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-              <div className="flex items-center gap-3 text-blue-700">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <FileBox size={20} />
+            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
+              <div className="flex items-center gap-2 md:gap-3 text-blue-700">
+                <div className="bg-blue-100 p-1.5 md:p-2 rounded-lg">
+                  <FileBox size={18} className="md:w-5 md:h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-slate-900">{demandToEdit ? "Edit Client Request" : "Post Client Request"}</h2>
+                <h2 className="text-lg md:text-xl font-bold text-slate-900 truncate max-w-[200px] sm:max-w-none">{demandToEdit ? "Edit Request" : "Post Request"}</h2>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-2 rounded-full transition-colors border border-slate-200 shadow-sm">
-                <X size={20} />
+              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 md:p-2 rounded-full transition-colors border border-slate-200 shadow-sm shrink-0">
+                <X size={18} className="md:w-5 md:h-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-              <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
+            <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1">
+              <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
                 
                 {/* SECTION 1: Standard Inputs */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
                   
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Product Required <span className="text-red-500">*</span>
                     </label>
-                    <input type="text" name="title" defaultValue={demandToEdit?.title} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. Granular Sulphur" />
+                    <input type="text" name="title" defaultValue={demandToEdit?.title} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. Granular Sulphur" />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
-                    <input type="text" name="packaging" defaultValue={demandToEdit?.packaging} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. In Bulk" />
+                    <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
+                    <input type="text" name="packaging" defaultValue={demandToEdit?.packaging} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. In Bulk" />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* QUANTITY & UNIT */}
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Quantity <span className="text-red-500">*</span>
                         </label>
-                        <input type="number" step="any" name="quantity" defaultValue={demandToEdit?.quantity} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 25000" />
+                        <input type="number" step="any" name="quantity" defaultValue={demandToEdit?.quantity} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. 25000" />
                       </div>
-                      <div className="w-1/3">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <div className="w-1/3 min-w-[70px]">
+                        <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Unit <span className="text-red-500">*</span>
                         </label>
-                        <select name="quantityUnit" defaultValue={demandToEdit?.quantityUnit || "MT"} className="w-full mt-1.5 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer">
+                        <select name="quantityUnit" defaultValue={demandToEdit?.quantityUnit || "MT"} className="w-full mt-1.5 p-2.5 md:p-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer text-base md:text-sm">
                           <option value="MT">MT</option>
                           <option value="KG">KG</option>
                           <option value="BBL">BBL</option>
@@ -191,62 +191,62 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                     
                     {/* TARGET PRICE */}
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Price ($)</label>
-                      <input type="number" step="0.01" name="targetPrice" defaultValue={demandToEdit?.targetPrice} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 150.00" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Target Price ($)</label>
+                      <input type="number" step="0.01" name="targetPrice" defaultValue={demandToEdit?.targetPrice} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. 150.00" />
                     </div>
                   </div>
 
                   {/* TOLERANCE LEVEL */}
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
-                    <input type="text" name="tolerance" defaultValue={demandToEdit?.tolerance} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. +/- 10% Vessel Option" />
+                    <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
+                    <input type="text" name="tolerance" defaultValue={demandToEdit?.tolerance} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. +/- 10% Vessel Option" />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Delivery Timeline <span className="text-red-500">*</span>
                     </label>
                     <div className="relative mt-1.5">
-                      <Calendar className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
-                      <input type="text" name="timeline" defaultValue={demandToEdit?.timeline} required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium" placeholder="e.g. 1st week January 2026" />
+                      <Calendar className="absolute left-3 top-3 md:top-3.5 text-slate-400" size={18} />
+                      <input type="text" name="timeline" defaultValue={demandToEdit?.timeline} required className="w-full pl-9 pr-3 md:pl-10 md:pr-4 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. 1st week Jan 2026" />
                     </div>
                   </div>
                 </div>
 
                 {/* SECTION 2: Strict Business Terms */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">2. Trade Logistics</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">2. Trade Logistics</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Origin</label>
-                      <input type="text" name="origin" defaultValue={demandToEdit?.origin} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. UAE / Oman" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Origin</label>
+                      <input type="text" name="origin" defaultValue={demandToEdit?.origin} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. UAE / Oman" />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
-                      <input type="text" name="destination" defaultValue={demandToEdit?.destination} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. Any port in India" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
+                      <input type="text" name="destination" defaultValue={demandToEdit?.destination} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. Any port in India" />
                     </div>
                     
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Load Port</label>
-                      <input type="text" name="loadPort" defaultValue={demandToEdit?.loadPort} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. One safe port, Oman" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Load Port</label>
+                      <input type="text" name="loadPort" defaultValue={demandToEdit?.loadPort} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. One safe port, Oman" />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Insurance Terms</label>
-                      <input type="text" name="insurance" defaultValue={demandToEdit?.insurance} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. To be covered by the seller" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Insurance Terms</label>
+                      <input type="text" name="insurance" defaultValue={demandToEdit?.insurance} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. To be covered by the seller" />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Incoterms</label>
-                      <input type="text" name="incoterms" defaultValue={demandToEdit?.incoterms} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. CIF, FOB" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Incoterms</label>
+                      <input type="text" name="incoterms" defaultValue={demandToEdit?.incoterms} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. CIF, FOB" />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Terms</label>
-                      <input type="text" name="paymentTerms" defaultValue={demandToEdit?.paymentTerms} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. 100% LC at sight" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Terms</label>
+                      <input type="text" name="paymentTerms" defaultValue={demandToEdit?.paymentTerms} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. 100% LC at sight" />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inspection</label>
-                      <input type="text" name="inspection" defaultValue={demandToEdit?.inspection} className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-sm" placeholder="e.g. SGS at loading port" />
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Inspection</label>
+                      <input type="text" name="inspection" defaultValue={demandToEdit?.inspection} className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" placeholder="e.g. SGS at loading port" />
                     </div>
                   </div>
                 </div>
@@ -254,14 +254,14 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                 {/* SECTION 3: Dynamic Key Terms */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-slate-100 pb-2">
-                    <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest">3. Technical Specifications</h3>
-                    <button type="button" onClick={addKeyTerm} className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-800 transition-colors bg-blue-50 px-2 py-1 rounded-md">
+                    <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest">3. Technical Specs</h3>
+                    <button type="button" onClick={addKeyTerm} className="text-[10px] md:text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-800 transition-colors bg-blue-50 px-2 py-1 rounded-md">
                       <Plus size={14} /> Add Property
                     </button>
                   </div>
                   
                   {keyTerms.length === 0 ? (
-                    <div className="text-sm text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+                    <div className="text-xs md:text-sm text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
                       No technical specifications added. Click "Add Property" to define purity, moisture, etc.
                     </div>
                   ) : (
@@ -273,16 +273,16 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                             placeholder="Label (e.g. Purity)" 
                             value={term.label} 
                             onChange={(e) => updateKeyTerm(idx, "label", e.target.value)}
-                            className="flex-1 p-2 bg-slate-50 border border-slate-100 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-1 focus:ring-blue-500"
+                            className="flex-1 w-0 p-2 md:p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-base md:text-sm font-bold text-slate-700 outline-none focus:ring-1 focus:ring-blue-500"
                           />
                           <input 
                             type="text" 
-                            placeholder="Value (e.g. 99.80% Min)" 
+                            placeholder="Value" 
                             value={term.value} 
                             onChange={(e) => updateKeyTerm(idx, "value", e.target.value)}
-                            className="flex-1 p-2 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 outline-none focus:ring-1 focus:ring-blue-500"
+                            className="flex-1 w-0 p-2 md:p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-base md:text-sm text-slate-700 outline-none focus:ring-1 focus:ring-blue-500"
                           />
-                          <button type="button" onClick={() => removeKeyTerm(idx)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                          <button type="button" onClick={() => removeKeyTerm(idx)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors shrink-0">
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -293,32 +293,32 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
 
                 {/* SECTION 4: General Notes */}
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                     General Notes / Summary <span className="text-red-500">*</span>
                   </label>
-                  <textarea name="specs" rows={3} defaultValue={demandToEdit?.specs} required className="w-full mt-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium"></textarea>
+                  <textarea name="specs" rows={3} defaultValue={demandToEdit?.specs} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm"></textarea>
                 </div>
 
                 {/* SECTION 5: Media Uploads */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments (Upload New)</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Images */}
-                    <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
+                    <div className="bg-slate-50 p-4 border border-slate-200 rounded-xl md:rounded-2xl">
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
                         <span>Add Images</span>
                         <span className={images.length === 5 ? "text-rose-500" : "text-blue-600"}>{images.length} / 5</span>
                       </label>
-                      <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors relative mb-3">
+                      <div className="border-2 border-dashed border-slate-300 rounded-lg md:rounded-xl p-3 md:p-4 text-center hover:bg-slate-100 transition-colors relative mb-3">
                         <input type="file" multiple accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageChange} disabled={images.length >= 5} />
-                        <ImageIcon className="mx-auto text-slate-400 mb-2" size={20} />
-                        <p className="text-[10px] font-bold text-slate-600">Drop images here</p>
+                        <ImageIcon className="mx-auto text-slate-400 mb-2 w-5 h-5 md:w-6 md:h-6" />
+                        <p className="text-[9px] md:text-[10px] font-bold text-slate-600">Drop images here</p>
                       </div>
                       {imagePreviews.length > 0 && (
                         <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
                           {imagePreviews.map((src, i) => (
-                            <div key={i} className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-slate-200 group">
+                            <div key={i} className="relative w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-lg overflow-hidden border border-slate-200 group">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={src} alt="preview" className="w-full h-full object-cover" />
                               <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -331,24 +331,24 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                     </div>
 
                     {/* PDF */}
-                    <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl flex flex-col">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Upload New RFQ (PDF)</label>
-                      <div className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center transition-colors relative ${pdfFile ? 'border-blue-300 bg-blue-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
+                    <div className="bg-slate-50 p-4 border border-slate-200 rounded-xl md:rounded-2xl flex flex-col">
+                      <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Upload New RFQ</label>
+                      <div className={`flex-1 border-2 border-dashed rounded-lg md:rounded-xl p-3 md:p-4 flex flex-col items-center justify-center transition-colors relative ${pdfFile ? 'border-blue-300 bg-blue-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
                         {pdfFile ? (
                           <div className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-blue-100 shadow-sm relative z-20">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              <FileText className="text-rose-600 shrink-0" size={16} />
-                              <span className="text-[10px] font-bold text-slate-700 truncate">{pdfFile.name}</span>
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                              <FileText className="text-rose-600 shrink-0 md:w-4 md:h-4" size={14} />
+                              <span className="text-[9px] md:text-[10px] font-bold text-slate-700 truncate">{pdfFile.name}</span>
                             </div>
                             <button type="button" onClick={removePdf} className="text-slate-400 hover:text-rose-500 p-1 rounded-md transition-colors shrink-0">
-                              <X size={14} />
+                              <X size={12} className="md:w-3.5 md:h-3.5" />
                             </button>
                           </div>
                         ) : (
                           <>
                             <input type="file" accept="application/pdf" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handlePdfChange} />
-                            <UploadCloud className="mx-auto text-slate-400 mb-2" size={20} />
-                            <p className="text-[10px] font-bold text-slate-600">Attach Official RFQ</p>
+                            <UploadCloud className="mx-auto text-slate-400 mb-2 w-5 h-5 md:w-6 md:h-6" />
+                            <p className="text-[9px] md:text-[10px] font-bold text-slate-600">Attach Official RFQ (PDF)</p>
                           </>
                         )}
                       </div>
@@ -359,12 +359,12 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
               </form>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
-              <button type="button" onClick={() => setIsOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">
+            <div className="px-4 md:px-6 py-3 md:py-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0">
+              <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2.5 text-xs md:text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">
                 Cancel
               </button>
-              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all">
-                {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : (demandToEdit ? "Save Changes" : "Publish to Board")}
+              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto">
+                {isSubmitting ? <><Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> Saving...</> : (demandToEdit ? "Save Changes" : "Publish to Board")}
               </button>
             </div>
 

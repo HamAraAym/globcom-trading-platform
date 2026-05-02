@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   authors: [{ name: "GlobCom International FZE" }],
   generator: "Next.js",
   keywords: ["Commodity Trading", "ERP", "GlobCom", "CRM", "Logistics", "Hamriyah Free Zone"],
-  manifest: "/manifest.json", // NEW: Links your PWA Manifest!
+  manifest: "/manifest.json", // Links your PWA Manifest
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -30,13 +30,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
-    apple: "/globe.svg", // Serves as the Apple Touch Icon for now
+    apple: "/globe.svg", 
   },
 };
 
 // Controls the browser window frame color on mobile devices
 export const viewport: Viewport = {
-  themeColor: "#0f172a", // slate-900 to match the sidebar
+  themeColor: "#0f172a", 
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -48,7 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    // FIXED: Added suppressHydrationWarning to combat browser extension injections
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         {/* GOOGLE PLACES API SCRIPT - Loads before interactive elements */}
         <Script 
@@ -58,6 +59,7 @@ export default function RootLayout({
       </head>
       <body 
         className={`${inter.className} bg-slate-50 text-slate-900 antialiased selection:bg-indigo-600/20 selection:text-indigo-900`}
+        suppressHydrationWarning // Protects against extensions like Grammarly
       >
         <Providers>
           {/* The PageWrapper handles the Sidebar, TopBar, and Login screen logic */}
