@@ -3,6 +3,16 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
+import Pusher from "pusher"; // NEW: Server-side Pusher SDK
+
+// Initialize the Pusher Server SDK using your secure environment variables
+const pusherServer = new Pusher({
+  appId: process.env.PUSHER_APP_ID!,
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+  secret: process.env.PUSHER_SECRET!,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  useTLS: true,
+});
 
 export async function sendMessage(chatId: string, formData: FormData) {
   // 1. Verify user identity securely
@@ -26,17 +36,36 @@ export async function sendMessage(chatId: string, formData: FormData) {
   const mentionNames = mentionMatches.map(m => m.slice(1).toLowerCase());
 
   // 3. Save the message to the database (Now storing the actual mentions!)
-  await prisma.message.create({
+  const newMessage = await prisma.message.create({
     data: {
-      content,
+      content: content.trim(),
       chatRoomId: chatId,
       senderId: user.id,
       attachments: [], 
-      mentions: mentionNames, // <-- FIX: Saves the array of tagged names to DB
-    }
+      mentions: mentionNames, // Saves the array of tagged names to DB
+    },
+    // CRITICAL FIX: We MUST include the sender object so the UI knows whose name to put on the chat bubble when it broadcasts!
+    include: {
+      sender: {
+        select: {
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      },
+    },
   });
 
-  // 4. Cross-reference and Dispatch Notifications
+  // 4. 🔥 LIVE WEBSOCKET BROADCAST
+  // This blasts the message to everyone currently looking at the chat room without them needing to refresh!
+  try {
+    await pusherServer.trigger(`chat-${chatId}`, "new-message", newMessage);
+  } catch (error) {
+    console.error("Pusher broadcast failed:", error);
+  }
+
+  // 5. Cross-reference and Dispatch Notifications
   if (mentionNames.length > 0) {
     // Fetch all internal users to cross-reference the tagged names
     const allUsers = await prisma.user.findMany({ 
@@ -71,6 +100,8 @@ export async function sendMessage(chatId: string, formData: FormData) {
     }
   }
 
-  // 5. Instantly refresh the UI for everyone looking at this chat
+  // 6. Refresh the server caches for fallback
   revalidatePath(`/chat/${chatId}`);
+  
+  return { success: true };
 }
