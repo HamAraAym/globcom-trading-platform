@@ -54,7 +54,7 @@ export default function TopBar() {
   };
 
   return (
-    <div className="h-20 px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shrink-0">
+    <div className="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shrink-0">
       
       {/* MOBILE LOGO: Shows only on phones so users know where they are */}
       <div className="flex items-center gap-2 lg:hidden">
@@ -71,14 +71,14 @@ export default function TopBar() {
         <div className="relative" ref={pingRef}>
           <button 
             onClick={() => { setIsPingOpen(!isPingOpen); setIsProfileOpen(false); }}
-            className="flex items-center gap-2 px-3 lg:px-4 py-2 lg:py-2.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 rounded-full text-xs lg:text-sm font-bold text-slate-700 shadow-sm transition-all"
+            className="flex items-center gap-2 px-3 lg:px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 rounded-full text-xs lg:text-sm font-bold text-slate-700 shadow-sm transition-all"
           >
             <Signal size={16} className="text-indigo-600" />
             <span className="hidden sm:inline">Ping Team</span>
           </button>
 
           {isPingOpen && (
-            <div className="absolute top-full right-0 mt-3 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
+            <div className="absolute top-full right-0 lg:right-auto lg:left-0 mt-3 w-[280px] lg:w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 pt-2 pb-2 border-b border-slate-100 mb-1">Direct Ping (Online Members)</p>
               {onlineTeam.map(user => (
                 <button 
@@ -106,10 +106,8 @@ export default function TopBar() {
           )}
         </div>
 
-        {/* 2. Notification Bell */}
-        <div className="bg-white p-1.5 lg:p-1 rounded-full border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors cursor-pointer">
-          <NotificationBell />
-        </div>
+        {/* 2. Notification Bell (Unwrapped for cleaner mobile scaling) */}
+        <NotificationBell />
 
         {/* 3. User Identity & Profile Dropdown */}
         <div className="relative border-l border-slate-200 pl-3 lg:pl-6" ref={profileRef}>
@@ -122,12 +120,12 @@ export default function TopBar() {
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{userRole.replace("_", " ")}</p>
             </div>
             <div className="relative flex items-center gap-1">
-              <div className="w-9 h-9 lg:w-10 lg:h-10 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-xs lg:text-sm">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-xs lg:text-sm shrink-0">
                 {initials}
               </div>
               {/* Green Online Dot */}
-              <span className="absolute bottom-0 right-3 lg:right-4 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-[0_0_5px_rgba(16,185,129,0.5)] z-20"></span>
-              <ChevronDown size={14} className="text-slate-400 ml-1 group-hover:text-indigo-500 transition-colors hidden sm:block" />
+              <span className="absolute bottom-0 right-0 lg:right-1 w-2.5 h-2.5 lg:w-3 lg:h-3 bg-emerald-500 border-2 border-white rounded-full shadow-[0_0_5px_rgba(16,185,129,0.5)] z-20"></span>
+              <ChevronDown size={14} className="text-slate-400 ml-1 group-hover:text-indigo-500 transition-colors hidden sm:block shrink-0" />
             </div>
           </button>
 
@@ -144,7 +142,7 @@ export default function TopBar() {
                 onClick={() => setIsProfileOpen(false)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition-colors mb-1"
               >
-                <Settings size={16} className="text-slate-400" />
+                <Settings size={16} className="text-slate-400 shrink-0" />
                 Account Settings
               </Link>
 
@@ -152,7 +150,7 @@ export default function TopBar() {
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
               >
-                <LogOut size={16} className="text-rose-400" />
+                <LogOut size={16} className="text-rose-400 shrink-0" />
                 Secure Logout
               </button>
             </div>

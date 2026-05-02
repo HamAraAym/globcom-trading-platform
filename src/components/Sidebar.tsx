@@ -62,7 +62,8 @@ export default function Sidebar() {
   const secondaryName = nameParts.slice(1).join(" ");
 
   return (
-    <div className="w-72 bg-slate-900 text-slate-300 flex flex-col h-screen fixed left-0 top-0 border-r border-slate-800 shadow-2xl z-50">
+    // NEW: Added 'hidden lg:flex' so this sidebar seamlessly disappears on mobile devices
+    <div className="hidden lg:flex w-72 bg-slate-900 text-slate-300 flex-col h-screen fixed left-0 top-0 border-r border-slate-800 shadow-2xl z-50">
       
       {/* BRANDING HEADER */}
       <div className="h-20 flex items-center px-6 border-b border-slate-800/60 bg-slate-950/50 shrink-0">

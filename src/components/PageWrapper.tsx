@@ -20,21 +20,25 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
 
   // 2. MAIN APPLICATION: Responsive layout
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden relative">
+    <div className="flex h-screen bg-slate-50 overflow-hidden relative w-full">
       
       {/* DESKTOP SIDEBAR: Hidden on mobile screens */}
-      <div className="hidden lg:block z-20">
+      <div className="hidden lg:block z-40">
         <Sidebar />
       </div>
 
       {/* MAIN CONTENT AREA */}
       <main 
-        className="flex-1 min-h-screen flex flex-col bg-slate-50 transition-all duration-300 ease-in-out w-full lg:ml-72 lg:w-[calc(100%-18rem)] relative"
+        className="flex-1 h-screen flex flex-col bg-slate-50 transition-all duration-300 ease-in-out w-full lg:ml-72 relative"
       >
+        {/* TOP BAR: Header & Notifications */}
         <TopBar />
         
-        {/* pb-24 adds padding at the bottom of the phone so the MobileNav doesn't block content */}
-        <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar pb-24 lg:pb-0">
+        {/* SCROLLABLE CONTENT AREA: 
+            pb-24 adds padding at the bottom of the phone so the MobileNav doesn't block content.
+            lg:pb-0 removes that padding on desktop. 
+        */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 lg:pb-0">
           {children}
         </div>
 
