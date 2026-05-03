@@ -38,6 +38,7 @@
     - matchingActions.ts
     - messageActions.ts
     - notificationActions.ts
+    - searchActions.ts
     - supplyActions.ts
     - uploadActions.ts
     - userActions.ts
@@ -77,6 +78,7 @@
   - components
     - ChatInput.tsx
     - ClientModal.tsx
+    - CommandPalette.tsx
     - DashboardCharts.tsx
     - DealStatusManager.tsx
     - DemandCard.tsx

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PlusCircle, MapPin, UploadCloud, FileText, Loader2, X, Image as ImageIcon, Package, Plus, Trash2, Calendar, Edit } from "lucide-react";
+import { PlusCircle, MapPin, UploadCloud, FileText, Loader2, X, Image as ImageIcon, Package, Plus, Trash2, Calendar, Edit, Sparkles } from "lucide-react";
 import { createSupply, updateSupply } from "@/actions/supplyActions"; 
+import { extractDealData } from "@/actions/aiActions"; // NEW: AI Engine
 
 interface SupplyFormProps {
   supplyToEdit?: any; 
@@ -12,6 +13,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false); // NEW: AI Loading State
   
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -40,6 +42,49 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
   const defaultDate = supplyToEdit?.validityDate 
     ? new Date(supplyToEdit.validityDate).toISOString().slice(0, 16) 
     : "";
+
+  // ==========================================
+  // 🧠 AI MAGIC EXTRACTION HANDLER
+  // ==========================================
+  const handleAiExtraction = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsExtracting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Call the Gemini Backend
+      const response = await extractDealData(formData);
+
+      if (response.success && response.data && formRef.current) {
+        const { title, quantity, quantityUnit, price, incoterms, origin, destination, specs } = response.data;
+        const form = formRef.current;
+
+        // Auto-fill the raw HTML inputs instantly
+        if (title) (form.elements.namedItem("title") as HTMLInputElement).value = title;
+        if (quantity) (form.elements.namedItem("quantity") as HTMLInputElement).value = quantity.toString();
+        if (quantityUnit) (form.elements.namedItem("quantityUnit") as HTMLSelectElement).value = quantityUnit.toUpperCase();
+        if (price) (form.elements.namedItem("price") as HTMLInputElement).value = price.toString();
+        if (incoterms) (form.elements.namedItem("incoterms") as HTMLInputElement).value = incoterms;
+        if (origin) (form.elements.namedItem("origin") as HTMLInputElement).value = origin;
+        if (destination) (form.elements.namedItem("destination") as HTMLInputElement).value = destination;
+        if (specs) (form.elements.namedItem("specs") as HTMLTextAreaElement).value = specs;
+
+        // Automatically slot the PDF into the attachment section so they don't have to re-upload it
+        setPdfFile(file);
+      } else {
+        alert(response.error || "Failed to extract data. The PDF might be unreadable.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred during AI extraction.");
+    } finally {
+      setIsExtracting(false);
+      e.target.value = ""; // Reset the input so they can upload again if needed
+    }
+  };
 
   // --- Image Handling ---
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,16 +130,13 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
     try {
       const formData = new FormData(e.currentTarget);
       
-      // Handle Media
       formData.delete("images"); formData.delete("pdf");
       images.forEach(img => formData.append("images", img));
       if (pdfFile) formData.append("pdf", pdfFile);
 
-      // Handle Dynamic JSON terms
       const validKeyTerms = keyTerms.filter(t => t.label.trim() && t.value.trim());
       formData.append("keyTerms", JSON.stringify(validKeyTerms));
 
-      // Route to correct Server Action based on Mode
       if (supplyToEdit) {
         formData.append("id", supplyToEdit.id);
         await updateSupply(formData);
@@ -102,7 +144,6 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
         await createSupply(formData);
       }
       
-      // Reset & Close
       if (!supplyToEdit) {
         setImages([]); setImagePreviews([]); setPdfFile(null); setKeyTerms([]);
         formRef.current?.reset();
@@ -118,7 +159,6 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
 
   return (
     <>
-      {/* DYNAMIC TRIGGER: Small Icon for tables, Big Button for header */}
       {supplyToEdit ? (
         <button 
           onClick={() => setIsOpen(true)}
@@ -138,7 +178,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
           
           <div className="bg-white rounded-2xl md:rounded-3xl w-full max-w-3xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
@@ -154,8 +194,42 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
               </button>
             </div>
 
-            <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1">
-              <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+            <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 relative">
+              
+              {/* ========================================== */}
+              {/* 🧠 AI MAGIC UPLOAD ZONE */}
+              {/* ========================================== */}
+              {!supplyToEdit && (
+                <div className={`mb-6 relative border-2 border-dashed rounded-2xl overflow-hidden transition-all ${isExtracting ? 'border-purple-400 bg-purple-50' : 'border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 hover:border-purple-400'}`}>
+                  <input 
+                    type="file" 
+                    accept="application/pdf" 
+                    onChange={handleAiExtraction}
+                    disabled={isExtracting}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
+                  />
+                  <div className="p-5 md:p-6 flex items-center justify-center gap-4 text-center sm:text-left">
+                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0">
+                      {isExtracting ? <Loader2 size={24} className="text-purple-500 animate-spin" /> : <Sparkles size={24} className="text-purple-500" />}
+                    </div>
+                    <div>
+                      <h3 className="text-sm md:text-base font-black text-slate-900 flex items-center gap-2">
+                        {isExtracting ? "AI is reading document..." : "Magic Upload (PDF)"}
+                        {!isExtracting && <span className="bg-purple-100 text-purple-700 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">New</span>}
+                      </h3>
+                      <p className="text-[10px] md:text-xs text-slate-500 font-medium mt-1 max-w-sm">
+                        {isExtracting ? "Extracting pricing, specs, and incoterms. Please wait." : "Drag a Spec Sheet or Offer PDF here. Gemini AI will read it and auto-fill this entire form for you in seconds."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 md:space-y-8 relative">
+                {/* Loader Overlay (prevents typing while AI is injecting data) */}
+                {isExtracting && (
+                  <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-20 flex items-center justify-center rounded-xl"></div>
+                )}
                 
                 {/* SECTION 1: Standard Inputs */}
                 <div className="space-y-4">
@@ -379,7 +453,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
               <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2.5 text-xs md:text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">
                 Cancel
               </button>
-              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto">
+              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || isExtracting} className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto">
                 {isSubmitting ? <><Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> Saving...</> : (supplyToEdit ? "Save Changes" : "Publish to Board")}
               </button>
             </div>
