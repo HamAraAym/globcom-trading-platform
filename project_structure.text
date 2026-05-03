@@ -98,6 +98,8 @@
     - SupplyForm.tsx
     - TopBar.tsx
     - ViewDealModal.tsx
+  - emails
+    - OfficialProposalEmail.tsx
   - lib
     - prisma.ts
   - proxy.ts
