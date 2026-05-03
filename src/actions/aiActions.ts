@@ -1,50 +1,71 @@
 "use server";
 
-import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
-import { z } from "zod";
-
 export async function extractDealData(formData: FormData) {
   try {
     const file = formData.get("file") as File;
     if (!file) throw new Error("No file uploaded");
 
-    // Convert the uploaded file into a buffer the AI can read
+    // 1. Convert the PDF into a Base64 string so the API can read it
     const buffer = Buffer.from(await file.arrayBuffer());
+    const base64Data = buffer.toString("base64");
 
-    // Call Gemini 1.5 Flash (Super fast and perfectly suited for document reading)
-    const { object } = await generateObject({
-      model: google("gemini-1.5-flash"),
-      system: `You are an expert commodity trading assistant. Your job is to extract trading parameters from the provided document (SCO, FCO, or Spec Sheet) and return them as strict JSON. 
-      If a field is not found in the document, return an empty string for text, or null for numbers.
-      For the title, create a concise, professional summary (e.g., '50,000 MT Granular Urea').
-      For the specs field, write a brief 2-3 sentence summary of the product specifications or purity.`,
-      messages: [
-        {
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!apiKey) throw new Error("Google API Key is missing");
+
+    // 2. Bypass the Vercel AI wrapper and hit Gemini's REST API directly.
+    // This makes the function 100% immune to strict Zod schema crashes!
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
           role: "user",
-          content: [
-            { type: "text", text: "Extract the exact deal terms from this document." },
-            
-            // FIX: Cast as 'any' to bypass the overly strict/outdated FilePart TS definition, 
-            // while ensuring Gemini still gets the required mimeType payload.
-            { type: "file", mimeType: file.type, data: buffer } as any 
+          parts: [
+            { 
+              text: `You are an expert commodity trading assistant. Extract the trading parameters from the provided document.
+              
+              Return ONLY a valid JSON object. Do NOT wrap it in markdown formatting like \`\`\`json.
+              
+              Expected Schema:
+              {
+                "title": "Concise professional summary (e.g. 50,000 MT Urea)",
+                "quantity": 50000, 
+                "quantityUnit": "MT", 
+                "price": 150, 
+                "incoterms": "FOB", 
+                "origin": "Oman", 
+                "destination": "India", 
+                "specs": "Brief 2-3 sentence summary of specs."
+              }
+              
+              If a field is missing, use "" for text or null for numbers.`
+            },
+            { 
+              // Native Gemini payload structure for documents
+              inline_data: { 
+                mime_type: file.type, 
+                data: base64Data 
+              } 
+            }
           ]
-        }
-      ],
-      // ZOD ensures the AI returns EXACTLY this format, so it never breaks our app
-      schema: z.object({
-        title: z.string().describe("A professional title for the deal"),
-        quantity: z.number().nullable().describe("The exact numerical quantity"),
-        quantityUnit: z.string().describe("Unit of measurement, usually MT, BBL, or Gallons"),
-        price: z.number().nullable().describe("The exact numerical price per unit"),
-        incoterms: z.string().describe("Shipping terms like FOB, CIF, DAP"),
-        origin: z.string().describe("Country or port of origin"),
-        destination: z.string().describe("Destination port or country"),
-        specs: z.string().describe("Summary of the product specs and purity"),
+        }]
       })
     });
 
-    return { success: true, data: object };
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error?.message || "Google API Error");
+    }
+
+    // 3. Extract and parse the returned JSON
+    const textOutput = result.candidates[0].content.parts[0].text;
+    
+    // Clean the output in case Gemini returns markdown code fences
+    const cleanedText = textOutput.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const parsedData = JSON.parse(cleanedText);
+
+    return { success: true, data: parsedData };
     
   } catch (error) {
     console.error("AI Extraction Error:", error);
