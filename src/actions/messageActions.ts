@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import Pusher from "pusher"; // NEW: Server-side Pusher SDK
+import Pusher from "pusher"; // Server-side Pusher SDK
 
 // Initialize the Pusher Server SDK using your secure environment variables
 const pusherServer = new Pusher({
@@ -14,7 +14,7 @@ const pusherServer = new Pusher({
   useTLS: true,
 });
 
-export async function sendMessage(chatId: string, formData: FormData) {
+export async function sendMessage(chatId: string, formData: FormData): Promise<void> {
   // 1. Verify user identity securely
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized access");
@@ -103,5 +103,5 @@ export async function sendMessage(chatId: string, formData: FormData) {
   // 6. Refresh the server caches for fallback
   revalidatePath(`/chat/${chatId}`);
   
-  return { success: true };
+  // Notice: The return { success: true } is gone. It now perfectly matches the Promise<void> signature!
 }
