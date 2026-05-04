@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import MobileNav from "@/components/MobileNav";
-import CommandPalette from "@/components/CommandPalette"; // <-- 1. Imported the Search Engine
+import CommandPalette from "@/components/CommandPalette";
 
 export default function PageWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,9 +40,10 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
         
         {/* SCROLLABLE CONTENT AREA: 
             pb-24 adds padding at the bottom of the phone so the MobileNav doesn't block content.
-            lg:pb-0 removes that padding on desktop. 
+            lg:pb-0 removes that padding on desktop.
+            FIX: Removed 'relative z-0' so modals can freely render over the TopBar.
         */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 lg:pb-0 relative z-0">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 lg:pb-0">
           {children}
         </div>
 

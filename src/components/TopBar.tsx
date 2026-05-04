@@ -53,7 +53,8 @@ export default function TopBar() {
   };
 
   return (
-    <div className="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shrink-0">
+    // FIX: Lowered root z-index from z-40 to z-20 so modals can render over it
+    <div className="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 shrink-0">
       
       {/* MOBILE LOGO */}
       <div className="flex items-center gap-2 lg:hidden">
@@ -66,7 +67,7 @@ export default function TopBar() {
       {/* RIGHT SIDE ACTIONS */}
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
         
-        {/* GLOBAL SEARCH TRIGGER (Visible mainly on mobile/tablets, or for users who prefer clicking) */}
+        {/* GLOBAL SEARCH TRIGGER */}
         <button 
           onClick={() => document.dispatchEvent(new CustomEvent("open-command-palette"))}
           className="p-2 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition-colors rounded-xl focus:outline-none shrink-0"
