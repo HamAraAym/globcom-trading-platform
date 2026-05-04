@@ -52,8 +52,9 @@ export default function ClientModal() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl md:rounded-3xl w-full max-w-2xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          {/* NATIVE MOBILE UPGRADE: Bottom Sheet on Mobile, Centered Modal on Desktop */}
+          <div className="bg-white w-full max-w-2xl h-[92vh] sm:h-auto sm:max-h-[95vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
             
             {/* Header */}
             <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
@@ -219,8 +220,8 @@ export default function ClientModal() {
               </form>
             </div>
 
-            {/* Footer */}
-            <div className="px-4 md:px-6 py-3 md:py-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0">
+            {/* NATIVE MOBILE UPGRADE: Added pb-8 for iOS safe area padding */}
+            <div className="px-4 md:px-6 py-3 md:py-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0 pb-8 sm:pb-4">
               <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2.5 text-xs md:text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">Cancel</button>
               <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-indigo-600/20 transition-all w-full sm:w-auto shrink-0">
                 {isSubmitting ? <><Loader2 size={16} className="md:w-4 md:h-4 animate-spin" /> Saving...</> : "Save Client Record"}
