@@ -48,17 +48,32 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
       const response = await extractDealData(formData);
 
       if (response.success && response.data && formRef.current) {
-        const { title, quantity, quantityUnit, price, incoterms, origin, destination, specs } = response.data;
+        const { 
+          title, quantity, quantityUnit, price, tolerance, timeline, 
+          origin, destination, loadPort, insurance, incoterms, 
+          paymentTerms, inspection, specs, keyTerms: extractedKeyTerms 
+        } = response.data;
         const form = formRef.current;
 
         if (title) (form.elements.namedItem("title") as HTMLInputElement).value = title;
         if (quantity) (form.elements.namedItem("quantity") as HTMLInputElement).value = quantity.toString();
         if (quantityUnit) (form.elements.namedItem("quantityUnit") as HTMLSelectElement).value = quantityUnit.toUpperCase();
         if (price) (form.elements.namedItem("targetPrice") as HTMLInputElement).value = price.toString(); 
-        if (incoterms) (form.elements.namedItem("incoterms") as HTMLInputElement).value = incoterms;
+        if (tolerance) (form.elements.namedItem("tolerance") as HTMLInputElement).value = tolerance;
+        if (timeline) (form.elements.namedItem("timeline") as HTMLInputElement).value = timeline; 
         if (origin) (form.elements.namedItem("origin") as HTMLInputElement).value = origin;
         if (destination) (form.elements.namedItem("destination") as HTMLInputElement).value = destination;
+        if (loadPort) (form.elements.namedItem("loadPort") as HTMLInputElement).value = loadPort;
+        if (insurance) (form.elements.namedItem("insurance") as HTMLInputElement).value = insurance;
+        if (incoterms) (form.elements.namedItem("incoterms") as HTMLInputElement).value = incoterms;
+        if (paymentTerms) (form.elements.namedItem("paymentTerms") as HTMLInputElement).value = paymentTerms;
+        if (inspection) (form.elements.namedItem("inspection") as HTMLInputElement).value = inspection;
         if (specs) (form.elements.namedItem("specs") as HTMLTextAreaElement).value = specs;
+
+        // NEW: Catch the array and instantly build the dynamic inputs!
+        if (extractedKeyTerms && Array.isArray(extractedKeyTerms)) {
+          setKeyTerms(extractedKeyTerms);
+        }
 
         setPdfFile(file);
       } else {
@@ -163,7 +178,6 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
       {isOpen && (
         <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/60 backdrop-blur-sm">
           
-          {/* NATIVE MOBILE UPGRADE: Bottom Sheet on Mobile, Centered Modal on Desktop */}
           <div className="bg-white w-full max-w-3xl h-[92vh] sm:h-auto sm:max-h-[95vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
             
             <div className="px-4 md:px-6 py-4 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
@@ -198,7 +212,6 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                         {isExtracting ? "AI is reading RFQ..." : "Magic Upload (PDF)"}
                         {!isExtracting && <span className="bg-indigo-100 text-indigo-700 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">New</span>}
                       </h3>
-                      {/* NATIVE MOBILE UPGRADE: Say "Tap" instead of "Drag" */}
                       <p className="text-[10px] md:text-xs text-slate-500 font-medium mt-1 max-w-sm">
                         {isExtracting ? "Extracting pricing, specs, and incoterms. Please wait." : "Tap to upload or drag an RFQ/Spec Sheet here. Gemini AI will read it and auto-fill this entire form for you in seconds."}
                       </p>
@@ -415,7 +428,6 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
               </form>
             </div>
 
-            {/* NATIVE MOBILE UPGRADE: Added pb-8 for iOS Home indicator padding */}
             <div className="px-4 md:px-6 py-4 md:py-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0 pb-8 sm:pb-4">
               <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">
                 Cancel

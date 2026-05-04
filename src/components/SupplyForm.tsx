@@ -52,17 +52,35 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
       const response = await extractDealData(formData);
 
       if (response.success && response.data && formRef.current) {
-        const { title, quantity, quantityUnit, price, incoterms, origin, destination, specs } = response.data;
+        const { 
+          title, quantity, quantityUnit, price, tolerance, timeline, 
+          origin, destination, loadPort, insurance, incoterms, 
+          paymentTerms, inspection, specs, keyTerms: extractedKeyTerms 
+        } = response.data;
         const form = formRef.current;
 
         if (title) (form.elements.namedItem("title") as HTMLInputElement).value = title;
         if (quantity) (form.elements.namedItem("quantity") as HTMLInputElement).value = quantity.toString();
         if (quantityUnit) (form.elements.namedItem("quantityUnit") as HTMLSelectElement).value = quantityUnit.toUpperCase();
-        if (price) (form.elements.namedItem("price") as HTMLInputElement).value = price.toString();
-        if (incoterms) (form.elements.namedItem("incoterms") as HTMLInputElement).value = incoterms;
+        if (price) (form.elements.namedItem("price") as HTMLInputElement).value = price.toString(); 
+        if (tolerance) (form.elements.namedItem("tolerance") as HTMLInputElement).value = tolerance;
+        
+        // Note: AI free-text timeline ("1st week Jan") cannot be directly mapped to a <input type="datetime-local"> 
+        // without complex formatting. We skip auto-filling 'validityDate' so the user can manually pick the exact calendar date.
+        
         if (origin) (form.elements.namedItem("origin") as HTMLInputElement).value = origin;
         if (destination) (form.elements.namedItem("destination") as HTMLInputElement).value = destination;
+        if (loadPort) (form.elements.namedItem("loadPort") as HTMLInputElement).value = loadPort;
+        if (insurance) (form.elements.namedItem("insurance") as HTMLInputElement).value = insurance;
+        if (incoterms) (form.elements.namedItem("incoterms") as HTMLInputElement).value = incoterms;
+        if (paymentTerms) (form.elements.namedItem("paymentTerms") as HTMLInputElement).value = paymentTerms;
+        if (inspection) (form.elements.namedItem("inspection") as HTMLInputElement).value = inspection;
         if (specs) (form.elements.namedItem("specs") as HTMLTextAreaElement).value = specs;
+
+        // NEW: Instantly build the dynamic Technical Specs inputs!
+        if (extractedKeyTerms && Array.isArray(extractedKeyTerms)) {
+          setKeyTerms(extractedKeyTerms);
+        }
 
         setPdfFile(file);
       } else {

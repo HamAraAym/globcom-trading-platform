@@ -12,7 +12,7 @@ export async function extractDealData(formData: FormData) {
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) throw new Error("Google API Key is missing");
 
-    // 2. Use Gemini 2.5 Flash (1.5 Flash was retired and throws 404s)
+    // 2. Use Gemini 2.5 Flash
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -27,16 +27,28 @@ export async function extractDealData(formData: FormData) {
               
               Expected Schema:
               {
-                "title": "Concise professional summary (e.g. 50,000 MT Urea)",
-                "quantity": 50000, 
+                "title": "Concise professional summary (e.g. 25,000 MT Sulphur)",
+                "quantity": 25000, 
                 "quantityUnit": "MT", 
                 "price": 150, 
-                "incoterms": "FOB", 
+                "tolerance": "+/- 10% Vessel Option",
+                "timeline": "1st week Jan 2026",
                 "origin": "Oman", 
                 "destination": "India", 
-                "specs": "Brief 2-3 sentence summary of specs."
+                "loadPort": "One safe port",
+                "insurance": "Covered by seller",
+                "incoterms": "CIF", 
+                "paymentTerms": "100% LC at sight",
+                "inspection": "SGS at loading port",
+                "specs": "Brief 2-3 sentence summary of specs.",
+                "keyTerms": [
+                  {"label": "Purity", "value": "99.80% minimum"},
+                  {"label": "Moisture", "value": "0.50% max"},
+                  {"label": "Form", "value": "Granular"}
+                ]
               }
               
+              Extract any highly specific technical properties (like Purity, Ash, Moisture, Colour, etc.) into the keyTerms array.
               If a field is missing, use "" for text or null for numbers.`
             },
             { 
