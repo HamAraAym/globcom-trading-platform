@@ -1,14 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { 
   CircleDollarSign, Scale, Clock, MapPin, ChevronRight, X, Package, FileText,
-  Truck, CreditCard, ShieldCheck, List, CalendarClock, Anchor, Shield 
+  Truck, CreditCard, ShieldCheck, List, CalendarClock, Anchor, Shield, Trash2, Loader2 
 } from "lucide-react";
 import MediaGallery from "@/components/MediaGallery";
+import SupplyForm from "./SupplyForm"; 
+import { deleteSupply } from "@/actions/supplyActions"; // Ensure this server action exists!
 
 export default function SupplyCard({ supply }: { supply: any }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { data: session } = useSession();
+
+  // ==========================================
+  // 🔐 ROLE-BASED ACCESS CONTROL (RBAC)
+  // ==========================================
+  const currentUserId = (session?.user as any)?.id;
+  const currentUserRole = (session?.user as any)?.role;
+  
+  // Can manage if they are an ADMIN -OR- if they are the original creator of this specific deal
+  const canManage = currentUserRole === "ADMIN" || currentUserId === supply.creatorId;
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent modal from closing immediately
+    if (confirm("Are you sure you want to permanently delete this supply? This action cannot be undone.")) {
+      setIsDeleting(true);
+      try {
+        await deleteSupply(supply.id);
+        setIsOpen(false);
+      } catch (error) {
+        console.error(error);
+        alert("Failed to delete supply.");
+        setIsDeleting(false);
+      }
+    }
+  };
 
   // Helper component for the logistics grid
   const LogisticsItem = ({ label, value, icon }: { label: string, value: string | null, icon: React.ReactNode }) => (
@@ -99,9 +128,27 @@ export default function SupplyCard({ supply }: { supply: any }) {
                 <div className="bg-emerald-500 p-1.5 md:p-2 rounded-lg"><Package size={18} className="md:w-5 md:h-5" /></div>
                 <h2 className="text-lg md:text-xl font-bold tracking-wide">Commodity Details</h2>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1.5 md:p-2 bg-slate-800 rounded-full">
-                <X size={18} className="md:w-5 md:h-5" />
-              </button>
+              
+              <div className="flex items-center gap-2">
+                {/* 🔐 SECURE MANAGEMENT ZONE */}
+                {canManage && (
+                  <div className="flex items-center gap-2 mr-2 pr-2 md:mr-4 md:pr-4 border-r border-slate-700">
+                    <SupplyForm supplyToEdit={supply} />
+                    <button 
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="p-1.5 md:p-2 bg-slate-800 border border-slate-700 text-slate-400 hover:text-rose-500 hover:border-rose-500/50 rounded-lg shadow-sm transition-colors"
+                      title="Delete Deal"
+                    >
+                      {isDeleting ? <Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> : <Trash2 size={16} className="md:w-4 md:h-4" />}
+                    </button>
+                  </div>
+                )}
+
+                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1.5 md:p-2 bg-slate-800 rounded-full">
+                  <X size={18} className="md:w-5 md:h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 bg-slate-50">

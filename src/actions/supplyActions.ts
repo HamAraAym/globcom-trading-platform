@@ -90,7 +90,6 @@ export async function createSupply(formData: FormData) {
 }
 
 export async function updateSupply(formData: FormData) {
-  // (Your existing updateSupply code remains exactly the same here...)
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
 
@@ -103,7 +102,8 @@ export async function updateSupply(formData: FormData) {
   const existingSupply = await prisma.supply.findUnique({ where: { id } });
   if (!existingSupply) throw new Error("Supply not found");
 
-  if (user.role !== "ADMIN" && user.role !== "TRADING_REP" && existingSupply.creatorId !== user.id) {
+  // 🔐 SERVER-SIDE RBAC ENFORCEMENT
+  if (user.role !== "ADMIN" && existingSupply.creatorId !== user.id) {
     throw new Error("You do not have permission to edit this supply.");
   }
 
@@ -169,4 +169,29 @@ export async function updateSupply(formData: FormData) {
 
   revalidatePath("/supplies");
   revalidatePath(`/chat/${existingSupply.id}`); 
+}
+
+// 🗑️ SECURE DELETE ACTION
+export async function deleteSupply(id: string) {
+  const session = await getServerSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) throw new Error("User not found");
+
+  const existingSupply = await prisma.supply.findUnique({ where: { id } });
+  if (!existingSupply) throw new Error("Supply not found");
+
+  // 🔐 SERVER-SIDE RBAC ENFORCEMENT
+  if (user.role !== "ADMIN" && existingSupply.creatorId !== user.id) {
+    throw new Error("You do not have permission to delete this supply.");
+  }
+
+  await prisma.supply.delete({ where: { id } });
+
+  await prisma.auditLog.create({
+    data: { action: "DELETED_SUPPLY", details: `Supply deleted: ${existingSupply.title}`, userId: user.id }
+  });
+
+  revalidatePath("/supplies");
 }

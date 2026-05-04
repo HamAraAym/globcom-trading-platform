@@ -1,14 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { 
   CircleDollarSign, Scale, Clock, Calendar, ChevronRight, X, FileBox, FileText, 
-  MapPin, Truck, CreditCard, ShieldCheck, Package, List, Anchor, Shield 
+  MapPin, Truck, CreditCard, ShieldCheck, Package, List, Anchor, Shield, Trash2, Loader2 
 } from "lucide-react";
 import MediaGallery from "@/components/MediaGallery";
+import DemandForm from "./DemandForm"; 
+import { deleteDemand } from "@/actions/demandActions"; // Ensure this server action exists!
 
 export default function DemandCard({ demand }: { demand: any }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { data: session } = useSession();
+
+  // ==========================================
+  // 🔐 ROLE-BASED ACCESS CONTROL (RBAC)
+  // ==========================================
+  const currentUserId = (session?.user as any)?.id;
+  const currentUserRole = (session?.user as any)?.role;
+  
+  // Can manage if they are an ADMIN -OR- if they are the original creator of this specific deal
+  const canManage = currentUserRole === "ADMIN" || currentUserId === demand.creatorId;
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent modal from closing immediately
+    if (confirm("Are you sure you want to permanently delete this demand? This action cannot be undone.")) {
+      setIsDeleting(true);
+      try {
+        await deleteDemand(demand.id);
+        setIsOpen(false);
+      } catch (error) {
+        console.error(error);
+        alert("Failed to delete demand.");
+        setIsDeleting(false);
+      }
+    }
+  };
 
   // Helper component for the logistics grid
   const LogisticsItem = ({ label, value, icon }: { label: string, value: string | null, icon: React.ReactNode }) => (
@@ -94,14 +123,33 @@ export default function DemandCard({ demand }: { demand: any }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl md:rounded-3xl w-full max-w-4xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             
+            {/* Modal Header */}
             <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="bg-blue-500 p-1.5 md:p-2 rounded-lg"><FileBox size={18} className="md:w-5 md:h-5" /></div>
                 <h2 className="text-lg md:text-xl font-bold tracking-wide">Demand Details</h2>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1.5 md:p-2 bg-slate-800 rounded-full">
-                <X size={18} className="md:w-5 md:h-5" />
-              </button>
+              
+              <div className="flex items-center gap-2">
+                {/* 🔐 SECURE MANAGEMENT ZONE */}
+                {canManage && (
+                  <div className="flex items-center gap-2 mr-2 pr-2 md:mr-4 md:pr-4 border-r border-slate-700">
+                    <DemandForm demandToEdit={demand} />
+                    <button 
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="p-1.5 md:p-2 bg-slate-800 border border-slate-700 text-slate-400 hover:text-rose-500 hover:border-rose-500/50 rounded-lg shadow-sm transition-colors"
+                      title="Delete Deal"
+                    >
+                      {isDeleting ? <Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> : <Trash2 size={16} className="md:w-4 md:h-4" />}
+                    </button>
+                  </div>
+                )}
+
+                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1.5 md:p-2 bg-slate-800 rounded-full">
+                  <X size={18} className="md:w-5 md:h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 bg-slate-50">

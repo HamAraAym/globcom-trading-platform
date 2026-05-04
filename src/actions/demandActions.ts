@@ -87,7 +87,6 @@ export async function createDemand(formData: FormData) {
 }
 
 export async function updateDemand(formData: FormData) {
-  // (Your existing updateDemand code remains exactly the same here...)
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
 
@@ -100,7 +99,8 @@ export async function updateDemand(formData: FormData) {
   const existingDemand = await prisma.demand.findUnique({ where: { id } });
   if (!existingDemand) throw new Error("Demand not found");
 
-  if (user.role !== "ADMIN" && user.role !== "TRADING_REP" && existingDemand.creatorId !== user.id) {
+  // 🔐 SERVER-SIDE RBAC ENFORCEMENT
+  if (user.role !== "ADMIN" && existingDemand.creatorId !== user.id) {
     throw new Error("You do not have permission to edit this demand.");
   }
 
@@ -163,4 +163,29 @@ export async function updateDemand(formData: FormData) {
 
   revalidatePath("/demands");
   revalidatePath(`/chat/${existingDemand.id}`); 
+}
+
+// 🗑️ SECURE DELETE ACTION
+export async function deleteDemand(id: string) {
+  const session = await getServerSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) throw new Error("User not found");
+
+  const existingDemand = await prisma.demand.findUnique({ where: { id } });
+  if (!existingDemand) throw new Error("Demand not found");
+
+  // 🔐 SERVER-SIDE RBAC ENFORCEMENT
+  if (user.role !== "ADMIN" && existingDemand.creatorId !== user.id) {
+    throw new Error("You do not have permission to delete this demand.");
+  }
+
+  await prisma.demand.delete({ where: { id } });
+
+  await prisma.auditLog.create({
+    data: { action: "DELETED_DEMAND", details: `Demand deleted: ${existingDemand.title}`, userId: user.id }
+  });
+
+  revalidatePath("/demands");
 }

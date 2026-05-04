@@ -30,6 +30,7 @@
 - src
   - actions
     - adminActions.ts
+    - aiActions.ts
     - buyerActions.ts
     - chatActions.ts
     - demandActions.ts
