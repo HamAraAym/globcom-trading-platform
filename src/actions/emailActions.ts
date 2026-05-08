@@ -99,7 +99,9 @@ export async function dispatchToClient(formData: FormData) {
       unit: unit,
       location: location,
       specs: contextItem.specs || "",
-      attachedDocsCount: attachedDocs.length
+      attachedDocsCount: attachedDocs.length,
+      // 👇 ADDED THE MISSING PROP HERE 👇
+      dealLink: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/proposal/${contextId}`,
     }) as React.ReactElement,
     attachments: processedAttachments
   });
