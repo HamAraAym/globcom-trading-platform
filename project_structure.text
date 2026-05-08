@@ -66,6 +66,9 @@
     - login
       - page.tsx
     - page.tsx
+    - proposal
+      - [id]
+        - page.tsx
     - settings
       - SettingsForm.tsx
       - page.tsx
@@ -105,5 +108,6 @@
     - OfficialProposalEmail.tsx
   - lib
     - prisma.ts
+  - middleware.ts
   - proxy.ts
 - tsconfig.json

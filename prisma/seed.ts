@@ -11,16 +11,56 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('🌱 Seeding the GlobCom ERP database on Neon...');
+  console.log('🌱 Starting GlobCom ERP Production Reset...');
 
-  // 1. Hash the passwords
-  const adminPassword = await bcrypt.hash('Admin@123', 10);
+  // =========================================
+  // 🧹 1. THE CLEANUP PHASE (Wipe Test Data)
+  // =========================================
+  console.log('🧹 Sweeping old test data...');
+  
+  // Note: We delete in this specific order to respect foreign key constraints
+  await prisma.message.deleteMany();
+  await prisma.chatRoom.deleteMany();
+  await prisma.document.deleteMany();
+  await prisma.task.deleteMany();
+  await prisma.clientActivity.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.notification.deleteMany();
+  
+  // Wipe the actual boards and CRM
+  await prisma.demand.deleteMany();
+  await prisma.supply.deleteMany();
+  await prisma.client.deleteMany();
+
+  // (Optional: Wipe all users except the ones we are about to upsert)
+  // await prisma.user.deleteMany(); 
+
+  console.log('✨ Database is clean!');
+
+  // =========================================
+  // ⚙️ 2. INITIALIZE SYSTEM SETTINGS
+  // =========================================
+  await prisma.systemSettings.upsert({
+    where: { id: 'global' },
+    update: {},
+    create: {
+      id: 'global',
+      companyName: 'GlobCom International FZE',
+    }
+  });
+
+  // =========================================
+  // 👤 3. CREATE PRODUCTION ACCOUNTS
+  // =========================================
+  console.log('👤 Creating team accounts...');
+
+  const adminPassword = await bcrypt.hash('Admin@123', 10); // Change this after first login!
   const repPassword = await bcrypt.hash('Rep@123', 10);
 
-  // 2. Create the Primary Admin
+  // The Master Admin
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@globcom.com' },
-    update: {},
+    where: { email: 'admin@globcom.com' }, // Feel free to change to your actual email
+    update: { password: adminPassword, role: 'ADMIN' },
     create: {
       firstName: 'David',
       lastName: 'Chen',
@@ -30,10 +70,10 @@ async function main() {
     },
   });
 
-  // 3. Create the Trading Team (Matches your TopBar Mock Data)
+  // The Trading Team
   const sarah = await prisma.user.upsert({
     where: { email: 'sarah@globcom.com' },
-    update: {},
+    update: { password: repPassword, role: 'TRADING_REP' },
     create: {
       firstName: 'Sarah',
       lastName: 'Jenkins',
@@ -45,7 +85,7 @@ async function main() {
 
   const mike = await prisma.user.upsert({
     where: { email: 'mike@globcom.com' },
-    update: {},
+    update: { password: repPassword, role: 'BUYER_REP' },
     create: {
       firstName: 'Mike',
       lastName: 'Ross',
@@ -55,30 +95,8 @@ async function main() {
     },
   });
 
-  // 4. Create a Mock Corporate Client for the CRM
-  try {
-    await prisma.client.upsert({
-      where: { email: 'procurement@nexuslogistics.com' },
-      update: {},
-      create: {
-        name: 'James Harrison',
-        company: 'Nexus Global Logistics',
-        type: 'CORPORATE',
-        email: 'procurement@nexuslogistics.com',
-        phone: '+1 (555) 019-8372',
-        country: 'United States',
-        address: '1420 5th Ave, Seattle, WA 98101',
-        kycStatus: 'VERIFIED',
-        assignedRepId: sarah.id, // Assign to Sarah
-      },
-    });
-    console.log('✅ Nexus Global Logistics (Client) created.');
-  } catch (err) {
-    console.log('⚠️ Skipping Client creation (schema fields may differ slightly).');
-  }
-
   console.log('\n=========================================');
-  console.log('✅ DATABASE SEEDING COMPLETE!');
+  console.log('✅ DATABASE RESET & SEEDING COMPLETE!');
   console.log('=========================================');
   console.log('You can now log in with the following accounts:');
   console.log(`🛡️  Admin: ${admin.email} | Pass: Admin@123`);

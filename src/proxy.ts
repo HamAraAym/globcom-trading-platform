@@ -11,9 +11,10 @@ export async function proxy(req: NextRequest) {
   });
 
   const isLoginPage = req.nextUrl.pathname.startsWith("/login");
+  const isPublicPage = req.nextUrl.pathname.startsWith("/proposal");
 
-  // 1. If the user is NOT logged in and trying to access a secure page, bounce them to login
-  if (!token && !isLoginPage) {
+  // 1. If the user is NOT logged in and trying to access a secure page (not login, not proposal), bounce them to login
+  if (!token && !isLoginPage && !isPublicPage) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
