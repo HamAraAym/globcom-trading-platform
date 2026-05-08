@@ -5,8 +5,10 @@ import {
   Scale, CircleDollarSign, Calendar, FileText, Download, CheckCircle2, Globe 
 } from "lucide-react";
 
-export default async function ProposalPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+// NEW: Typed params as a Promise for Next.js 16 compatibility
+export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
+  // NEW: Await the params to extract the ID
+  const { id } = await params;
 
   // 1. Check if it's a Demand or a Supply
   let deal: any = await prisma.demand.findUnique({
