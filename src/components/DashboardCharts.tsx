@@ -5,7 +5,8 @@ import {
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 
-const COLORS = ['#10b981', '#94a3b8']; // Emerald for verified, Slate for pending
+// NEW: GlobCom Green for Verified, Slate for Pending
+const COLORS = ['#22c55e', '#94a3b8']; 
 
 export default function DashboardCharts({ chartData }: { chartData: any }) {
   return (
@@ -35,7 +36,8 @@ export default function DashboardCharts({ chartData }: { chartData: any }) {
                 cursor={{ fill: '#f8fafc' }} 
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold', color: '#0f172a' }} 
               />
-              <Bar dataKey="volume" fill="#4f46e5" radius={[6, 6, 0, 0]} maxBarSize={60} />
+              {/* NEW: GlobCom Navy Hex Code */}
+              <Bar dataKey="volume" fill="#1e40af" radius={[6, 6, 0, 0]} maxBarSize={60} />
             </BarChart>
           </ResponsiveContainer>
         </div>
