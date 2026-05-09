@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import MediaGallery from "@/components/MediaGallery";
 import DemandForm from "./DemandForm"; 
-import { deleteDemand } from "@/actions/demandActions"; // Ensure this server action exists!
+import { deleteDemand } from "@/actions/demandActions"; 
 
 export default function DemandCard({ demand }: { demand: any }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,8 +41,8 @@ export default function DemandCard({ demand }: { demand: any }) {
 
   // Helper component for the logistics grid
   const LogisticsItem = ({ label, value, icon }: { label: string, value: string | null, icon: React.ReactNode }) => (
-    <div className="flex flex-col bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-      <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+    <div className="flex flex-col bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
+      <div className="flex items-center gap-1.5 text-slate-400 mb-1.5">
         {icon} <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">{label}</span>
       </div>
       <p className="text-xs md:text-sm font-bold text-slate-900 leading-tight">
@@ -56,7 +56,7 @@ export default function DemandCard({ demand }: { demand: any }) {
       {/* 1. THE SUMMARY CARD (Compact & Scannable) */}
       <div 
         onClick={() => setIsOpen(true)}
-        className="bg-white border border-slate-200 rounded-xl md:rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer group flex flex-col sm:flex-row"
+        className="bg-white border border-slate-200 rounded-xl md:rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-blue-800/40 transition-all duration-200 cursor-pointer group flex flex-col sm:flex-row"
       >
         <div className="bg-slate-900 px-4 md:px-6 py-3 md:py-4 flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-start sm:w-48 shrink-0">
           <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 text-[9px] md:text-[10px] font-bold rounded-md uppercase tracking-widest border border-blue-500/30 shadow-sm sm:mb-3">
@@ -71,7 +71,7 @@ export default function DemandCard({ demand }: { demand: any }) {
         <div className="p-4 md:p-5 flex-1 flex flex-col justify-center">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 md:gap-4 mb-2 md:mb-3">
             <div>
-              <h3 className="text-base md:text-lg font-bold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors leading-tight">{demand.title}</h3>
+              <h3 className="text-base md:text-lg font-bold text-slate-900 tracking-tight group-hover:text-blue-800 transition-colors leading-tight">{demand.title}</h3>
               <p className="text-[10px] md:text-xs text-slate-500 mt-0.5 md:mt-1">
                 Posted by <span className="font-semibold text-slate-700">{demand.createdBy?.firstName} {demand.createdBy?.lastName}</span>
               </p>
@@ -81,7 +81,7 @@ export default function DemandCard({ demand }: { demand: any }) {
                 {new Intl.NumberFormat().format(demand.quantity)} <span className="text-[10px] md:text-xs font-bold text-slate-500 ml-0.5">{demand.quantityUnit || "MT"}</span>
               </p>
               {demand.targetPrice ? (
-                <p className="text-xs md:text-sm font-bold text-emerald-600 mt-0.5">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(demand.targetPrice)}</p>
+                <p className="text-xs md:text-sm font-bold text-green-600 mt-0.5">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(demand.targetPrice)}</p>
               ) : (
                 <p className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 md:py-1 rounded mt-1 inline-block">Price TBD</p>
               )}
@@ -113,8 +113,8 @@ export default function DemandCard({ demand }: { demand: any }) {
           )}
         </div>
 
-        <div className="hidden sm:flex bg-slate-50 px-4 items-center justify-center border-l border-slate-100 group-hover:bg-blue-50 transition-colors">
-          <ChevronRight size={20} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+        <div className="hidden sm:flex bg-slate-50 px-4 items-center justify-center border-l border-slate-100 group-hover:bg-blue-50/50 transition-colors">
+          <ChevronRight size={20} className="text-slate-400 group-hover:text-blue-800 transition-colors" />
         </div>
       </div>
 
@@ -125,20 +125,23 @@ export default function DemandCard({ demand }: { demand: any }) {
             
             {/* Modal Header */}
             <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white shrink-0">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="bg-blue-500 p-1.5 md:p-2 rounded-lg"><FileBox size={18} className="md:w-5 md:h-5" /></div>
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-800 p-2 rounded-xl shadow-inner"><FileBox size={20} className="text-white" /></div>
                 <h2 className="text-lg md:text-xl font-bold tracking-wide">Demand Details</h2>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 md:gap-3">
                 {/* 🔐 SECURE MANAGEMENT ZONE */}
                 {canManage && (
-                  <div className="flex items-center gap-2 mr-2 pr-2 md:mr-4 md:pr-4 border-r border-slate-700">
-                    <DemandForm demandToEdit={demand} />
+                  <div className="flex items-center gap-1.5 md:gap-2 mr-1 pr-2 md:mr-3 md:pr-4 border-r border-slate-700">
+                    {/* The DemandForm handles the Edit logic. We wrapper it to ensure identical alignment with the delete button */}
+                    <div className="flex items-center justify-center">
+                      <DemandForm demandToEdit={demand} />
+                    </div>
                     <button 
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="p-1.5 md:p-2 bg-slate-800 border border-slate-700 text-slate-400 hover:text-rose-500 hover:border-rose-500/50 rounded-lg shadow-sm transition-colors"
+                      className="p-2 md:p-2.5 bg-slate-800 border border-slate-700 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/50 rounded-lg shadow-sm transition-all"
                       title="Delete Deal"
                     >
                       {isDeleting ? <Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> : <Trash2 size={16} className="md:w-4 md:h-4" />}
@@ -146,8 +149,8 @@ export default function DemandCard({ demand }: { demand: any }) {
                   </div>
                 )}
 
-                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1.5 md:p-2 bg-slate-800 rounded-full">
-                  <X size={18} className="md:w-5 md:h-5" />
+                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 md:p-2.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-full shadow-sm">
+                  <X size={16} className="md:w-5 md:h-5" />
                 </button>
               </div>
             </div>
@@ -162,57 +165,57 @@ export default function DemandCard({ demand }: { demand: any }) {
                     Authorized Rep: <span className="font-bold text-slate-800">{demand.createdBy?.firstName} {demand.createdBy?.lastName}</span> <span className="hidden sm:inline">({demand.createdBy?.role?.replace("_", " ")})</span>
                   </p>
                 </div>
-                <span className="px-3 py-1.5 bg-blue-100 text-blue-700 text-[10px] md:text-xs font-bold rounded-lg uppercase tracking-widest border border-blue-200 shrink-0">
+                <span className="px-3 py-1.5 bg-blue-100 text-blue-800 text-[10px] md:text-xs font-bold rounded-lg uppercase tracking-widest border border-blue-200 shrink-0">
                   {demand.status.replace("_", " ")}
                 </span>
               </div>
               
               {/* Core Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-                <div className="bg-white border border-slate-200 p-3 md:p-4 rounded-xl flex flex-col shadow-sm">
-                  <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2 text-slate-500"><Scale size={14} className="md:w-4 md:h-4 text-blue-600"/> <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Required Qty</span></div>
-                  <p className="text-lg md:text-xl font-black text-slate-900 truncate">{new Intl.NumberFormat().format(demand.quantity)} <span className="text-xs md:text-sm font-bold text-slate-500 ml-0.5">{demand.quantityUnit || "MT"}</span></p>
+                <div className="bg-white border border-slate-200 p-4 md:p-5 rounded-2xl flex flex-col shadow-sm">
+                  <div className="flex items-center gap-2 mb-2 text-slate-500"><Scale size={16} className="text-blue-800"/> <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Required Qty</span></div>
+                  <p className="text-xl md:text-2xl font-black text-slate-900 truncate">{new Intl.NumberFormat().format(demand.quantity)} <span className="text-xs md:text-sm font-bold text-slate-500 ml-0.5">{demand.quantityUnit || "MT"}</span></p>
                 </div>
-                <div className="bg-white border border-slate-200 p-3 md:p-4 rounded-xl flex flex-col shadow-sm">
-                  <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2 text-slate-500"><CircleDollarSign size={14} className="md:w-4 md:h-4 text-emerald-600"/> <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Target Price</span></div>
+                <div className="bg-white border border-slate-200 p-4 md:p-5 rounded-2xl flex flex-col shadow-sm">
+                  <div className="flex items-center gap-2 mb-2 text-slate-500"><CircleDollarSign size={16} className="text-green-600"/> <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Target Price</span></div>
                   {demand.targetPrice ? (
-                    <p className="text-lg md:text-xl font-black text-slate-900 truncate">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(demand.targetPrice)}</p>
+                    <p className="text-xl md:text-2xl font-black text-slate-900 truncate">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(demand.targetPrice)}</p>
                   ) : (
-                     <p className="text-xs md:text-sm font-bold text-slate-400 italic">Price Upon Request</p>
+                     <p className="text-sm md:text-base font-bold text-slate-400 italic mt-1">Price Upon Request</p>
                   )}
                 </div>
-                <div className="bg-white border border-slate-200 p-3 md:p-4 rounded-xl flex flex-col shadow-sm col-span-2 md:col-span-1">
-                  <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2 text-slate-500"><Calendar size={14} className="md:w-4 md:h-4 text-blue-600"/> <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Timeline</span></div>
-                  <p className="text-xs md:text-sm font-bold text-slate-900 truncate">{demand.timeline}</p>
+                <div className="bg-white border border-slate-200 p-4 md:p-5 rounded-2xl flex flex-col shadow-sm col-span-2 md:col-span-1">
+                  <div className="flex items-center gap-2 mb-2 text-slate-500"><Calendar size={16} className="text-blue-800"/> <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Timeline</span></div>
+                  <p className="text-sm md:text-base font-bold text-slate-900 truncate mt-1">{demand.timeline}</p>
                 </div>
               </div>
 
               {/* Trade Logistics Grid */}
-              <div className="bg-white rounded-xl p-4 md:p-6 border border-slate-200 mb-6 md:mb-8 shadow-sm">
-                <h4 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Truck size={14} className="md:w-4 md:h-4 text-blue-500" /> Trade Logistics
+              <div className="bg-white rounded-2xl p-5 md:p-6 border border-slate-200 mb-6 md:mb-8 shadow-sm">
+                <h4 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Truck size={14} className="md:w-4 md:h-4 text-blue-800" /> Trade Logistics
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-3 md:gap-4">
-                  <LogisticsItem label="Origin" value={demand.origin} icon={<MapPin size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Destination" value={demand.destination} icon={<MapPin size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Load Port" value={demand.loadPort} icon={<Anchor size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Incoterms" value={demand.incoterms} icon={<Truck size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Insurance" value={demand.insurance} icon={<Shield size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Payment Terms" value={demand.paymentTerms} icon={<CreditCard size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Inspection" value={demand.inspection} icon={<ShieldCheck size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
-                  <LogisticsItem label="Packaging" value={demand.packaging} icon={<Package size={12} className="md:w-3.5 md:h-3.5 text-slate-400" />} />
+                  <LogisticsItem label="Origin" value={demand.origin} icon={<MapPin size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Destination" value={demand.destination} icon={<MapPin size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Load Port" value={demand.loadPort} icon={<Anchor size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Incoterms" value={demand.incoterms} icon={<Truck size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Insurance" value={demand.insurance} icon={<Shield size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Payment Terms" value={demand.paymentTerms} icon={<CreditCard size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Inspection" value={demand.inspection} icon={<ShieldCheck size={14} className="text-slate-400" />} />
+                  <LogisticsItem label="Packaging" value={demand.packaging} icon={<Package size={14} className="text-slate-400" />} />
                 </div>
               </div>
 
               {/* Technical Specifications (Dynamic JSON) */}
               {demand.keyTerms && Array.isArray(demand.keyTerms) && demand.keyTerms.length > 0 && (
-                <div className="bg-white rounded-xl p-4 md:p-6 border border-slate-200 mb-6 md:mb-8 shadow-sm">
-                  <h4 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 md:mb-4 flex items-center gap-2">
-                    <List size={14} className="md:w-4 md:h-4 text-blue-500" /> Technical Specifications
+                <div className="bg-white rounded-2xl p-5 md:p-6 border border-slate-200 mb-6 md:mb-8 shadow-sm">
+                  <h4 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <List size={14} className="md:w-4 md:h-4 text-blue-800" /> Technical Specifications
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {demand.keyTerms.map((term: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center p-2.5 md:p-3 bg-slate-50 border border-slate-100 rounded-lg">
+                      <div key={idx} className="flex justify-between items-center p-3 md:p-4 bg-slate-50 border border-slate-100 rounded-xl">
                         <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase">{term.label}</span>
                         <span className="text-xs md:text-sm font-bold text-slate-900 text-right">{term.value}</span>
                       </div>
@@ -222,17 +225,17 @@ export default function DemandCard({ demand }: { demand: any }) {
               )}
 
               {/* General Notes */}
-              <div className="bg-white rounded-xl p-4 md:p-6 border border-slate-200 mb-6 md:mb-8 shadow-sm">
-                <h4 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 md:mb-4 flex items-center gap-2">
-                  <FileText size={14} className="md:w-4 md:h-4 text-blue-500" /> General Notes
+              <div className="bg-white rounded-2xl p-5 md:p-6 border border-slate-200 mb-6 md:mb-8 shadow-sm">
+                <h4 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <FileText size={14} className="md:w-4 md:h-4 text-blue-800" /> General Notes
                 </h4>
-                <p className="text-xs md:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{demand.specs}</p>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{demand.specs}</p>
               </div>
 
               {/* Attachments */}
               {demand.attachments && demand.attachments.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 md:mb-4 flex items-center gap-2">
+                  <h4 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     Official Documents ({demand.attachments.length})
                   </h4>
                   <MediaGallery attachments={demand.attachments} />
