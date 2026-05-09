@@ -152,7 +152,8 @@ export async function updateSupply(formData: FormData) {
     uploadedUrls.push(blob.url);
   }
 
-  const finalAttachments = [...existingSupply.attachments, ...uploadedUrls];
+  // Safely combine existing attachments with new ones
+  const finalAttachments = [...(existingSupply.attachments || []), ...uploadedUrls];
 
   await prisma.supply.update({
     where: { id },

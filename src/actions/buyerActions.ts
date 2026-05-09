@@ -158,3 +158,36 @@ export async function updateKycStatus(clientId: string, formData: FormData) {
   revalidatePath(`/crm/${clientId}`);
   revalidatePath("/buyers");
 }
+
+export async function updateBuyer(formData: FormData) {
+  const session = await getServerSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) throw new Error("User not found");
+
+  const id = formData.get("id") as string;
+  if (!id) throw new Error("Client ID is missing");
+
+  const name = formData.get("name") as string;
+  const company = formData.get("company") as string | null;
+  const email = formData.get("email") as string;
+  const phone = formData.get("phone") as string | null;
+  const address = formData.get("address") as string | null;
+  const website = formData.get("website") as string | null;
+  const registrationNo = formData.get("registrationNo") as string | null;
+
+  await prisma.client.update({
+    where: { id },
+    data: { name, company, email, phone, address, website, registrationNo }
+  });
+
+  await prisma.auditLog.create({
+    data: { action: "UPDATED_CLIENT", details: `Updated profile for client: ${company || name}`, userId: user.id }
+  });
+
+  revalidatePath(`/crm/${id}`);
+  revalidatePath("/buyers");
+  
+  return { success: true };
+}
