@@ -46,7 +46,7 @@ export default function ClientModal() {
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="flex items-center justify-center gap-1.5 md:gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-indigo-600/20 transition-all shrink-0 w-full sm:w-auto">
+      <button onClick={() => setIsOpen(true)} className="flex items-center justify-center gap-1.5 md:gap-2 bg-blue-800 hover:bg-blue-700 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-blue-800/20 transition-all shrink-0 w-full sm:w-auto">
         <UserPlus size={18} className="md:w-5 md:h-5" />
         Register Client
       </button>
@@ -58,8 +58,8 @@ export default function ClientModal() {
             
             {/* Header */}
             <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-              <div className="flex items-center gap-2 md:gap-3 text-indigo-700">
-                <div className="bg-indigo-100 p-1.5 md:p-2 rounded-lg"><Briefcase size={18} className="md:w-5 md:h-5" /></div>
+              <div className="flex items-center gap-2 md:gap-3 text-blue-800">
+                <div className="bg-blue-100 p-1.5 md:p-2 rounded-lg"><Briefcase size={18} className="md:w-5 md:h-5" /></div>
                 <h2 className="text-lg md:text-xl font-bold text-slate-900 truncate max-w-[200px] sm:max-w-none">Add External Client</h2>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 md:p-2 rounded-full transition-colors border border-slate-200 shadow-sm shrink-0">
@@ -76,14 +76,14 @@ export default function ClientModal() {
                   <button 
                     type="button" 
                     onClick={() => setClientType("CORPORATE")} 
-                    className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-md md:rounded-lg transition-all ${clientType === 'CORPORATE' ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-md md:rounded-lg transition-all ${clientType === 'CORPORATE' ? 'bg-white shadow-sm text-blue-800 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     <Building size={14} className="md:w-4 md:h-4" /> Corporate Entity
                   </button>
                   <button 
                     type="button" 
                     onClick={() => setClientType("INDIVIDUAL")} 
-                    className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-md md:rounded-lg transition-all ${clientType === 'INDIVIDUAL' ? 'bg-white shadow-sm text-emerald-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-md md:rounded-lg transition-all ${clientType === 'INDIVIDUAL' ? 'bg-white shadow-sm text-green-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     <User size={14} className="md:w-4 md:h-4" /> Individual Trader
                   </button>
@@ -98,7 +98,7 @@ export default function ClientModal() {
                       </label>
                       <div className="relative mt-1.5">
                         <Building className="absolute left-3 md:left-3.5 top-3 md:top-3.5 text-slate-400" size={16} />
-                        <input type="text" name="company" required className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="e.g. GlobCom International FZE" />
+                        <input type="text" name="company" required className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="e.g. GlobCom International FZE" />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
@@ -106,14 +106,14 @@ export default function ClientModal() {
                         <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Registration / Tax No.</label>
                         <div className="relative mt-1.5">
                           <FileBadge className="absolute left-3 md:left-3.5 top-3 md:top-3.5 text-slate-400" size={16} />
-                          <input type="text" name="registrationNo" className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="e.g. TRN-12345678" />
+                          <input type="text" name="registrationNo" className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="e.g. TRN-12345678" />
                         </div>
                       </div>
                       <div>
                         <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Corporate Website</label>
                         <div className="relative mt-1.5">
                           <Globe className="absolute left-3 md:left-3.5 top-3 md:top-3.5 text-slate-400" size={16} />
-                          <input type="url" name="website" className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="https://..." />
+                          <input type="url" name="website" className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="https://..." />
                         </div>
                       </div>
                     </div>
@@ -126,7 +126,7 @@ export default function ClientModal() {
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                       {clientType === "CORPORATE" ? "Primary Contact Person" : "Full Legal Name"} <span className="text-red-500">*</span>
                     </label>
-                    <input type="text" name="name" required className="w-full mt-1.5 p-2.5 md:p-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="e.g. John Doe" />
+                    <input type="text" name="name" required className="w-full mt-1.5 p-2.5 md:p-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="e.g. John Doe" />
                   </div>
                   <div>
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -134,14 +134,14 @@ export default function ClientModal() {
                     </label>
                     <div className="relative mt-1.5">
                       <Mail className="absolute left-3 md:left-3.5 top-3 md:top-3.5 text-slate-400" size={16} />
-                      <input type="email" name="email" required className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="john@example.com" />
+                      <input type="email" name="email" required className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="john@example.com" />
                     </div>
                   </div>
                   <div>
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
                     <div className="relative mt-1.5">
                       <Phone className="absolute left-3 md:left-3.5 top-3 md:top-3.5 text-slate-400" size={16} />
-                      <input type="tel" name="phone" className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="+1 (555) 000-0000" />
+                      <input type="tel" name="phone" className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 bg-white border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium shadow-sm text-base md:text-sm" placeholder="+1 (555) 000-0000" />
                     </div>
                   </div>
                 </div>
@@ -154,7 +154,7 @@ export default function ClientModal() {
                 {/* KYC COMPLIANCE UPLOADS */}
                 <div className="pt-4 md:pt-6 border-t border-slate-100">
                   <h3 className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
-                    <FileText size={14} className="text-blue-500 md:w-4 md:h-4" /> KYC & Compliance Documents
+                    <FileText size={14} className="text-blue-800 md:w-4 md:h-4" /> KYC & Compliance Documents
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -164,7 +164,7 @@ export default function ClientModal() {
                       <label className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
                         Signatory Passport / ID
                       </label>
-                      <div className={`flex-1 border-2 border-dashed rounded-lg md:rounded-xl p-3 md:p-4 flex flex-col items-center justify-center transition-colors relative ${passportFileName ? 'border-indigo-300 bg-indigo-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
+                      <div className={`flex-1 border-2 border-dashed rounded-lg md:rounded-xl p-3 md:p-4 flex flex-col items-center justify-center transition-colors relative ${passportFileName ? 'border-blue-300 bg-blue-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
                         <input 
                           type="file" 
                           name="passport" 
@@ -174,8 +174,8 @@ export default function ClientModal() {
                         />
                         {passportFileName ? (
                           <div className="text-center">
-                            <FileText className="mx-auto text-indigo-500 mb-1" size={16} />
-                            <p className="text-[9px] md:text-[10px] font-bold text-indigo-700 truncate max-w-[150px]">{passportFileName}</p>
+                            <FileText className="mx-auto text-blue-600 mb-1" size={16} />
+                            <p className="text-[9px] md:text-[10px] font-bold text-blue-800 truncate max-w-[150px]">{passportFileName}</p>
                           </div>
                         ) : (
                           <div className="text-center">
@@ -192,7 +192,7 @@ export default function ClientModal() {
                         <label className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
                           Official Trade License
                         </label>
-                        <div className={`flex-1 border-2 border-dashed rounded-lg md:rounded-xl p-3 md:p-4 flex flex-col items-center justify-center transition-colors relative ${licenseFileName ? 'border-indigo-300 bg-indigo-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
+                        <div className={`flex-1 border-2 border-dashed rounded-lg md:rounded-xl p-3 md:p-4 flex flex-col items-center justify-center transition-colors relative ${licenseFileName ? 'border-blue-300 bg-blue-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
                           <input 
                             type="file" 
                             name="tradeLicense" 
@@ -202,8 +202,8 @@ export default function ClientModal() {
                           />
                           {licenseFileName ? (
                             <div className="text-center">
-                              <FileText className="mx-auto text-indigo-500 mb-1" size={16} />
-                              <p className="text-[9px] md:text-[10px] font-bold text-indigo-700 truncate max-w-[150px]">{licenseFileName}</p>
+                              <FileText className="mx-auto text-blue-600 mb-1" size={16} />
+                              <p className="text-[9px] md:text-[10px] font-bold text-blue-800 truncate max-w-[150px]">{licenseFileName}</p>
                             </div>
                           ) : (
                             <div className="text-center">
@@ -223,7 +223,7 @@ export default function ClientModal() {
             {/* NATIVE MOBILE UPGRADE: Added pb-8 for iOS safe area padding */}
             <div className="px-4 md:px-6 py-3 md:py-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0 pb-8 sm:pb-4">
               <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2.5 text-xs md:text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">Cancel</button>
-              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-indigo-600/20 transition-all w-full sm:w-auto shrink-0">
+              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting} className="flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-blue-800/20 transition-all w-full sm:w-auto shrink-0">
                 {isSubmitting ? <><Loader2 size={16} className="md:w-4 md:h-4 animate-spin" /> Saving...</> : "Save Client Record"}
               </button>
             </div>
