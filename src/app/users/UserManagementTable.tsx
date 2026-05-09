@@ -23,23 +23,25 @@ export default function UserManagementTable({ users }: { users: any[] }) {
     <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl shadow-sm overflow-hidden flex flex-col h-full">
       <div className="overflow-x-auto overflow-y-auto custom-scrollbar flex-1">
         <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
-          <thead className="sticky top-0 bg-slate-100 z-10 shadow-sm border-b border-slate-200">
-            <tr className="text-slate-500 text-[10px] uppercase tracking-widest">
-              <th className="p-3 md:p-4 font-bold">User</th>
-              <th className="p-3 md:p-4 font-bold">Role</th>
-              <th className="p-3 md:p-4 font-bold text-center">Add Deals</th>
-              <th className="p-3 md:p-4 font-bold text-center">Edit Deals</th>
-              <th className="p-3 md:p-4 font-bold text-center">Negotiate</th>
-              <th className="p-3 md:p-4 font-bold">Status</th>
-              <th className="p-3 md:p-4 font-bold text-right">Actions</th>
+          <thead className="sticky top-0 bg-slate-50 z-10 shadow-sm border-b border-slate-200">
+            {/* NEW: GlobCom Navy for table headers */}
+            <tr className="text-blue-800 text-[10px] uppercase tracking-widest">
+              <th className="p-3 md:p-4 font-black">User</th>
+              <th className="p-3 md:p-4 font-black">Role</th>
+              <th className="p-3 md:p-4 font-black text-center">Add Deals</th>
+              <th className="p-3 md:p-4 font-black text-center">Edit Deals</th>
+              <th className="p-3 md:p-4 font-black text-center">Negotiate</th>
+              <th className="p-3 md:p-4 font-black">Status</th>
+              <th className="p-3 md:p-4 font-black text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs md:text-sm bg-white">
             {users.map((user) => (
-              <tr key={user.id} className={`transition-colors group ${user.isActive ? "hover:bg-slate-50" : "bg-rose-50/30 opacity-70"}`}>
+              <tr key={user.id} className={`transition-colors group ${user.isActive ? "hover:bg-blue-50/30" : "bg-rose-50/30 opacity-70"}`}>
                 <td className="p-3 md:p-4">
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-[10px] md:text-xs shrink-0">
+                    {/* NEW: GlobCom Navy for Avatars */}
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-800 text-[10px] md:text-xs shrink-0 border border-blue-200">
                       {user.firstName[0]}{user.lastName[0]}
                     </div>
                     <div>
@@ -49,7 +51,8 @@ export default function UserManagementTable({ users }: { users: any[] }) {
                   </div>
                 </td>
                 <td className="p-3 md:p-4">
-                  <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[9px] md:text-[10px] font-bold uppercase border border-slate-200">
+                  {/* NEW: GlobCom Navy for Role Badges */}
+                  <span className="px-2 py-1 bg-blue-50 text-blue-800 rounded text-[9px] md:text-[10px] font-bold uppercase border border-blue-200 tracking-wider">
                     {user.role.replace("_", " ")}
                   </span>
                 </td>
@@ -62,8 +65,8 @@ export default function UserManagementTable({ users }: { users: any[] }) {
                       onClick={() => handleTogglePermission(user.id, field, user[field])}
                       className={`p-1.5 rounded-lg transition-all ${
                         user[field] 
-                          ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" 
-                          : "text-slate-400 bg-slate-100 hover:bg-slate-200"
+                          ? "text-green-600 bg-green-50 hover:bg-green-100 border border-green-200" 
+                          : "text-slate-400 bg-slate-100 hover:bg-slate-200 border border-transparent"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {loadingId === user.id + field ? <Loader2 size={16} className="animate-spin" /> : (user[field] ? <Check size={16} /> : <X size={16} />)}
@@ -72,8 +75,8 @@ export default function UserManagementTable({ users }: { users: any[] }) {
                 ))}
 
                 <td className="p-3 md:p-4">
-                  <span className={`flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${user.isActive ? "text-emerald-600" : "text-rose-600"}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? "bg-emerald-500" : "bg-rose-500"}`} />
+                  <span className={`flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${user.isActive ? "text-green-600" : "text-rose-600"}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-rose-500"}`} />
                     {user.isActive ? "Active" : "Suspended"}
                   </span>
                 </td>
@@ -85,7 +88,7 @@ export default function UserManagementTable({ users }: { users: any[] }) {
                       className={`text-[10px] md:text-xs font-bold px-2.5 md:px-3 py-1.5 rounded-lg border transition-all ${
                         user.isActive 
                           ? "border-rose-200 text-rose-600 hover:bg-rose-50 opacity-100 lg:opacity-0 lg:group-hover:opacity-100" 
-                          : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                          : "border-green-200 text-green-600 hover:bg-green-50"
                       }`}
                     >
                       {user.isActive ? "Suspend Access" : "Restore Access"}
