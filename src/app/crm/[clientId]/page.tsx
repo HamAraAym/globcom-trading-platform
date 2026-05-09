@@ -12,6 +12,7 @@ import {
 import DocumentGenerator from "@/components/DocumentGenerator";
 import KycStatusUpdater from "@/components/KycStatusUpdater"; 
 
+// NEW: Typed params as a Promise for Next.js 16 compatibility
 export default async function ClientProfilePage({ params }: { params: Promise<{ clientId: string }> }) {
   const session = await getServerSession();
   if (!session?.user?.email) redirect("/login");
@@ -21,6 +22,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     select: { id: true, role: true }
   });
 
+  // NEW: Await the params to extract the clientId
   const resolvedParams = await params;
   const clientId = resolvedParams.clientId;
 
@@ -47,7 +49,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           <ShieldAlert className="mx-auto text-rose-500 mb-4" size={48} />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Entity Not Found</h1>
           <p className="text-slate-500 mt-2">This client profile does not exist or has been purged.</p>
-          <Link href="/buyers" className="mt-6 inline-block bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold">Return to CRM</Link>
+          <Link href="/buyers" className="mt-6 inline-block bg-blue-800 text-white px-6 py-2.5 rounded-xl font-bold">Return to CRM</Link>
         </div>
       </div>
     );
@@ -89,7 +91,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10 font-sans flex flex-col overflow-y-auto custom-scrollbar">
       
       <div className="max-w-[1400px] mx-auto w-full mb-8">
-        <Link href="/buyers" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors mb-4">
+        <Link href="/buyers" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-800 transition-colors mb-4">
           <ChevronLeft size={16} /> Back to Master Database
         </Link>
         
@@ -100,7 +102,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           </div>
 
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
-             <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 rounded-xl transition-all shadow-sm" title="Edit Entity">
+             <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-blue-800 hover:bg-blue-50 hover:border-blue-200 rounded-xl transition-all shadow-sm" title="Edit Entity">
                <Edit size={16} />
              </Link>
              {isAdmin && (
@@ -113,7 +115,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           </div>
 
           <div className="flex items-center gap-5 relative z-10 mt-6 md:mt-0">
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shrink-0 ${client.type === 'CORPORATE' ? 'bg-indigo-900 text-indigo-50 shadow-indigo-900/20' : 'bg-emerald-900 text-emerald-50 shadow-emerald-900/20'}`}>
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shrink-0 ${client.type === 'CORPORATE' ? 'bg-blue-900 text-blue-50 shadow-blue-900/20' : 'bg-green-600 text-green-50 shadow-green-600/20'}`}>
               {client.name.charAt(0).toUpperCase()}
             </div>
             <div>
@@ -121,16 +123,16 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">{client.company || client.name}</h1>
                 
                 {client.type === "CORPORATE" ? (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200"><Building size={12} /> Corporate</span>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-800 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200"><Building size={12} /> Corporate</span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><User size={12} /> Individual</span>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-800 bg-green-100 px-2.5 py-1 rounded-lg border border-green-200"><User size={12} /> Individual</span>
                 )}
 
                 {isAdmin ? (
                   <KycStatusUpdater clientId={client.id} currentStatus={client.kycStatus} />
                 ) : (
                   <>
-                    {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200"><ShieldCheck size={14} /> Verified</span>}
+                    {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-100 px-2.5 py-1 rounded-lg border border-green-200"><ShieldCheck size={14} /> Verified</span>}
                     {client.kycStatus === "PENDING" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200"><Clock size={14} /> Pending Docs</span>}
                     {client.kycStatus === "REJECTED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200"><ShieldAlert size={14} /> Rejected</span>}
                   </>
@@ -139,7 +141,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
               
               <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                 {client.type === "CORPORATE" && client.company && (
-                  <span className="flex items-center gap-1.5"><User size={16} className="text-indigo-400" /> Rep: {client.name}</span>
+                  <span className="flex items-center gap-1.5"><User size={16} className="text-blue-400" /> Rep: {client.name}</span>
                 )}
                 {client.type === "CORPORATE" && client.registrationNo && (
                   <span className="flex items-center gap-1.5"><FileBadge size={16} className="text-amber-500" /> {client.registrationNo}</span>
@@ -157,7 +159,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           <div className="text-right relative z-10">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Account Executive</p>
             <p className="text-lg font-bold text-slate-900 flex items-center justify-end gap-2">
-              <Briefcase size={18} className="text-indigo-500" /> 
+              <Briefcase size={18} className="text-blue-800" /> 
               {client.assignedRep ? `${client.assignedRep.firstName} ${client.assignedRep.lastName}` : <span className="text-slate-400 italic">Unassigned</span>}
             </p>
           </div>
@@ -171,7 +173,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <Mail size={16} className="text-indigo-500" /> Contact Protocols
+              <Mail size={16} className="text-blue-800" /> Contact Protocols
             </h3>
             <div className="space-y-4">
               <div>
@@ -193,20 +195,20 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <ShieldCheck size={16} className="text-emerald-500" /> Compliance Vault
+              <ShieldCheck size={16} className="text-green-600" /> Compliance Vault
             </h3>
             <div className="space-y-3">
               
               {client.type === "CORPORATE" && (
-                <a href={client.tradeLicenseUrl || "#"} target={client.tradeLicenseUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}>
-                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}><FileText size={16}/> Trade License</span>
-                  {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-emerald-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
+                <a href={client.tradeLicenseUrl || "#"} target={client.tradeLicenseUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
+                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-green-800' : 'text-slate-700 group-hover:text-blue-800'}`}><FileText size={16}/> Trade License</span>
+                  {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-800" />}
                 </a>
               )}
 
-              <a href={client.passportUrl || "#"} target={client.passportUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-400' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}>
-                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-emerald-800' : 'text-slate-700 group-hover:text-indigo-700'}`}><FileText size={16}/> Signatory ID / Passport</span>
-                {client.passportUrl ? <ExternalLink size={16} className="text-emerald-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-indigo-500" />}
+              <a href={client.passportUrl || "#"} target={client.passportUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-green-800' : 'text-slate-700 group-hover:text-blue-800'}`}><FileText size={16}/> Signatory ID / Passport</span>
+                {client.passportUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-800" />}
               </a>
               
             </div>
@@ -214,7 +216,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <FileBadge size={16} className="text-indigo-500" /> Generated Contracts
+              <FileBadge size={16} className="text-blue-800" /> Generated Contracts
             </h3>
             <div className="space-y-3">
               {documents.length === 0 ? (
@@ -223,7 +225,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                 </div>
               ) : (
                 documents.map((doc: any) => (
-                  <div key={doc.id} className="p-3 border border-slate-200 rounded-xl flex items-center justify-between bg-white shadow-sm hover:border-indigo-300 transition-colors">
+                  <div key={doc.id} className="p-3 border border-slate-200 rounded-xl flex items-center justify-between bg-white shadow-sm hover:border-blue-300 transition-colors">
                     <div className="flex-1 overflow-hidden pr-2">
                       <p className="text-sm font-bold text-slate-800 truncate" title={doc.title}>{doc.title}</p>
                       <p className="text-[10px] font-bold text-slate-400 mt-0.5">
@@ -231,12 +233,12 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors" title="View/Download PDF">
+                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors" title="View/Download PDF">
                         <Download size={16} />
                       </a>
                       <form action={dispatchDocument}>
                         <input type="hidden" name="docTitle" value={doc.title} />
-                        <button type="submit" className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors flex items-center gap-1" title="Email to Client">
+                        <button type="submit" className="p-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex items-center gap-1" title="Email to Client">
                           <Send size={16} />
                         </button>
                       </form>
@@ -268,21 +270,21 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           {(demands.length > 0 || supplies.length > 0) && (
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2 shrink-0">
-                <Package size={16} className="text-blue-500" /> Live Deal Pipeline
+                <Package size={16} className="text-blue-800" /> Live Deal Pipeline
               </h3>
               
               <div className="space-y-3">
                 {demands.map((demand: any) => (
-                  <div key={demand.id} className="p-4 border border-blue-100 bg-blue-50/30 rounded-2xl flex items-center justify-between group hover:border-blue-300 transition-colors">
+                  <div key={demand.id} className="p-4 border border-blue-200 bg-blue-50/50 rounded-2xl flex items-center justify-between group hover:border-blue-400 transition-colors">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Demand</span>
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${demand.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{demand.status?.replace("_", " ")}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">Demand</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${demand.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{demand.status?.replace("_", " ")}</span>
                       </div>
                       <p className="text-sm font-bold text-slate-900">{demand.title} <span className="text-slate-400 font-medium ml-1">• {demand.quantity} {demand.quantityUnit}</span></p>
                     </div>
                     {demand.chatRoomId && (
-                      <Link href={`/chat/${demand.chatRoomId}`} className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                      <Link href={`/chat/${demand.chatRoomId}`} className="text-xs font-bold text-blue-800 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg border border-blue-300 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100">
                         View Desk <ExternalLink size={12} />
                       </Link>
                     )}
@@ -290,16 +292,16 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                 ))}
 
                 {supplies.map((supply: any) => (
-                  <div key={supply.id} className="p-4 border border-emerald-100 bg-emerald-50/30 rounded-2xl flex items-center justify-between group hover:border-emerald-300 transition-colors">
+                  <div key={supply.id} className="p-4 border border-green-200 bg-green-50/50 rounded-2xl flex items-center justify-between group hover:border-green-400 transition-colors">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Supply</span>
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${supply.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{supply.status?.replace("_", " ")}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-green-100 text-green-800 px-2 py-0.5 rounded-full border border-green-200">Supply</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${supply.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{supply.status?.replace("_", " ")}</span>
                       </div>
                       <p className="text-sm font-bold text-slate-900">{supply.title} <span className="text-slate-400 font-medium ml-1">• {supply.quantity} {supply.quantityUnit}</span></p>
                     </div>
                     {supply.chatRoomId && (
-                      <Link href={`/chat/${supply.chatRoomId}`} className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                      <Link href={`/chat/${supply.chatRoomId}`} className="text-xs font-bold text-green-800 bg-green-100 hover:bg-green-200 px-3 py-1.5 rounded-lg border border-green-300 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100">
                         View Desk <ExternalLink size={12} />
                       </Link>
                     )}
