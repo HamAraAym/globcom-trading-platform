@@ -12,7 +12,6 @@ import {
 import DocumentGenerator from "@/components/DocumentGenerator";
 import KycStatusUpdater from "@/components/KycStatusUpdater"; 
 
-// NEW: Typed params as a Promise for Next.js 16 compatibility
 export default async function ClientProfilePage({ params }: { params: Promise<{ clientId: string }> }) {
   const session = await getServerSession();
   if (!session?.user?.email) redirect("/login");
@@ -22,11 +21,9 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     select: { id: true, role: true }
   });
 
-  // NEW: Await the params to extract the clientId
   const resolvedParams = await params;
   const clientId = resolvedParams.clientId;
 
-  // Fetch the full profile (Stripped demands/supplies to ensure Vercel build safety)
   const clientData = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
@@ -95,87 +92,108 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           <ChevronLeft size={16} /> Back to Master Database
         </Link>
         
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+        {/* HERO CARD: Styled to match the screenshot's dark header UI */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
           
-          <div className="absolute right-0 top-0 opacity-[0.03] translate-x-10 -translate-y-10 pointer-events-none">
-            {client.type === "CORPORATE" ? <Building size={300} /> : <User size={300} />}
-          </div>
-
-          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
-             <Link href={`/crm/${clientId}/edit`} className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-blue-800 hover:bg-blue-50 hover:border-blue-200 rounded-xl transition-all shadow-sm" title="Edit Entity">
-               <Edit size={16} />
-             </Link>
-             {isAdmin && (
-               <form action={deleteEntity}>
-                 <button type="submit" className="p-2.5 bg-slate-50 border border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 rounded-xl transition-all shadow-sm" title="Purge Entity">
-                   <Trash2 size={16} />
-                 </button>
-               </form>
-             )}
-          </div>
-
-          <div className="flex items-center gap-5 relative z-10 mt-6 md:mt-0">
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shrink-0 ${client.type === 'CORPORATE' ? 'bg-blue-900 text-blue-50 shadow-blue-900/20' : 'bg-green-600 text-green-50 shadow-green-600/20'}`}>
-              {client.name.charAt(0).toUpperCase()}
+          {/* Dark Structural Header */}
+          <div className="bg-slate-900 px-6 md:px-8 py-4 flex items-center justify-between border-b border-slate-800">
+            <div className="flex items-center gap-3 text-white">
+              <Building className="text-blue-400" size={18} />
+              <span className="font-bold tracking-wide text-sm md:text-base">Client Profile Master Record</span>
             </div>
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{client.company || client.name}</h1>
+            <div className="flex items-center gap-2 relative z-20">
+               <Link href={`/crm/${clientId}/edit`} className="p-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors border border-slate-700 shadow-sm" title="Edit Entity">
+                 <Edit size={16} />
+               </Link>
+               {isAdmin && (
+                 <form action={deleteEntity}>
+                   <button type="submit" className="p-2 bg-slate-800 text-slate-300 hover:text-rose-400 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700 shadow-sm" title="Purge Entity">
+                     <Trash2 size={16} />
+                   </button>
+                 </form>
+               )}
+            </div>
+          </div>
+
+          {/* Hero Content */}
+          <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            
+            <div className="absolute right-0 bottom-0 opacity-[0.02] translate-x-10 translate-y-10 pointer-events-none">
+              {client.type === "CORPORATE" ? <Building size={300} /> : <User size={300} />}
+            </div>
+
+            <div className="flex items-center gap-5">
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-md shrink-0 border ${client.type === 'CORPORATE' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                {client.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mr-2">{client.company || client.name}</h1>
+                  
+                  {client.type === "CORPORATE" ? (
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-700 bg-blue-50 px-2.5 py-1 rounded border border-blue-200"><Building size={12} /> Corporate</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-slate-50 px-2.5 py-1 rounded border border-slate-200"><User size={12} /> Individual</span>
+                  )}
+
+                  {isAdmin ? (
+                    <KycStatusUpdater clientId={client.id} currentStatus={client.kycStatus} />
+                  ) : (
+                    <>
+                      {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-50 px-2.5 py-1 rounded border border-green-200"><ShieldCheck size={14} /> Verified</span>}
+                      {client.kycStatus === "PENDING" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-2.5 py-1 rounded border border-amber-200"><Clock size={14} /> Pending Docs</span>}
+                      {client.kycStatus === "REJECTED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-50 px-2.5 py-1 rounded border border-rose-200"><ShieldAlert size={14} /> Rejected</span>}
+                    </>
+                  )}
+                </div>
                 
-                {client.type === "CORPORATE" ? (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-800 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200"><Building size={12} /> Corporate</span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-800 bg-green-100 px-2.5 py-1 rounded-lg border border-green-200"><User size={12} /> Individual</span>
-                )}
-
-                {isAdmin ? (
-                  <KycStatusUpdater clientId={client.id} currentStatus={client.kycStatus} />
-                ) : (
-                  <>
-                    {client.kycStatus === "VERIFIED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-100 px-2.5 py-1 rounded-lg border border-green-200"><ShieldCheck size={14} /> Verified</span>}
-                    {client.kycStatus === "PENDING" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200"><Clock size={14} /> Pending Docs</span>}
-                    {client.kycStatus === "REJECTED" && <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-rose-700 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200"><ShieldAlert size={14} /> Rejected</span>}
-                  </>
-                )}
-              </div>
-              
-              <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
-                {client.type === "CORPORATE" && client.company && (
-                  <span className="flex items-center gap-1.5"><User size={16} className="text-blue-400" /> Rep: {client.name}</span>
-                )}
-                {client.type === "CORPORATE" && client.registrationNo && (
-                  <span className="flex items-center gap-1.5"><FileBadge size={16} className="text-amber-500" /> {client.registrationNo}</span>
-                )}
-                <span className="flex items-center gap-1.5"><MapPin size={16} className="text-rose-400" /> {client.address || client.country || "Location N/A"}</span>
-                {client.type === "CORPORATE" && client.website && (
-                  <a href={client.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline">
-                    <Globe size={16} className="text-blue-400" /> {client.website.replace(/^https?:\/\//, '')}
-                  </a>
-                )}
+                <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm font-medium text-slate-500 mt-2">
+                  {client.type === "CORPORATE" && client.company && (
+                    <span className="flex items-center gap-1.5"><User size={16} className="text-slate-400" /> Rep: {client.name}</span>
+                  )}
+                  {client.type === "CORPORATE" && client.registrationNo && (
+                    <span className="flex items-center gap-1.5"><FileBadge size={16} className="text-slate-400" /> {client.registrationNo}</span>
+                  )}
+                  <span className="flex items-center gap-1.5"><MapPin size={16} className="text-slate-400" /> {client.address || client.country || "Location N/A"}</span>
+                  {client.type === "CORPORATE" && client.website && (
+                    <a href={client.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 transition-colors">
+                      <Globe size={16} className="text-blue-400" /> {client.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="text-right relative z-10">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Account Executive</p>
-            <p className="text-lg font-bold text-slate-900 flex items-center justify-end gap-2">
-              <Briefcase size={18} className="text-blue-800" /> 
-              {client.assignedRep ? `${client.assignedRep.firstName} ${client.assignedRep.lastName}` : <span className="text-slate-400 italic">Unassigned</span>}
-            </p>
+            <div className="text-left md:text-right relative z-10 pt-4 md:pt-0 border-t border-slate-100 md:border-0 w-full md:w-auto">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Account Executive</p>
+              {client.assignedRep ? (
+                <div className="text-sm font-bold text-slate-900 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl flex items-center md:justify-end gap-2 shadow-sm">
+                  <Briefcase size={14} className="text-blue-600" />
+                  {client.assignedRep.firstName} {client.assignedRep.lastName}
+                </div>
+              ) : (
+                <div className="text-xs font-bold text-rose-500 bg-rose-50 border border-rose-200 border-dashed px-4 py-2 rounded-xl flex items-center md:justify-end gap-2">
+                  -- Unassigned --
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
+      <div className="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-10">
         
         {/* LEFT COLUMN: Static Data & Document Vault */}
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <Mail size={16} className="text-blue-800" /> Contact Protocols
-            </h3>
-            <div className="space-y-4">
+          {/* Contact Protocols Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2 shrink-0">
+               <Mail className="text-blue-800" size={16} />
+               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Contact Protocols</h3>
+            </div>
+            <div className="p-6 space-y-4">
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Email Address</p>
                 <p className="text-sm font-bold text-slate-800">{client.email}</p>
@@ -193,32 +211,34 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <ShieldCheck size={16} className="text-green-600" /> Compliance Vault
-            </h3>
-            <div className="space-y-3">
-              
+          {/* Compliance Vault Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2 shrink-0">
+               <ShieldCheck className="text-green-600" size={16} />
+               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Compliance Vault</h3>
+            </div>
+            <div className="p-6 space-y-3">
               {client.type === "CORPORATE" && (
                 <a href={client.tradeLicenseUrl || "#"} target={client.tradeLicenseUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
-                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-green-800' : 'text-slate-700 group-hover:text-blue-800'}`}><FileText size={16}/> Trade License</span>
-                  {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-800" />}
+                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><FileText size={16}/> Trade License</span>
+                  {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
                 </a>
               )}
 
               <a href={client.passportUrl || "#"} target={client.passportUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
-                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-green-800' : 'text-slate-700 group-hover:text-blue-800'}`}><FileText size={16}/> Signatory ID / Passport</span>
-                {client.passportUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-800" />}
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><FileText size={16}/> Signatory ID / Passport</span>
+                {client.passportUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
               </a>
-              
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <FileBadge size={16} className="text-blue-800" /> Generated Contracts
-            </h3>
-            <div className="space-y-3">
+          {/* Generated Contracts Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2 shrink-0">
+               <FileBadge className="text-blue-800" size={16} />
+               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Generated Contracts</h3>
+            </div>
+            <div className="p-6 space-y-3">
               {documents.length === 0 ? (
                 <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
                    <p className="text-xs font-bold text-slate-500">No contracts generated yet.</p>
@@ -252,34 +272,39 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
         </div>
 
         {/* RIGHT COLUMN: Deal History & Activity */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
           
-          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-xl relative overflow-hidden">
-            <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4"><FileEdit size={150} /></div>
-            <div className="relative z-10">
-              <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Document Generation Engine</h3>
+          {/* Document Generation Engine Card */}
+          <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden flex flex-col">
+            <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4 pointer-events-none"><FileEdit size={150} /></div>
+            
+            <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/50 flex items-center gap-2 shrink-0 relative z-10">
+               <FileEdit className="text-blue-400" size={16} />
+               <h3 className="text-xs font-black text-white uppercase tracking-widest">Document Generation Engine</h3>
+            </div>
+            
+            <div className="p-6 md:p-8 relative z-10">
               <p className="text-slate-400 text-sm mb-6 max-w-md">
                 Draft legally formatted Soft Corporate Offers (SCO) and Full Corporate Offers (FCO) to send directly to {client.company || client.name}.
               </p>
-              
               <DocumentGenerator clients={[client]} />
-              
             </div>
           </div>
 
+          {/* Live Deal Pipeline Card */}
           {(demands.length > 0 || supplies.length > 0) && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2 shrink-0">
-                <Package size={16} className="text-blue-800" /> Live Deal Pipeline
-              </h3>
-              
-              <div className="space-y-3">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2 shrink-0">
+                 <Package className="text-blue-800" size={16} />
+                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Live Deal Pipeline</h3>
+              </div>
+              <div className="p-6 space-y-3">
                 {demands.map((demand: any) => (
                   <div key={demand.id} className="p-4 border border-blue-200 bg-blue-50/50 rounded-2xl flex items-center justify-between group hover:border-blue-400 transition-colors">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">Demand</span>
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${demand.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{demand.status?.replace("_", " ")}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-blue-100 text-blue-800 px-2 py-0.5 rounded border border-blue-200">Demand</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${demand.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{demand.status?.replace("_", " ")}</span>
                       </div>
                       <p className="text-sm font-bold text-slate-900">{demand.title} <span className="text-slate-400 font-medium ml-1">• {demand.quantity} {demand.quantityUnit}</span></p>
                     </div>
@@ -295,8 +320,8 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                   <div key={supply.id} className="p-4 border border-green-200 bg-green-50/50 rounded-2xl flex items-center justify-between group hover:border-green-400 transition-colors">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-green-100 text-green-800 px-2 py-0.5 rounded-full border border-green-200">Supply</span>
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${supply.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{supply.status?.replace("_", " ")}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-green-100 text-green-800 px-2 py-0.5 rounded border border-green-200">Supply</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${supply.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{supply.status?.replace("_", " ")}</span>
                       </div>
                       <p className="text-sm font-bold text-slate-900">{supply.title} <span className="text-slate-400 font-medium ml-1">• {supply.quantity} {supply.quantityUnit}</span></p>
                     </div>
@@ -311,13 +336,15 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col max-h-[500px]">
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2 shrink-0">
-              <Activity size={16} className="text-rose-500" /> Activity Timeline
-            </h3>
+          {/* Activity Timeline Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col max-h-[500px] overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2 shrink-0">
+               <Activity className="text-blue-600" size={16} />
+               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Activity Timeline</h3>
+            </div>
             
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 relative">
-              <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-slate-100 z-0"></div>
+            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar pr-4 space-y-6 relative">
+              <div className="absolute left-[39px] top-6 bottom-6 w-0.5 bg-slate-100 z-0"></div>
 
               {activities.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 z-10 relative">
@@ -328,15 +355,15 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
               ) : (
                 activities.map((activity: any) => (
                   <div key={activity.id} className="flex gap-4 relative z-10">
-                    <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                      <Activity size={16} className="text-slate-400" />
+                    <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                      <Activity size={12} className="text-slate-400" />
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-bold text-slate-900">{activity.type?.replace(/_/g, " ")}</span>
                         <span className="text-[10px] text-slate-400 font-bold">• {new Date(activity.createdAt).toLocaleDateString()}</span>
                       </div>
-                      <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
                         {activity.description}
                       </p>
                       <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
