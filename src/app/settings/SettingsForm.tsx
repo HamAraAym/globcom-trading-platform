@@ -115,7 +115,7 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
         {/* Profile Header */}
         <div className="bg-slate-900 px-4 md:px-8 py-4 md:py-6 text-white flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl md:text-2xl font-black border border-indigo-500/30 shrink-0">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl md:text-2xl font-black border border-blue-500/30 shrink-0">
               {user.firstName.charAt(0)}{user.lastName.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
@@ -125,8 +125,8 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
               </p>
             </div>
           </div>
-          <div className="mt-1 sm:mt-0 sm:ml-auto bg-slate-800 border border-slate-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl flex items-center justify-center sm:justify-start gap-1.5 md:gap-2 w-full sm:w-auto shrink-0">
-            <Shield size={14} className="text-emerald-400 shrink-0 md:w-4 md:h-4" />
+          <div className="mt-1 sm:mt-0 sm:ml-auto bg-slate-800 border border-slate-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl flex items-center justify-center sm:justify-start gap-1.5 md:gap-2 w-full sm:w-auto shrink-0 shadow-sm">
+            <Shield size={14} className="text-green-400 shrink-0 md:w-4 md:h-4" />
             <span className="text-[10px] md:text-xs font-bold text-slate-300 uppercase tracking-widest">{user.role.replace("_", " ")}</span>
           </div>
         </div>
@@ -134,52 +134,58 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
         <form ref={formRef} onSubmit={handleSubmit} className="p-4 md:p-8 space-y-6 md:space-y-8">
           <div>
             <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-1.5 md:gap-2">
-              <User size={14} className="text-indigo-500 md:w-4 md:h-4" /> Account Details
+              <User size={14} className="text-blue-600 md:w-4 md:h-4" /> Account Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">First Name</label>
-                {/* text-base on mobile prevents iOS keyboard auto-zoom */}
-                <input type="text" name="firstName" defaultValue={user.firstName} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium text-base md:text-sm" />
+                <input type="text" name="firstName" defaultValue={user.firstName} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" />
               </div>
               <div>
                 <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Last Name</label>
-                <input type="text" name="lastName" defaultValue={user.lastName} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 font-medium text-base md:text-sm" />
+                <input type="text" name="lastName" defaultValue={user.lastName} required className="w-full mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium text-base md:text-sm" />
               </div>
             </div>
           </div>
 
-          <hr className="border-slate-100" />
-
-          <div>
-            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1.5 md:gap-2">
-              <FileText size={14} className="text-indigo-500 md:w-4 md:h-4" /> Document Letterhead
-            </h3>
-            <p className="text-xs md:text-sm text-slate-500 mb-3 md:mb-4 max-w-2xl leading-relaxed">
-              Upload your personal or branch letterhead (High-Res PNG or JPG). This will be automatically injected into all FCOs and LOIs you generate.
-            </p>
-            
-            <div className="bg-slate-50 p-4 md:p-6 border border-slate-200 rounded-xl md:rounded-2xl">
-              {preview ? (
-                <div className="relative border-2 border-slate-200 rounded-lg md:rounded-xl overflow-hidden bg-white flex justify-center p-3 md:p-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={preview} alt="Letterhead Preview" className="max-h-24 md:max-h-32 object-contain" />
-                  <button type="button" onClick={clearImage} className="absolute top-2 right-2 bg-rose-500 text-white p-1 md:p-1.5 rounded-md md:rounded-lg hover:bg-rose-600 transition-colors shadow-md">
-                    <X size={14} className="md:w-4 md:h-4" />
-                  </button>
+          {/* 🔐 RESTRICTED: Only Admins can set the Letterhead now */}
+          {isAdmin && (
+            <>
+              <hr className="border-slate-100" />
+              <div>
+                <div className="flex items-center justify-between mb-1.5 md:mb-2">
+                  <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
+                    <FileText size={14} className="text-blue-600 md:w-4 md:h-4" /> Official Document Letterhead
+                  </h3>
+                  <span className="text-[9px] font-bold uppercase tracking-widest bg-rose-100 text-rose-700 px-2 py-0.5 rounded border border-rose-200">Admin Only</span>
                 </div>
-              ) : (
-                <div className="border-2 border-dashed border-slate-300 rounded-lg md:rounded-xl p-6 md:p-8 text-center hover:bg-slate-100 transition-colors relative">
-                  <input type="file" accept="image/png, image/jpeg" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageChange} />
-                  <UploadCloud className="mx-auto text-indigo-400 mb-2 md:mb-3 w-6 h-6 md:w-8 md:h-8" />
-                  <p className="text-xs md:text-sm font-bold text-slate-700">Drop your Letterhead image here</p>
+                <p className="text-xs md:text-sm text-slate-500 mb-3 md:mb-4 max-w-2xl leading-relaxed">
+                  Upload your corporate letterhead (High-Res PNG or JPG). This will be automatically injected into all FCOs and LOIs generated by the system.
+                </p>
+                
+                <div className="bg-slate-50 p-4 md:p-6 border border-slate-200 rounded-xl md:rounded-2xl">
+                  {preview ? (
+                    <div className="relative border-2 border-slate-200 rounded-lg md:rounded-xl overflow-hidden bg-white flex justify-center p-3 md:p-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={preview} alt="Letterhead Preview" className="max-h-24 md:max-h-32 object-contain" />
+                      <button type="button" onClick={clearImage} className="absolute top-2 right-2 bg-rose-500 text-white p-1 md:p-1.5 rounded-md md:rounded-lg hover:bg-rose-600 transition-colors shadow-md">
+                        <X size={14} className="md:w-4 md:h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-slate-300 rounded-lg md:rounded-xl p-6 md:p-8 text-center hover:bg-slate-100 transition-colors relative">
+                      <input type="file" accept="image/png, image/jpeg" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageChange} />
+                      <UploadCloud className="mx-auto text-blue-400 mb-2 md:mb-3 w-6 h-6 md:w-8 md:h-8" />
+                      <p className="text-xs md:text-sm font-bold text-slate-700">Drop your Letterhead image here</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end pt-2 md:pt-4">
-            <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 md:px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition-all">
+            <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-6 md:px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-800/20 transition-all">
               {isSubmitting ? <><Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> Saving Profile...</> : <><Save size={16} className="md:w-4 md:h-4" /> Update Profile</>}
             </button>
           </div>
@@ -188,27 +194,27 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
 
       {/* 2. GLOBAL SYSTEM CONFIGURATION (ADMIN ONLY) */}
       {isAdmin && (
-        <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-rose-200 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+        <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           
-          <div className="bg-rose-50 px-4 md:px-8 py-3 md:py-4 border-b border-rose-100 flex items-center gap-2 md:gap-3">
-            <div className="bg-rose-500 p-1.5 md:p-2 rounded-lg text-white shadow-sm shrink-0">
-              <Globe size={16} className="md:w-4 md:h-4" />
-            </div>
-            <div>
-              <h2 className="text-base md:text-lg font-bold text-rose-900 tracking-tight leading-tight">Global Enterprise Branding</h2>
-              <p className="text-[10px] md:text-xs text-rose-600 font-medium">Changes here will apply system-wide.</p>
+          {/* Dark Enterprise Header */}
+          <div className="bg-[#0f172a] px-6 md:px-8 py-5 md:py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 shrink-0">
+            <div className="flex items-center gap-3 text-white">
+              <Globe size={22} className="text-blue-400 shrink-0" />
+              <div>
+                <h2 className="text-lg md:text-xl font-bold tracking-wide">Global Enterprise Branding</h2>
+                <p className="text-[10px] md:text-xs text-slate-400 font-medium mt-0.5">Changes applied here affect the entire system.</p>
+              </div>
             </div>
           </div>
 
           <form ref={globalFormRef} onSubmit={handleGlobalSubmit} className="p-4 md:p-8 space-y-5 md:space-y-6">
             <div>
               <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Name</label>
-              <input type="text" name="companyName" defaultValue={systemSettings?.companyName} required className="w-full sm:max-w-md mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all text-slate-900 font-medium block text-base md:text-sm" />
+              <input type="text" name="companyName" defaultValue={systemSettings?.companyName} required className="w-full sm:max-w-md mt-1.5 p-2.5 md:p-3 bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium block text-base md:text-sm" />
             </div>
 
             <div>
-              <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5 md:mb-2">Global Sidebar Logo</label>
+              <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5 md:mb-2">Global UI Logo</label>
               <div className="bg-slate-50 p-4 md:p-6 border border-slate-200 rounded-xl md:rounded-2xl sm:max-w-md">
                 {globalPreview ? (
                   <div className="relative border-2 border-slate-200 rounded-lg md:rounded-xl overflow-hidden bg-white flex justify-center p-3 md:p-4">
@@ -229,7 +235,7 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
             </div>
 
             <div className="flex pt-2 md:pt-4">
-              <button type="submit" disabled={isGlobalSubmitting} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white px-6 md:px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-rose-600/20 transition-all">
+              <button type="submit" disabled={isGlobalSubmitting} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-6 md:px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-800/20 transition-all">
                 {isGlobalSubmitting ? <><Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> Applying...</> : <><Save size={16} className="md:w-4 md:h-4" /> Publish Brand</>}
               </button>
             </div>
