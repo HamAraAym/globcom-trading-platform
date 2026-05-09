@@ -70,7 +70,6 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
         if (inspection) (form.elements.namedItem("inspection") as HTMLInputElement).value = inspection;
         if (specs) (form.elements.namedItem("specs") as HTMLTextAreaElement).value = specs;
 
-        // NEW: Catch the array and instantly build the dynamic inputs!
         if (extractedKeyTerms && Array.isArray(extractedKeyTerms)) {
           setKeyTerms(extractedKeyTerms);
         }
@@ -160,7 +159,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
       {demandToEdit ? (
         <button 
           onClick={() => setIsOpen(true)}
-          className="p-1.5 md:p-2 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm transition-colors"
+          className="p-1.5 md:p-2 bg-white border border-slate-200 text-slate-400 hover:text-blue-800 hover:border-blue-800/30 rounded-lg shadow-sm transition-colors"
           title="Edit Deal"
         >
           <Edit size={16} />
@@ -168,7 +167,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
       ) : (
         <button 
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center gap-1.5 md:gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-blue-600/20 transition-all shrink-0 w-full sm:w-auto"
+          className="flex items-center justify-center gap-1.5 md:gap-2 bg-blue-800 hover:bg-blue-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-blue-800/20 transition-all shrink-0 w-full sm:w-auto"
         >
           <PlusCircle size={18} className="md:w-5 md:h-5" />
           Post Demand
@@ -181,7 +180,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
           <div className="bg-white w-full max-w-3xl h-[92vh] sm:h-auto sm:max-h-[95vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
             
             <div className="px-4 md:px-6 py-4 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-              <div className="flex items-center gap-2 md:gap-3 text-blue-700">
+              <div className="flex items-center gap-2 md:gap-3 text-blue-800">
                 <div className="bg-blue-100 p-1.5 md:p-2 rounded-lg">
                   <FileBox size={18} className="md:w-5 md:h-5" />
                 </div>
@@ -195,7 +194,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
             <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 relative">
               
               {!demandToEdit && (
-                <div className={`mb-6 relative border-2 border-dashed rounded-2xl overflow-hidden transition-all ${isExtracting ? 'border-indigo-400 bg-indigo-50' : 'border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:border-indigo-400'}`}>
+                <div className={`mb-6 relative border-2 border-dashed rounded-2xl overflow-hidden transition-all ${isExtracting ? 'border-blue-400 bg-blue-50' : 'border-blue-200 bg-gradient-to-r from-slate-50 to-blue-50/30 hover:border-blue-400'}`}>
                   <input 
                     type="file" 
                     accept="application/pdf" 
@@ -204,13 +203,13 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
                   />
                   <div className="p-5 md:p-6 flex items-center justify-center gap-4 text-center sm:text-left">
-                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0">
-                      {isExtracting ? <Loader2 size={24} className="text-indigo-500 animate-spin" /> : <Sparkles size={24} className="text-indigo-500" />}
+                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0 border border-blue-100">
+                      {isExtracting ? <Loader2 size={24} className="text-blue-600 animate-spin" /> : <Sparkles size={24} className="text-blue-600" />}
                     </div>
                     <div>
                       <h3 className="text-sm md:text-base font-black text-slate-900 flex items-center gap-2">
                         {isExtracting ? "AI is reading RFQ..." : "Magic Upload (PDF)"}
-                        {!isExtracting && <span className="bg-indigo-100 text-indigo-700 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">New</span>}
+                        {!isExtracting && <span className="bg-blue-100 text-blue-800 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold border border-blue-200">New</span>}
                       </h3>
                       <p className="text-[10px] md:text-xs text-slate-500 font-medium mt-1 max-w-sm">
                         {isExtracting ? "Extracting pricing, specs, and incoterms. Please wait." : "Tap to upload or drag an RFQ/Spec Sheet here. Gemini AI will read it and auto-fill this entire form for you in seconds."}
@@ -227,7 +226,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                 
                 {/* SECTION 1: Core Information */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-blue-800 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
                   
                   <div>
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -285,7 +284,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
 
                 {/* SECTION 2: Strict Business Terms */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">2. Trade Logistics</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-blue-800 uppercase tracking-widest border-b border-slate-100 pb-2">2. Trade Logistics</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Origin</label>
@@ -324,8 +323,8 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
                 {/* SECTION 3: Dynamic Key Terms */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-slate-100 pb-2">
-                    <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest">3. Technical Specs</h3>
-                    <button type="button" onClick={addKeyTerm} className="text-[10px] md:text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-800 transition-colors bg-blue-50 px-2 py-1 rounded-md">
+                    <h3 className="text-[10px] md:text-xs font-black text-blue-800 uppercase tracking-widest">3. Technical Specs</h3>
+                    <button type="button" onClick={addKeyTerm} className="text-[10px] md:text-xs font-bold text-blue-800 flex items-center gap-1 hover:text-blue-900 transition-colors bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200">
                       <Plus size={14} /> Add Property
                     </button>
                   </div>
@@ -371,14 +370,14 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
 
                 {/* SECTION 5: Media Uploads */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-blue-800 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Images */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-xl md:rounded-2xl">
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
                         <span>Add Images</span>
-                        <span className={images.length === 5 ? "text-rose-500" : "text-blue-600"}>{images.length} / 5</span>
+                        <span className={images.length === 5 ? "text-rose-500" : "text-blue-800"}>{images.length} / 5</span>
                       </label>
                       <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors relative mb-3">
                         <input type="file" multiple accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageChange} disabled={images.length >= 5} />
@@ -432,7 +431,7 @@ export default function DemandForm({ demandToEdit }: DemandFormProps) {
               <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">
                 Cancel
               </button>
-              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || isExtracting} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto">
+              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || isExtracting} className="flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-5 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-800/20 transition-all w-full sm:w-auto">
                 {isSubmitting ? <><Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> Saving...</> : (demandToEdit ? "Save Changes" : "Publish to Board")}
               </button>
             </div>
