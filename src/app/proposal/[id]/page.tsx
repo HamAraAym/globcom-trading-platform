@@ -58,7 +58,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
         
         {/* BRANDING HEADER */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg mb-4">
+          <div className="w-12 h-12 bg-blue-800 rounded-xl flex items-center justify-center text-white shadow-lg mb-4">
             <Globe size={24} />
           </div>
           <h1 className="text-2xl font-black text-slate-900 uppercase tracking-widest">GlobCom International</h1>
@@ -71,7 +71,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
           {/* Status Bar */}
           <div className="bg-slate-900 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="text-emerald-400" size={20} />
+              <CheckCircle2 className="text-green-500" size={20} />
               <span className="text-white font-bold tracking-wide">VERIFIED SECURE DOCUMENT</span>
             </div>
             <div className="text-slate-400 text-xs font-medium">
@@ -97,13 +97,13 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
 
             {/* Core Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-              <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl flex flex-col">
-                <div className="flex items-center gap-2 mb-2 text-indigo-600"><Scale size={18}/> <span className="text-[10px] font-black uppercase tracking-widest">Volume</span></div>
-                <p className="text-2xl font-black text-indigo-900">{new Intl.NumberFormat().format(deal.quantity)} <span className="text-sm font-bold text-indigo-700 ml-1">{deal.quantityUnit || "MT"}</span></p>
+              <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl flex flex-col">
+                <div className="flex items-center gap-2 mb-2 text-blue-700"><Scale size={18}/> <span className="text-[10px] font-black uppercase tracking-widest">Volume</span></div>
+                <p className="text-2xl font-black text-blue-900">{new Intl.NumberFormat().format(deal.quantity)} <span className="text-sm font-bold text-blue-700 ml-1">{deal.quantityUnit || "MT"}</span></p>
               </div>
-              <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl flex flex-col">
-                <div className="flex items-center gap-2 mb-2 text-emerald-600"><CircleDollarSign size={18}/> <span className="text-[10px] font-black uppercase tracking-widest">Target Price</span></div>
-                <p className="text-2xl font-black text-emerald-900">
+              <div className="bg-green-50 border border-green-100 p-6 rounded-2xl flex flex-col">
+                <div className="flex items-center gap-2 mb-2 text-green-600"><CircleDollarSign size={18}/> <span className="text-[10px] font-black uppercase tracking-widest">Target Price</span></div>
+                <p className="text-2xl font-black text-green-900">
                   {deal.price || deal.targetPrice ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(deal.price || deal.targetPrice) : "Upon Request"}
                 </p>
               </div>
@@ -164,17 +164,17 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-4 bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-md rounded-xl transition-all group"
+                        className="flex items-center justify-between p-4 bg-white border border-slate-200 hover:border-blue-400 hover:shadow-md rounded-xl transition-all group"
                       >
                         <div className="flex items-center gap-4 overflow-hidden">
                           <div className={`p-3 rounded-lg ${isPdf ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'}`}>
                             <FileText size={20} />
                           </div>
-                          <span className="text-sm font-bold text-slate-700 truncate group-hover:text-indigo-600 transition-colors">
+                          <span className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-800 transition-colors">
                             {fileName}
                           </span>
                         </div>
-                        <div className="p-3 bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 rounded-lg transition-colors shrink-0">
+                        <div className="p-3 bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-700 rounded-lg transition-colors shrink-0">
                           <Download size={18} />
                         </div>
                       </a>

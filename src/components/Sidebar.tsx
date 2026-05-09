@@ -62,7 +62,6 @@ export default function Sidebar() {
   const secondaryName = nameParts.slice(1).join(" ");
 
   return (
-    // NEW: Added 'hidden lg:flex' so this sidebar seamlessly disappears on mobile devices
     <div className="hidden lg:flex w-72 bg-slate-900 text-slate-300 flex-col h-screen fixed left-0 top-0 border-r border-slate-800 shadow-2xl z-50">
       
       {/* BRANDING HEADER */}
@@ -74,7 +73,7 @@ export default function Sidebar() {
               <img src={brandLogo} alt="Company Logo" className="w-full h-full object-contain p-0.5" />
             </div>
           ) : (
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 shrink-0">
+            <div className="w-10 h-10 bg-blue-800 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-800/20 shrink-0">
               <Globe size={22} strokeWidth={2.5} />
             </div>
           )}
@@ -82,7 +81,7 @@ export default function Sidebar() {
           <div className="flex flex-col justify-center overflow-hidden w-full">
             <h1 className="text-white font-black text-lg leading-none tracking-widest truncate">{primaryName}</h1>
             {secondaryName && (
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-[0.2em] mt-0.5 truncate">{secondaryName}</p>
+              <p className="text-[9px] font-bold text-green-500 uppercase tracking-[0.2em] mt-0.5 truncate">{secondaryName}</p>
             )}
           </div>
         </div>
@@ -108,11 +107,11 @@ export default function Sidebar() {
                       href={item.href}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group ${
                         isActive 
-                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" 
+                          ? "bg-blue-800 text-white shadow-md shadow-blue-800/20" 
                           : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                       }`}
                     >
-                      <Icon size={18} className={isActive ? "text-white" : "text-slate-500 group-hover:text-indigo-400 transition-colors"} />
+                      <Icon size={18} className={isActive ? "text-white" : "text-slate-500 group-hover:text-green-400 transition-colors"} />
                       {item.name}
                       {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>}
                     </Link>
@@ -130,7 +129,7 @@ export default function Sidebar() {
         {/* Official Letterhead Context */}
         <div className="bg-slate-800/40 rounded-xl p-4 mb-4 border border-slate-700/50">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <MapPin size={12} className="text-indigo-400" /> HQ Information
+            <MapPin size={12} className="text-green-500" /> HQ Information
           </p>
           <div className="space-y-1 text-[10px] font-medium text-slate-400 leading-tight">
             <p className="text-slate-300 font-bold">GLOBCOM INTERNATIONAL FZE</p>
@@ -138,8 +137,8 @@ export default function Sidebar() {
             <p>Hamriyah Free Zone,</p>
             <p>Sharjah (UAE), P.O. 50096</p>
             <div className="pt-1 mt-1 border-t border-slate-700/50 space-y-0.5">
-              <p className="flex items-center gap-1.5"><Phone size={10} className="text-indigo-400"/> +971 50 5587858</p>
-              <p className="flex items-center gap-1.5"><Mail size={10} className="text-indigo-400"/> sales@globcomfze.com</p>
+              <p className="flex items-center gap-1.5"><Phone size={10} className="text-blue-400"/> +971 50 5587858</p>
+              <p className="flex items-center gap-1.5"><Mail size={10} className="text-blue-400"/> sales@globcomfze.com</p>
             </div>
           </div>
         </div>

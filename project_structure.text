@@ -108,6 +108,5 @@
     - OfficialProposalEmail.tsx
   - lib
     - prisma.ts
-  - middleware.ts
   - proxy.ts
 - tsconfig.json
