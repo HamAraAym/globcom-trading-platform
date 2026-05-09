@@ -74,56 +74,56 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight">Command Center</h1>
             <p className="text-slate-500 mt-1 flex items-center gap-1.5 md:gap-2 font-medium text-xs md:text-sm">
-              <Globe size={14} className="text-indigo-500 shrink-0 md:w-4 md:h-4" />
+              <Globe size={14} className="text-blue-600 shrink-0 md:w-4 md:h-4" />
               Global Commodity Trading Overview
             </p>
           </div>
           <div className="bg-white px-4 md:px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm w-full md:w-auto">
             <p className="text-xs md:text-sm font-bold text-slate-900 truncate">Welcome, {session.user?.name || session.user?.email}</p>
-            <p className="text-[9px] md:text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-0.5">GlobCom Personnel</p>
+            <p className="text-[9px] md:text-[10px] text-blue-800 font-black uppercase tracking-widest mt-0.5">GlobCom Personnel</p>
           </div>
         </div>
 
         {/* TOP FINANCIAL METRICS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
-          <div className="bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-slate-800 relative overflow-hidden flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
+          <div className="bg-blue-900 p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-blue-800 relative overflow-hidden flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
             <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4 hidden sm:block"><BarChart3 size={150} /></div>
             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1.5 md:gap-2">
-               <Activity size={14} className="text-indigo-500 shrink-0 md:w-4 md:h-4" /> Active Pipeline Value
+               <Activity size={14} className="text-blue-400 shrink-0 md:w-4 md:h-4" /> Active Pipeline Value
             </p>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter drop-shadow-sm truncate">
               {formatCurrency(pipelineValue)}
             </h2>
             <p className="text-[10px] md:text-sm font-medium text-slate-400 mt-1.5 md:mt-3 relative z-10">
-              Total volume currently <span className="text-indigo-400 font-bold">active</span> or <span className="text-amber-400 font-bold">under negotiation</span>.
+              Total volume currently <span className="text-blue-300 font-bold">active</span> or <span className="text-amber-400 font-bold">under negotiation</span>.
             </p>
           </div>
 
-          <div className="bg-emerald-600 p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-emerald-500 relative overflow-hidden flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
+          <div className="bg-green-600 p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-green-500 relative overflow-hidden flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
             <div className="absolute right-0 bottom-0 opacity-20 translate-x-4 translate-y-4 hidden sm:block"><Wallet size={150} /></div>
-            <p className="text-[9px] md:text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1.5 md:gap-2">
+            <p className="text-[9px] md:text-[10px] font-black text-green-100 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1.5 md:gap-2">
                <CheckCircle2 size={14} className="text-white shrink-0 md:w-4 md:h-4" /> Closed Won Revenue
             </p>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter drop-shadow-sm truncate">
               {formatCurrency(closedValue)}
             </h2>
             <div className="mt-2.5 md:mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 relative z-10">
-              <div className="w-full sm:flex-1 h-1.5 md:h-2 bg-emerald-900/50 rounded-full overflow-hidden">
+              <div className="w-full sm:flex-1 h-1.5 md:h-2 bg-green-900/50 rounded-full overflow-hidden">
                 <div className="h-full bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${closedPercentage}%` }}></div>
               </div>
-              <span className="text-[9px] md:text-[10px] font-bold text-emerald-50 tracking-wider whitespace-nowrap">{closedPercentage}% CAPTURE</span>
+              <span className="text-[9px] md:text-[10px] font-bold text-green-50 tracking-wider whitespace-nowrap">{closedPercentage}% CAPTURE</span>
             </div>
           </div>
         </div>
 
         {/* SECONDARY KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-          <Link href="/demands" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-indigo-300 hover:shadow-md transition-all group">
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-indigo-600 transition-colors truncate"><FileBox size={12} className="text-indigo-500 shrink-0 md:w-3.5 md:h-3.5"/> Active Demands</p>
+          <Link href="/demands" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-blue-300 hover:shadow-md transition-all group">
+            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-blue-800 transition-colors truncate"><FileBox size={12} className="text-blue-600 shrink-0 md:w-3.5 md:h-3.5"/> Active Demands</p>
             <h2 className="text-xl md:text-3xl font-black text-slate-900">{activeDemandsCount}</h2>
           </Link>
-          <Link href="/supplies" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-emerald-300 hover:shadow-md transition-all group">
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-emerald-600 transition-colors truncate"><Box size={12} className="text-emerald-500 shrink-0 md:w-3.5 md:h-3.5"/> Available Supply</p>
+          <Link href="/supplies" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-green-300 hover:shadow-md transition-all group">
+            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-green-600 transition-colors truncate"><Box size={12} className="text-green-500 shrink-0 md:w-3.5 md:h-3.5"/> Available Supply</p>
             <h2 className="text-xl md:text-3xl font-black text-slate-900">{activeSuppliesCount}</h2>
           </Link>
           <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm">
@@ -155,10 +155,10 @@ export default async function DashboardPage() {
                 Facilitating global trade in fertilizers, petrochemicals, metals, and fuels. Ensure all transactions comply with internal transparency guidelines and standard operating procedures.
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 md:gap-4">
-                <Link href="/demands" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-sm font-bold transition-all shadow-md shadow-indigo-600/20 text-center w-full sm:w-auto">
+                <Link href="/demands" className="bg-blue-800 hover:bg-blue-900 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-sm font-bold transition-all shadow-md shadow-blue-800/20 text-center w-full sm:w-auto">
                   Access Demand Board
                 </Link>
-                <Link href="/supplies" className="bg-white border border-slate-300 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-sm font-bold transition-all shadow-sm text-center w-full sm:w-auto">
+                <Link href="/supplies" className="bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-slate-700 hover:text-green-800 px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-sm font-bold transition-all shadow-sm text-center w-full sm:w-auto">
                   Manage Supply Inventory
                 </Link>
               </div>
@@ -173,9 +173,9 @@ export default async function DashboardPage() {
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm flex flex-col h-[280px] md:h-[350px]">
             <div className="flex items-center justify-between mb-3 md:mb-4 shrink-0">
               <h3 className="font-bold text-slate-900 flex items-center gap-1.5 md:gap-2 text-[11px] md:text-sm uppercase tracking-wider">
-                <ShieldCheck size={16} className="text-indigo-500 shrink-0 md:w-4 md:h-4" /> Audit Log
+                <ShieldCheck size={16} className="text-blue-800 shrink-0 md:w-4 md:h-4" /> Audit Log
               </h3>
-              <Link href="/audit" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg whitespace-nowrap">
+              <Link href="/audit" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-blue-800 hover:text-blue-900 transition-colors bg-blue-50 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg whitespace-nowrap border border-blue-100">
                 View All
               </Link>
             </div>
@@ -187,7 +187,7 @@ export default async function DashboardPage() {
                 </div>
               ) : (
                 recentLogs.map(log => (
-                  <div key={log.id} className="border-l-2 border-slate-100 hover:border-indigo-300 transition-colors pl-2.5 md:pl-4 py-1">
+                  <div key={log.id} className="border-l-2 border-slate-100 hover:border-blue-300 transition-colors pl-2.5 md:pl-4 py-1">
                     <p className="text-[10px] md:text-xs font-bold text-slate-900 leading-tight">{log.action.replace(/_/g, " ")}</p>
                     <p className="text-[9px] md:text-[10px] text-slate-500 mt-0.5 md:mt-1 line-clamp-2 leading-relaxed" title={log.details}>{log.details}</p>
                     <p className="text-[8px] md:text-[9px] font-black text-slate-400 mt-1 md:mt-1.5 uppercase tracking-widest flex items-center gap-1">
