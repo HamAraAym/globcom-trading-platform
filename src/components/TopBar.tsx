@@ -58,7 +58,7 @@ export default function TopBar() {
       
       {/* MOBILE LOGO */}
       <div className="flex items-center gap-2 lg:hidden">
-        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md">
+        <div className="w-8 h-8 bg-blue-800 rounded-lg flex items-center justify-center text-white shadow-md">
           <Globe size={18} />
         </div>
         <span className="font-black text-slate-900 tracking-tight text-lg">GlobCom</span>
@@ -70,7 +70,7 @@ export default function TopBar() {
         {/* GLOBAL SEARCH TRIGGER */}
         <button 
           onClick={() => document.dispatchEvent(new CustomEvent("open-command-palette"))}
-          className="p-2 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition-colors rounded-xl focus:outline-none shrink-0"
+          className="p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-800 transition-colors rounded-xl focus:outline-none shrink-0"
           aria-label="Search"
         >
           <Search size={20} className="md:w-5 md:h-5" />
@@ -80,9 +80,9 @@ export default function TopBar() {
         <div className="relative" ref={pingRef}>
           <button 
             onClick={() => { setIsPingOpen(!isPingOpen); setIsProfileOpen(false); }}
-            className="flex items-center gap-2 px-3 lg:px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 rounded-full text-xs lg:text-sm font-bold text-slate-700 shadow-sm transition-all"
+            className="flex items-center gap-2 px-3 lg:px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 rounded-full text-xs lg:text-sm font-bold text-slate-700 shadow-sm transition-all"
           >
-            <Signal size={16} className="text-indigo-600 shrink-0" />
+            <Signal size={16} className="text-blue-800 shrink-0" />
             <span className="hidden sm:inline">Ping Team</span>
           </button>
 
@@ -96,16 +96,17 @@ export default function TopBar() {
                   className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)] shrink-0"></div>
+                    {/* GLOBCOM GREEN INDICATOR */}
+                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)] shrink-0"></div>
                     <div className="text-left overflow-hidden">
                       <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{user.role}</p>
                     </div>
                   </div>
                   {pingedUsers.includes(user.id) ? (
-                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                    <CheckCircle2 size={16} className="text-green-500 shrink-0" />
                   ) : (
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-blue-800 transition-colors shrink-0">
                       PING <Send size={12} />
                     </div>
                   )}
@@ -125,15 +126,15 @@ export default function TopBar() {
             className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity focus:outline-none group"
           >
             <div className="text-right hidden lg:block">
-              <p className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{userName}</p>
+              <p className="text-sm font-bold text-slate-900 group-hover:text-blue-800 transition-colors">{userName}</p>
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{userRole.replace("_", " ")}</p>
             </div>
             <div className="relative flex items-center gap-1">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-xs lg:text-sm shrink-0">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-800 text-white font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-xs lg:text-sm shrink-0">
                 {initials}
               </div>
-              <span className="absolute bottom-0 right-0 lg:right-1 w-2.5 h-2.5 lg:w-3 lg:h-3 bg-emerald-500 border-2 border-white rounded-full shadow-[0_0_5px_rgba(16,185,129,0.5)] z-20"></span>
-              <ChevronDown size={14} className="text-slate-400 ml-1 group-hover:text-indigo-500 transition-colors hidden sm:block shrink-0" />
+              <span className="absolute bottom-0 right-0 lg:right-1 w-2.5 h-2.5 lg:w-3 lg:h-3 bg-green-500 border-2 border-white rounded-full shadow-[0_0_5px_rgba(34,197,94,0.5)] z-20"></span>
+              <ChevronDown size={14} className="text-slate-400 ml-1 group-hover:text-blue-800 transition-colors hidden sm:block shrink-0" />
             </div>
           </button>
 
@@ -147,7 +148,7 @@ export default function TopBar() {
               <Link 
                 href="/settings"
                 onClick={() => setIsProfileOpen(false)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition-colors mb-1"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-800 rounded-xl transition-colors mb-1"
               >
                 <Settings size={16} className="text-slate-400 shrink-0" />
                 Account Settings
