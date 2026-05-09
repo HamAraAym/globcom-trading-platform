@@ -167,7 +167,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
       {supplyToEdit ? (
         <button 
           onClick={() => setIsOpen(true)}
-          className="p-1.5 md:p-2 bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 rounded-lg shadow-sm transition-colors"
+          className="p-1.5 md:p-2 bg-white border border-slate-200 text-slate-400 hover:text-green-600 hover:border-green-600/30 rounded-lg shadow-sm transition-colors"
           title="Edit Deal"
         >
           <Edit size={16} />
@@ -175,7 +175,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
       ) : (
         <button 
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center gap-1.5 md:gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-emerald-600/20 transition-all shrink-0 w-full sm:w-auto"
+          className="flex items-center justify-center gap-1.5 md:gap-2 bg-green-600 hover:bg-green-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-sm md:text-base font-bold shadow-lg shadow-green-600/20 transition-all shrink-0 w-full sm:w-auto"
         >
           <PlusCircle size={18} className="md:w-5 md:h-5" />
           Post Supply
@@ -189,8 +189,8 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
           <div className="bg-white w-full max-w-3xl h-[92vh] sm:h-auto sm:max-h-[95vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
             
             <div className="px-4 md:px-6 py-4 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-              <div className="flex items-center gap-2 md:gap-3 text-emerald-700">
-                <div className="bg-emerald-100 p-1.5 md:p-2 rounded-lg">
+              <div className="flex items-center gap-2 md:gap-3 text-green-800">
+                <div className="bg-green-100 p-1.5 md:p-2 rounded-lg">
                   <Package size={18} className="md:w-5 md:h-5" />
                 </div>
                 <h2 className="text-lg md:text-xl font-bold text-slate-900 truncate max-w-[200px] sm:max-w-none">{supplyToEdit ? "Edit Inventory" : "Add New Inventory"}</h2>
@@ -203,7 +203,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
             <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 relative">
               
               {!supplyToEdit && (
-                <div className={`mb-6 relative border-2 border-dashed rounded-2xl overflow-hidden transition-all ${isExtracting ? 'border-purple-400 bg-purple-50' : 'border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 hover:border-purple-400'}`}>
+                <div className={`mb-6 relative border-2 border-dashed rounded-2xl overflow-hidden transition-all ${isExtracting ? 'border-green-400 bg-green-50' : 'border-green-200 bg-gradient-to-r from-slate-50 to-green-50/30 hover:border-green-400'}`}>
                   <input 
                     type="file" 
                     accept="application/pdf" 
@@ -212,13 +212,13 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
                   />
                   <div className="p-5 md:p-6 flex items-center justify-center gap-4 text-center sm:text-left">
-                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0">
-                      {isExtracting ? <Loader2 size={24} className="text-purple-500 animate-spin" /> : <Sparkles size={24} className="text-purple-500" />}
+                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0 border border-green-100">
+                      {isExtracting ? <Loader2 size={24} className="text-green-600 animate-spin" /> : <Sparkles size={24} className="text-green-600" />}
                     </div>
                     <div>
                       <h3 className="text-sm md:text-base font-black text-slate-900 flex items-center gap-2">
                         {isExtracting ? "AI is reading document..." : "Magic Upload (PDF)"}
-                        {!isExtracting && <span className="bg-purple-100 text-purple-700 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">New</span>}
+                        {!isExtracting && <span className="bg-green-100 text-green-800 border border-green-200 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">New</span>}
                       </h3>
                       {/* NATIVE MOBILE UPGRADE: Say "Tap" instead of "Drag" */}
                       <p className="text-[10px] md:text-xs text-slate-500 font-medium mt-1 max-w-sm">
@@ -236,18 +236,18 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                 
                 {/* SECTION 1: Core Information */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] md:text-xs font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-green-800 uppercase tracking-widest border-b border-slate-100 pb-2">1. Core Information</h3>
                   
                   <div>
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Product Name <span className="text-red-500">*</span>
                     </label>
-                    <input type="text" name="title" defaultValue={supplyToEdit?.title} required className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Granular Sulphur" />
+                    <input type="text" name="title" defaultValue={supplyToEdit?.title} required className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Granular Sulphur" />
                   </div>
 
                   <div>
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Packaging</label>
-                    <input type="text" name="packaging" defaultValue={supplyToEdit?.packaging} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. In Bulk" />
+                    <input type="text" name="packaging" defaultValue={supplyToEdit?.packaging} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. In Bulk" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -256,13 +256,13 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                         <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Available Qty <span className="text-red-500">*</span>
                         </label>
-                        <input type="number" step="any" name="quantity" defaultValue={supplyToEdit?.quantity} required className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. 25000" />
+                        <input type="number" step="any" name="quantity" defaultValue={supplyToEdit?.quantity} required className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. 25000" />
                       </div>
                       <div className="w-1/3 min-w-[70px]">
                         <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Unit <span className="text-red-500">*</span>
                         </label>
-                        <select name="quantityUnit" defaultValue={supplyToEdit?.quantityUnit || "MT"} className="w-full mt-1.5 p-3 sm:p-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium cursor-pointer text-base sm:text-sm">
+                        <select name="quantityUnit" defaultValue={supplyToEdit?.quantityUnit || "MT"} className="w-full mt-1.5 p-3 sm:p-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium cursor-pointer text-base sm:text-sm">
                           <option value="MT">MT</option>
                           <option value="KG">KG</option>
                           <option value="BBL">BBL</option>
@@ -272,13 +272,13 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
 
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Price per unit ($)</label>
-                      <input type="number" step="0.01" name="price" defaultValue={supplyToEdit?.price} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. 150.00" />
+                      <input type="number" step="0.01" name="price" defaultValue={supplyToEdit?.price} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. 150.00" />
                     </div>
                   </div>
 
                   <div>
                     <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Tolerance Level</label>
-                    <input type="text" name="tolerance" defaultValue={supplyToEdit?.tolerance} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. +/- 10% Seller Option" />
+                    <input type="text" name="tolerance" defaultValue={supplyToEdit?.tolerance} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. +/- 10% Seller Option" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -288,7 +288,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                       </label>
                       <div className="relative mt-1.5">
                         <MapPin className="absolute left-3 top-3.5 text-slate-400" size={18} />
-                        <input type="text" name="location" defaultValue={supplyToEdit?.location} required className="w-full pl-10 pr-4 py-3 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. JAFZA Warehouse" />
+                        <input type="text" name="location" defaultValue={supplyToEdit?.location} required className="w-full pl-10 pr-4 py-3 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. JAFZA Warehouse" />
                       </div>
                     </div>
                     <div>
@@ -297,7 +297,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                       </label>
                       <div className="relative mt-1.5">
                         <Calendar className="absolute left-3 top-3.5 text-slate-400" size={18} />
-                        <input type="datetime-local" name="validityDate" defaultValue={defaultDate} required className="w-full pl-10 pr-4 py-3 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" />
+                        <input type="datetime-local" name="validityDate" defaultValue={defaultDate} required className="w-full pl-10 pr-4 py-3 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" />
                       </div>
                     </div>
                   </div>
@@ -305,38 +305,38 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
 
                 {/* SECTION 2: Strict Business Terms */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] md:text-xs font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100 pb-2">2. Trade Logistics</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-green-800 uppercase tracking-widest border-b border-slate-100 pb-2">2. Trade Logistics</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Origin</label>
-                      <input type="text" name="origin" defaultValue={supplyToEdit?.origin} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Oman / Middle East" />
+                      <input type="text" name="origin" defaultValue={supplyToEdit?.origin} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Oman / Middle East" />
                     </div>
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
-                      <input type="text" name="destination" defaultValue={supplyToEdit?.destination} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Any port in Thailand" />
+                      <input type="text" name="destination" defaultValue={supplyToEdit?.destination} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Any port in Thailand" />
                     </div>
 
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Load Port</label>
-                      <input type="text" name="loadPort" defaultValue={supplyToEdit?.loadPort} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Oman/Middle East Port" />
+                      <input type="text" name="loadPort" defaultValue={supplyToEdit?.loadPort} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Oman/Middle East Port" />
                     </div>
 
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Insurance Terms</label>
-                      <input type="text" name="insurance" defaultValue={supplyToEdit?.insurance} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. To be covered by the buyer" />
+                      <input type="text" name="insurance" defaultValue={supplyToEdit?.insurance} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. To be covered by the buyer" />
                     </div>
 
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Incoterms</label>
-                      <input type="text" name="incoterms" defaultValue={supplyToEdit?.incoterms} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. CFR, FOB" />
+                      <input type="text" name="incoterms" defaultValue={supplyToEdit?.incoterms} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. CFR, FOB" />
                     </div>
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Terms</label>
-                      <input type="text" name="paymentTerms" defaultValue={supplyToEdit?.paymentTerms} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. 20% Advance, Balance against Docs" />
+                      <input type="text" name="paymentTerms" defaultValue={supplyToEdit?.paymentTerms} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. 20% Advance, Balance against Docs" />
                     </div>
                     <div>
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">Inspection</label>
-                      <input type="text" name="inspection" defaultValue={supplyToEdit?.inspection} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Independent surveyor at load port" />
+                      <input type="text" name="inspection" defaultValue={supplyToEdit?.inspection} className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm" placeholder="e.g. Independent surveyor at load port" />
                     </div>
                   </div>
                 </div>
@@ -344,8 +344,8 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                 {/* SECTION 3: Dynamic Key Terms */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-slate-100 pb-2">
-                    <h3 className="text-[10px] md:text-xs font-black text-emerald-600 uppercase tracking-widest">3. Technical Specs</h3>
-                    <button type="button" onClick={addKeyTerm} className="text-[10px] md:text-xs font-bold text-emerald-600 flex items-center gap-1 hover:text-emerald-800 transition-colors bg-emerald-50 px-2 py-1 rounded-md">
+                    <h3 className="text-[10px] md:text-xs font-black text-green-800 uppercase tracking-widest">3. Technical Specs</h3>
+                    <button type="button" onClick={addKeyTerm} className="text-[10px] md:text-xs font-bold text-green-800 flex items-center gap-1 hover:text-green-900 transition-colors bg-green-50 hover:bg-green-100 border border-green-200 px-2 py-1 rounded-md">
                       <Plus size={14} /> Add Property
                     </button>
                   </div>
@@ -363,14 +363,14 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                             placeholder="Label (e.g. Ash Content)" 
                             value={term.label} 
                             onChange={(e) => updateKeyTerm(idx, "label", e.target.value)}
-                            className="flex-1 w-0 p-3 sm:p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-base sm:text-sm font-bold text-slate-700 outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="flex-1 w-0 p-3 sm:p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-base sm:text-sm font-bold text-slate-700 outline-none focus:ring-1 focus:ring-green-500"
                           />
                           <input 
                             type="text" 
                             placeholder="Value" 
                             value={term.value} 
                             onChange={(e) => updateKeyTerm(idx, "value", e.target.value)}
-                            className="flex-1 w-0 p-3 sm:p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-base sm:text-sm text-slate-700 outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="flex-1 w-0 p-3 sm:p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-base sm:text-sm text-slate-700 outline-none focus:ring-1 focus:ring-green-500"
                           />
                           <button type="button" onClick={() => removeKeyTerm(idx)} className="p-3 sm:p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors shrink-0">
                             <Trash2 size={18} className="sm:w-4 sm:h-4" />
@@ -386,19 +386,19 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                   <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                     General Notes / Summary <span className="text-red-500">*</span>
                   </label>
-                  <textarea name="specs" rows={3} defaultValue={supplyToEdit?.specs} required className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-900 font-medium text-base sm:text-sm"></textarea>
+                  <textarea name="specs" rows={3} defaultValue={supplyToEdit?.specs} required className="w-full mt-1.5 p-3 sm:p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-slate-900 font-medium text-base sm:text-sm"></textarea>
                 </div>
 
                 {/* SECTION 5: Media Uploads */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] md:text-xs font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
+                  <h3 className="text-[10px] md:text-xs font-black text-green-800 uppercase tracking-widest border-b border-slate-100 pb-2">4. Attachments</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Images */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-xl md:rounded-2xl">
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
                         <span>Add Images</span>
-                        <span className={images.length === 5 ? "text-rose-500" : "text-emerald-600"}>{images.length} / 5</span>
+                        <span className={images.length === 5 ? "text-rose-500" : "text-green-800"}>{images.length} / 5</span>
                       </label>
                       <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors relative mb-3">
                         <input type="file" multiple accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageChange} disabled={images.length >= 5} />
@@ -422,9 +422,9 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
                     {/* PDF */}
                     <div className="bg-slate-50 p-4 border border-slate-200 rounded-xl md:rounded-2xl flex flex-col">
                       <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Upload New Spec Sheet</label>
-                      <div className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center transition-colors relative ${pdfFile ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
+                      <div className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center transition-colors relative ${pdfFile ? 'border-green-300 bg-green-50/50' : 'border-slate-300 hover:bg-slate-100'}`}>
                         {pdfFile ? (
-                          <div className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-emerald-100 shadow-sm relative z-20">
+                          <div className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-green-100 shadow-sm relative z-20">
                             <div className="flex items-center gap-1.5 overflow-hidden">
                               <FileText className="text-rose-600 shrink-0 w-4 h-4" size={14} />
                               <span className="text-[10px] font-bold text-slate-700 truncate">{pdfFile.name}</span>
@@ -453,7 +453,7 @@ export default function SupplyForm({ supplyToEdit }: SupplyFormProps) {
               <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors w-full sm:w-auto text-center">
                 Cancel
               </button>
-              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || isExtracting} className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto">
+              <button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || isExtracting} className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-5 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-green-600/20 transition-all w-full sm:w-auto">
                 {isSubmitting ? <><Loader2 size={16} className="animate-spin md:w-4 md:h-4" /> Saving...</> : (supplyToEdit ? "Save Changes" : "Publish to Board")}
               </button>
             </div>
