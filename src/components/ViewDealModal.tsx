@@ -18,19 +18,23 @@ export default function ViewDealModal({ deal, type }: ViewDealModalProps) {
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  // Color mappings based on type
+  // NEW: GlobCom Branding Color Mappings based on type
   const theme = type === "Demand" ? {
-    bg: "bg-blue-600",
-    text: "text-blue-600",
+    bg: "bg-blue-800",
+    text: "text-blue-800",
     lightBg: "bg-blue-50",
     border: "border-blue-200",
-    badge: "bg-blue-100 text-blue-700 border-blue-200"
+    badge: "bg-blue-100 text-blue-800 border-blue-200",
+    hoverBg: "hover:bg-blue-50",
+    hoverBorder: "hover:border-blue-300"
   } : {
-    bg: "bg-emerald-600",
-    text: "text-emerald-600",
-    lightBg: "bg-emerald-50",
-    border: "border-emerald-200",
-    badge: "bg-emerald-100 text-emerald-700 border-emerald-200"
+    bg: "bg-green-600",
+    text: "text-green-600",
+    lightBg: "bg-green-50",
+    border: "border-green-200",
+    badge: "bg-green-100 text-green-800 border-green-200",
+    hoverBg: "hover:bg-green-50",
+    hoverBorder: "hover:border-green-300"
   };
 
   // Safe parsing for dynamic key terms
@@ -166,7 +170,7 @@ export default function ViewDealModal({ deal, type }: ViewDealModalProps) {
                   {docs.length > 0 && (
                     <div className="space-y-2">
                       {docs.map((doc: string, idx: number) => (
-                        <a key={idx} href={doc} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 p-3 rounded-xl transition-colors group">
+                        <a key={idx} href={doc} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 bg-white border border-slate-200 ${theme.hoverBorder} ${theme.hoverBg} p-3 rounded-xl transition-colors group`}>
                           <div className="bg-rose-100 p-2 rounded-lg text-rose-600 group-hover:bg-rose-200 transition-colors">
                             <FileText size={16} />
                           </div>

@@ -85,9 +85,10 @@ export default function CommandPalette() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "CLIENT": return <Building size={16} className="text-indigo-500" />;
-      case "DEMAND": return <FileBox size={16} className="text-blue-500" />;
-      case "SUPPLY": return <Box size={16} className="text-emerald-500" />;
+      // NEW: GlobCom Branding applied to icons
+      case "CLIENT": return <Building size={16} className="text-slate-700" />;
+      case "DEMAND": return <FileBox size={16} className="text-blue-800" />;
+      case "SUPPLY": return <Box size={16} className="text-green-600" />;
       default: return <Search size={16} className="text-slate-500" />;
     }
   };
@@ -126,7 +127,6 @@ export default function CommandPalette() {
         {/* Results Area */}
         <div className="max-h-[60vh] overflow-y-auto custom-scrollbar bg-slate-50">
           
-          {/* FIX: Removed the extra closing </div> that was causing a JSX syntax error here */}
           {query.length >= 2 && results.length === 0 && !isLoading && (
             <div className="p-8 text-center text-slate-500">
               <p className="font-bold text-sm">No results found for "{query}"</p>
