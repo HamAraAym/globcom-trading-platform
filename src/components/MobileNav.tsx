@@ -53,7 +53,7 @@ export default function MobileNav() {
                     key={link.name} 
                     href={link.href}
                     onClick={() => setIsMoreOpen(false)}
-                    className="flex items-center gap-4 p-4 rounded-2xl text-slate-700 font-bold hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                    className="flex items-center gap-4 p-4 rounded-2xl text-slate-700 font-bold hover:bg-blue-50 hover:text-blue-800 transition-colors"
                   >
                     <Icon size={20} className="text-slate-400" />
                     {link.name}
@@ -91,13 +91,13 @@ export default function MobileNav() {
                 href={item.href}
                 onClick={() => setIsMoreOpen(false)}
                 className={`flex flex-col items-center justify-center w-16 h-12 rounded-xl transition-all ${
-                  isActive ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
+                  isActive ? "text-blue-800" : "text-slate-400 hover:text-slate-600"
                 }`}
               >
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full mb-0.5 ${isActive ? "bg-indigo-50" : "bg-transparent"}`}>
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full mb-0.5 ${isActive ? "bg-blue-50" : "bg-transparent"}`}>
                   <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
                 </div>
-                <span className={`text-[10px] font-bold tracking-wide ${isActive ? "text-indigo-600" : "text-slate-500"}`}>
+                <span className={`text-[10px] font-bold tracking-wide ${isActive ? "text-blue-800" : "text-slate-500"}`}>
                   {item.name}
                 </span>
               </Link>
@@ -108,13 +108,13 @@ export default function MobileNav() {
           <button 
             onClick={() => setIsMoreOpen(!isMoreOpen)}
             className={`flex flex-col items-center justify-center w-16 h-12 rounded-xl transition-all ${
-              isMoreOpen ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
+              isMoreOpen ? "text-blue-800" : "text-slate-400 hover:text-slate-600"
             }`}
           >
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full mb-0.5 ${isMoreOpen ? "bg-indigo-50" : "bg-transparent"}`}>
+            <div className={`flex items-center justify-center w-8 h-8 rounded-full mb-0.5 ${isMoreOpen ? "bg-blue-50" : "bg-transparent"}`}>
               <Menu size={18} strokeWidth={isMoreOpen ? 2.5 : 2} />
             </div>
-            <span className={`text-[10px] font-bold tracking-wide ${isMoreOpen ? "text-indigo-600" : "text-slate-500"}`}>
+            <span className={`text-[10px] font-bold tracking-wide ${isMoreOpen ? "text-blue-800" : "text-slate-500"}`}>
               Menu
             </span>
           </button>
