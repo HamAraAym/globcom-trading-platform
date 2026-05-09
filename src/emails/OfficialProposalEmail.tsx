@@ -38,7 +38,7 @@ export default function OfficialProposalEmail({
           <Container className="border border-slate-200 rounded-2xl mx-auto p-0 max-w-[600px] bg-white overflow-hidden shadow-xl">
             
             {/* 1. CORPORATE HEADER */}
-            <Section className="bg-slate-900 px-8 py-8 text-center border-b-4 border-indigo-500">
+            <Section className="bg-blue-900 px-8 py-8 text-center border-b-4 border-green-500">
               {/* NOTE: Replace this placeholder with your actual hosted logo URL later */}
               <Img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Check_green_icon.svg/1200px-Check_green_icon.svg.png" 
@@ -50,7 +50,7 @@ export default function OfficialProposalEmail({
               <Heading className="text-white text-[24px] font-black tracking-widest m-0 p-0 uppercase">
                 GLOBCOM
               </Heading>
-              <Text className="text-indigo-400 text-[10px] uppercase tracking-[0.3em] font-bold m-0 mt-1">
+              <Text className="text-green-400 text-[10px] uppercase tracking-[0.3em] font-bold m-0 mt-1">
                 International FZE
               </Text>
             </Section>
@@ -62,8 +62,8 @@ export default function OfficialProposalEmail({
               </Text>
 
               {customMessage && (
-                <Section className="mb-6 p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-r-lg">
-                  <Text className="text-indigo-900 text-[14px] italic font-medium m-0 whitespace-pre-wrap">
+                <Section className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-800 rounded-r-lg">
+                  <Text className="text-blue-900 text-[14px] italic font-medium m-0 whitespace-pre-wrap">
                     "{customMessage}"
                   </Text>
                 </Section>
@@ -75,9 +75,9 @@ export default function OfficialProposalEmail({
 
               {/* 3. DEAL SUMMARY BOX */}
               <Section className="border border-slate-200 rounded-xl overflow-hidden mb-8 bg-slate-50">
-                <div className="bg-indigo-600 h-1 w-full"></div>
+                <div className="bg-blue-800 h-1 w-full"></div>
                 <div className="p-6">
-                  <Text className="text-indigo-600 text-[10px] font-black uppercase tracking-widest m-0 mb-2">
+                  <Text className="text-blue-800 text-[10px] font-black uppercase tracking-widest m-0 mb-2">
                     Commodity Summary
                   </Text>
                   <Heading className="text-slate-900 text-[20px] font-bold m-0 mb-5 leading-tight">
@@ -87,7 +87,7 @@ export default function OfficialProposalEmail({
                   <table width="100%" cellPadding="0" cellSpacing="0" style={{ fontSize: '14px' }}>
                     <tr>
                       <td style={{ paddingBottom: '12px', color: '#64748b' }}>
-                        <strong>Target Price:</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>{displayPrice}</span>
+                        <strong>Target Price:</strong> <span style={{ color: '#16a34a', fontWeight: 'bold' }}>{displayPrice}</span>
                       </td>
                       <td style={{ paddingBottom: '12px', color: '#64748b' }}>
                         <strong>Volume:</strong> <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{quantity} {unit}</span>
@@ -112,7 +112,7 @@ export default function OfficialProposalEmail({
               <Section className="text-center mb-8">
                 <Button
                   href={dealLink}
-                  className="bg-indigo-600 text-white font-bold px-8 py-4 rounded-xl text-[16px] shadow-md hover:bg-indigo-700 w-full sm:w-auto"
+                  className="bg-blue-800 text-white font-bold px-8 py-4 rounded-xl text-[16px] shadow-md hover:bg-blue-900 w-full sm:w-auto"
                 >
                   Review Official Proposal
                 </Button>
@@ -131,7 +131,7 @@ export default function OfficialProposalEmail({
                 <strong>GLOBCOM INTERNATIONAL FZE</strong><br />
                 P1-ELOB, Office No. E-10F-05<br />
                 Hamriyah Free Zone, Sharjah (UAE), P.O. 50096<br />
-                +971 50 5587858 | <Link href="mailto:sales@globcomfze.com" className="text-indigo-600 underline">sales@globcomfze.com</Link>
+                +971 50 5587858 | <Link href="mailto:sales@globcomfze.com" className="text-blue-800 underline">sales@globcomfze.com</Link>
               </Text>
 
               <Hr className="border-t border-slate-200 my-6" />
