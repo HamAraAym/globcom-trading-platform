@@ -4,14 +4,14 @@ import { getServerSession } from "next-auth";
 import { 
   MessageSquare, AlertCircle, Info, 
   MapPin, Calendar, CircleDollarSign, Scale, FileBox, Package,
-  Truck, CreditCard, ShieldCheck, ShieldAlert, List, CalendarClock, Anchor, Shield, Send
+  Truck, CreditCard, ShieldCheck, ShieldAlert, List, CalendarClock, Anchor, Shield
 } from "lucide-react";
 import MediaGallery from "@/components/MediaGallery";
 import ChatInput from "@/components/ChatInput"; 
 import EmailDispatcher from "@/components/EmailDispatcher";
 import DealStatusManager from "@/components/DealStatusManager";
 import DocumentGenerator from "@/components/DocumentGenerator"; 
-import RealtimeMessageFeed from "@/components/RealtimeMessageFeed"; // NEW: Realtime Websocket Feed
+import RealtimeMessageFeed from "@/components/RealtimeMessageFeed"; 
 
 export default async function ChatRoomPage({ params }: { params: Promise<{ chatId: string }> }) {
   const session = await getServerSession();
@@ -71,7 +71,8 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
   const isDemand = !!room.demand;
   const typeLabel = isDemand ? "DEMAND" : "SUPPLY";
   
-  const themeColor = isDemand ? "blue" : "emerald";
+  // NEW: Hardcoded GlobCom Theming
+  const themeColor = isDemand ? "blue" : "green";
   const ThemeIcon = isDemand ? FileBox : Package;
 
   // Safely handle optional pricing
@@ -95,12 +96,12 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
   );
 
   return (
-    // Changed to min-h-full to allow natural scrolling on mobile without forced cutoffs
-    <div className="min-h-full bg-slate-50 p-2 sm:p-4 lg:p-8 font-sans flex flex-col selection:bg-indigo-500/30 selection:text-indigo-900 overflow-x-hidden">
+    <div className="min-h-full bg-slate-50 p-2 sm:p-4 lg:p-8 font-sans flex flex-col selection:bg-blue-500/30 selection:text-blue-900 overflow-x-hidden">
       
+      {/* 1. Header Area */}
       <div className="max-w-[1600px] mx-auto w-full mb-4 md:mb-6 shrink-0 px-2 sm:px-0">
         <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 md:gap-3">
-          <MessageSquare size={20} className={`text-${themeColor}-600 md:w-6 md:h-6`} />
+          <MessageSquare size={20} className={isDemand ? "text-blue-800" : "text-green-600"} />
           Active Negotiation Terminal
         </h1>
         <p className="text-xs md:text-sm text-slate-500 mt-1">End-to-end encrypted internal communication channel.</p>
@@ -108,18 +109,21 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
 
       <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 pb-2 lg:pb-4 h-auto lg:h-[calc(100vh-140px)]">
         
-        {/* LEFT PANE: CHAT ENGINE (Takes up full height on desktop, min height on mobile) */}
+        {/* ========================================================= */}
+        {/* LEFT PANE: CHAT ENGINE                                    */}
+        {/* ========================================================= */}
         <div className="flex-1 flex flex-col bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative min-h-[500px] lg:min-h-0 order-2 lg:order-1">
           
-          <div className="bg-slate-900 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center shrink-0 border-b border-slate-800 z-10 shadow-sm">
+          {/* Chat Header */}
+          <div className="bg-[#0f172a] px-4 md:px-6 py-3 md:py-4 flex justify-between items-center shrink-0 border-b border-slate-800 z-10 shadow-sm">
             <div className="flex items-center gap-2 md:gap-3">
-              <span className={`hidden sm:inline-block px-2 md:px-2.5 py-1 text-[8px] md:text-[9px] font-black uppercase tracking-widest rounded-md ${isDemand ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+              <span className={`hidden sm:inline-block px-2 md:px-2.5 py-1 text-[8px] md:text-[9px] font-black uppercase tracking-widest rounded-md ${isDemand ? 'bg-blue-100/20 text-blue-300 border border-blue-100/30' : 'bg-green-100/20 text-green-300 border border-green-100/30'}`}>
                 {typeLabel} ROOM
               </span>
               <h2 className="text-sm md:text-lg font-bold text-white tracking-wide truncate max-w-[150px] sm:max-w-xs md:max-w-md">{contextItem?.title}</h2>
             </div>
             <div className="bg-slate-800 text-slate-300 text-[8px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl border border-slate-700 flex items-center gap-1.5 md:gap-2 shadow-inner whitespace-nowrap">
-               <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isDemand ? 'bg-blue-500' : 'bg-emerald-500'} animate-pulse`}></div>
+               <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isDemand ? 'bg-blue-400' : 'bg-green-400'} animate-pulse`}></div>
                {room.messages.length} <span className="hidden sm:inline">Transmissions</span>
             </div>
           </div>
@@ -140,7 +144,9 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
           />
         </div>
 
-        {/* RIGHT PANE: PRODUCT CONTEXT & ACTIONS (Stacks on top on mobile, sits on right on desktop) */}
+        {/* ========================================================= */}
+        {/* RIGHT PANE: PRODUCT CONTEXT & ACTIONS                     */}
+        {/* ========================================================= */}
         <div className="w-full lg:w-[400px] xl:w-[450px] shrink-0 bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 flex flex-col h-auto lg:h-full overflow-hidden order-1 lg:order-2">
           
           <div className="bg-slate-50 px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
@@ -161,8 +167,9 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
 
           <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col">
             
+            {/* Title & Icon Header */}
             <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8 border-b border-slate-100 pb-4 md:pb-6">
-              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${isDemand ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${isDemand ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
                 <ThemeIcon size={24} className="md:w-7 md:h-7" />
               </div>
               <div className="overflow-hidden">
@@ -215,17 +222,17 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
             {/* Trade Logistics Grid */}
             <div className="mb-6 md:mb-8">
               <h4 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2">
-                <Truck size={12} className={`text-${themeColor}-500 md:w-3.5 md:h-3.5`} /> Trade Logistics
+                <Truck size={12} className={isDemand ? "text-blue-800" : "text-green-600"} /> Trade Logistics
               </h4>
               <div className="grid grid-cols-2 gap-1.5 md:gap-2">
-                {renderLogisticsItem("Origin", (contextItem as any)?.origin, <MapPin size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Destination", (contextItem as any)?.destination, <MapPin size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Load Port", (contextItem as any)?.loadPort, <Anchor size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Incoterms", (contextItem as any)?.incoterms, <Truck size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Insurance", (contextItem as any)?.insurance, <Shield size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Payment", (contextItem as any)?.paymentTerms, <CreditCard size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Inspection", (contextItem as any)?.inspection, <ShieldCheck size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
-                {renderLogisticsItem("Packaging", (contextItem as any)?.packaging, <Package size={10} className="md:w-3 md:h-3 text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Origin", (contextItem as any)?.origin, <MapPin size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Destination", (contextItem as any)?.destination, <MapPin size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Load Port", (contextItem as any)?.loadPort, <Anchor size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Incoterms", (contextItem as any)?.incoterms, <Truck size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Insurance", (contextItem as any)?.insurance, <Shield size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Payment", (contextItem as any)?.paymentTerms, <CreditCard size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Inspection", (contextItem as any)?.inspection, <ShieldCheck size={10} className="text-slate-400 shrink-0" />)}
+                {renderLogisticsItem("Packaging", (contextItem as any)?.packaging, <Package size={10} className="text-slate-400 shrink-0" />)}
               </div>
             </div>
 
@@ -233,7 +240,7 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
             {(contextItem as any)?.keyTerms && Array.isArray((contextItem as any).keyTerms) && (contextItem as any).keyTerms.length > 0 && (
               <div className="mb-6 md:mb-8">
                 <h4 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2">
-                  <List size={12} className={`text-${themeColor}-500 md:w-3.5 md:h-3.5`} /> Technical Specs
+                  <List size={12} className={isDemand ? "text-blue-800" : "text-green-600"} /> Technical Specs
                 </h4>
                 <div className="grid grid-cols-1 gap-1.5">
                   {(contextItem as any).keyTerms.map((term: any, idx: number) => (
