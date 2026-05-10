@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
-import { put } from "@vercel/blob"; // NEW: Using Vercel Blob for cloud storage
-import bcrypt from "bcryptjs"; // NEW: Securing passwords
+import { put } from "@vercel/blob"; 
+import bcrypt from "bcryptjs"; 
 
 // Security Middleware: Ensure only ADMINs can access these functions
 async function ensureAdmin() {
@@ -105,7 +105,7 @@ export async function updateGlobalSettings(formData: FormData) {
   } else if (logo && logo.size > 0 && logo.name !== "undefined") {
     if (logo.size > 5242880) throw new Error("Image exceeds 5MB limit."); // 5MB Limit
     
-    // NEW: Upload straight to Vercel Blob
+    // Upload straight to Vercel Blob
     const timestamp = Date.now();
     const cleanFileName = logo.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
     

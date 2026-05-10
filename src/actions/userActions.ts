@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { put } from "@vercel/blob"; // NEW: Vercel Blob Storage
+import { put } from "@vercel/blob"; // Vercel Blob Storage
 
 export async function updateUserProfile(formData: FormData) {
   const session = await getServerSession();
@@ -19,20 +19,23 @@ export async function updateUserProfile(formData: FormData) {
 
   let letterheadUrl = user.letterheadUrl; // Default to existing
 
-  // 1. If user cleared the image, wipe it from DB
-  if (removeLetterhead) {
-    letterheadUrl = null;
-  } 
-  // 2. Otherwise, if they uploaded a new one, save it to Vercel Blob
-  else if (letterhead && letterhead.size > 0 && letterhead.name !== "undefined") {
-    if (letterhead.size > 5242880) throw new Error("Image exceeds 5MB limit."); // 5MB limit
-    
-    const timestamp = Date.now();
-    const cleanFileName = letterhead.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
-    const blob = await put(`users/${timestamp}-${cleanFileName}`, letterhead, {
-      access: 'public',
-    });
-    letterheadUrl = blob.url;
+  // 🔐 SERVER-SIDE SECURITY: Only Admins can upload/modify letterheads
+  if (user.role === "ADMIN") {
+    // 1. If Admin cleared the image, wipe it from DB
+    if (removeLetterhead) {
+      letterheadUrl = null;
+    } 
+    // 2. Otherwise, if they uploaded a new one, save it to Vercel Blob
+    else if (letterhead && letterhead.size > 0 && letterhead.name !== "undefined") {
+      if (letterhead.size > 5242880) throw new Error("Image exceeds 5MB limit."); // 5MB limit
+      
+      const timestamp = Date.now();
+      const cleanFileName = letterhead.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+      const blob = await put(`users/${timestamp}-${cleanFileName}`, letterhead, {
+        access: 'public',
+      });
+      letterheadUrl = blob.url;
+    }
   }
 
   // Update the database
@@ -41,10 +44,13 @@ export async function updateUserProfile(formData: FormData) {
     data: {
       firstName,
       lastName,
-      letterheadUrl
+      // Only inject the letterheadUrl into the update payload if the user is an Admin
+      ...(user.role === "ADMIN" && { letterheadUrl })
     }
   });
 
   // Refresh the settings page to show the new data instantly
   revalidatePath("/settings");
+  // Refresh the chat page so the DocumentGenerator gets the latest letterhead
+  revalidatePath("/chat"); 
 }
