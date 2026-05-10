@@ -25,7 +25,7 @@ export default function DocumentGenerator({
   clients, 
   contextItem, 
   defaultDocType = "SCO",
-  buttonStyle = "bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2",
+  buttonStyle = "bg-blue-800 hover:bg-blue-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-800/20 transition-all flex items-center gap-2",
   userLetterhead
 }: DocumentGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -250,9 +250,9 @@ export default function DocumentGenerator({
       <div className="bg-slate-100 rounded-2xl w-full max-w-5xl h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-700">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 text-white shrink-0">
+        <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0f172a] text-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-500 p-2 rounded-lg shadow-sm"><FileText size={20} /></div>
+            <div className="bg-blue-600 p-2 rounded-lg shadow-sm border border-blue-500"><FileText size={20} /></div>
             <h2 className="text-lg font-bold tracking-wide">Live Contract Editor</h2>
           </div>
           <button onClick={() => setIsOpen(false)} disabled={isGenerating} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full disabled:opacity-50">
@@ -262,10 +262,10 @@ export default function DocumentGenerator({
 
         <div className="flex-1 overflow-hidden flex flex-col relative">
           {success ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 z-50">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-50 text-green-600 z-50">
               <CheckCircle2 size={64} className="mb-4 animate-bounce drop-shadow-sm" />
               <h2 className="text-2xl font-black">Document Generated & Saved!</h2>
-              <p className="text-sm font-bold text-emerald-700/70 mt-2">Added to CRM Activity Timeline.</p>
+              <p className="text-sm font-bold text-green-700/70 mt-2">Added to CRM Activity Timeline.</p>
             </div>
           ) : (
             <>
@@ -276,7 +276,7 @@ export default function DocumentGenerator({
                   <select 
                     value={docType} 
                     onChange={(e) => setDocType(e.target.value as DocumentType)}
-                    className="bg-transparent text-sm font-bold text-indigo-700 focus:outline-none cursor-pointer"
+                    className="bg-transparent text-sm font-bold text-blue-800 focus:outline-none cursor-pointer"
                   >
                     <option value="SCO">Soft Corporate Offer (SCO)</option>
                     <option value="FCO">Full Corporate Offer (FCO)</option>
@@ -289,7 +289,7 @@ export default function DocumentGenerator({
                   <select 
                     value={selectedClientId} 
                     onChange={(e) => setSelectedClientId(e.target.value)}
-                    className="bg-transparent text-sm font-bold text-indigo-700 focus:outline-none cursor-pointer max-w-[200px] truncate"
+                    className="bg-transparent text-sm font-bold text-blue-800 focus:outline-none cursor-pointer max-w-[200px] truncate"
                   >
                     {clients.map(c => (
                       <option key={c.id} value={c.id}>{c.company || c.name}</option>
@@ -298,7 +298,7 @@ export default function DocumentGenerator({
                 </div>
 
                 <p className="text-xs font-medium text-slate-400 ml-auto flex items-center gap-2">
-                  <FileEdit size={14} className="text-indigo-400"/> Modify text below before exporting
+                  <FileEdit size={14} className="text-blue-600"/> Modify text below before exporting
                 </p>
               </div>
               
@@ -353,7 +353,7 @@ export default function DocumentGenerator({
             <button 
               onClick={handleGeneratePdf} 
               disabled={isGenerating || success} 
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all"
+              className="flex items-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-800/20 transition-all"
             >
               {isGenerating ? <><Loader2 size={18} className="animate-spin" /> Generating PDF...</> : <><Download size={18} /> Lock & Export to CRM</>}
             </button>
