@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Pusher from "pusher-js";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, ArrowRightLeft, CheckCircle2, XCircle } from "lucide-react";
 
 interface Message {
   id: string;
@@ -74,14 +74,33 @@ export default function RealtimeMessageFeed({ initialMessages, chatId, currentUs
       {messages.map((msg) => {
         const isMe = msg.sender?.email === currentUserEmail;
 
-        // FIXED: Safe dynamic color rendering for Tailwind Purger
+        // 🧠 STRUCTURED COUNTER-OFFER PARSER
+        let isOffer = false;
+        let offerData: any = null;
+        try {
+          const parsed = JSON.parse(msg.content);
+          if (parsed && parsed.type === "COUNTER_OFFER") {
+            isOffer = true;
+            offerData = parsed;
+          }
+        } catch (e) {
+          // Standard string message, ignore JSON parse error
+        }
+
+        // 🎨 GLOBCOM THEME LOGIC
+        const primaryColorClass = themeColor === "blue" ? "blue-800" : "green-600";
+        const lightBgClass = themeColor === "blue" ? "bg-blue-50" : "bg-green-50";
+        const borderClass = themeColor === "blue" ? "border-blue-200" : "border-green-200";
+
         const bubbleColor = isMe 
-          ? (themeColor === "blue" ? "bg-blue-600 text-white" : "bg-emerald-600 text-white")
-          : "bg-white border border-slate-200 text-slate-800";
+          ? `bg-${primaryColorClass} text-white shadow-md`
+          : "bg-white border border-slate-200 text-slate-800 shadow-sm";
 
         return (
           <div key={msg.id} className={`flex w-full ${isMe ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2`}>
-            <div className={`flex flex-col max-w-[85%] md:max-w-[75%] lg:max-w-[65%] ${isMe ? "items-end" : "items-start"}`}>
+            <div className={`flex flex-col max-w-[90%] md:max-w-[75%] lg:max-w-[65%] ${isMe ? "items-end" : "items-start"}`}>
+              
+              {/* Sender Info Label */}
               <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5 px-1">
                 <span className="text-[10px] md:text-xs font-bold text-slate-700">
                   {msg.sender?.firstName || "Unknown"} {msg.sender?.lastName || ""}
@@ -91,12 +110,57 @@ export default function RealtimeMessageFeed({ initialMessages, chatId, currentUs
                 </span>
               </div>
               
-              <div className={`px-4 py-3 md:px-5 md:py-3.5 text-xs md:text-sm leading-relaxed shadow-sm ${bubbleColor} ${
-                isMe ? "rounded-2xl rounded-tr-sm" : "rounded-2xl rounded-tl-sm"
-              }`}>
-                {msg.content}
-              </div>
+              {/* ⚡ THE INTERACTIVE OFFER CARD OR STANDARD BUBBLE */}
+              {isOffer ? (
+                <div className={`w-full md:min-w-[350px] bg-white border-2 ${borderClass} rounded-2xl overflow-hidden shadow-lg`}>
+                  <div className={`px-4 py-3 bg-${primaryColorClass} text-white flex items-center justify-between`}>
+                    <div className="flex items-center gap-2 font-black text-xs md:text-sm tracking-widest uppercase">
+                      <ArrowRightLeft size={16} /> Official Counter-Offer
+                    </div>
+                  </div>
+                  <div className="p-4 md:p-5 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className={`p-3 rounded-xl border ${borderClass} ${lightBgClass}`}>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Proposed Price</p>
+                        <p className={`text-lg font-black text-${primaryColorClass}`}>
+                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(offerData.price)}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-xl border ${borderClass} ${lightBgClass}`}>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Target Volume</p>
+                        <p className={`text-lg font-black text-${primaryColorClass}`}>
+                          {new Intl.NumberFormat().format(offerData.quantity)} <span className="text-xs text-slate-500">{offerData.unit || "MT"}</span>
+                        </p>
+                      </div>
+                    </div>
+                    {offerData.notes && (
+                      <div className="text-xs md:text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
+                        "{offerData.notes}"
+                      </div>
+                    )}
+                    
+                    {/* Action Buttons (UI Only for now) */}
+                    {!isMe && (
+                      <div className="flex gap-2 pt-2 border-t border-slate-100">
+                        <button className={`flex-1 flex items-center justify-center gap-1.5 py-2 md:py-2.5 rounded-xl font-bold text-xs text-white bg-${primaryColorClass} hover:opacity-90 transition-opacity shadow-sm`}>
+                          <CheckCircle2 size={14} /> Accept Terms
+                        </button>
+                        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 md:py-2.5 rounded-xl font-bold text-xs text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors">
+                          <XCircle size={14} /> Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className={`px-4 py-3 md:px-5 md:py-3.5 text-xs md:text-sm leading-relaxed ${bubbleColor} ${
+                  isMe ? "rounded-2xl rounded-tr-sm" : "rounded-2xl rounded-tl-sm"
+                }`}>
+                  {msg.content}
+                </div>
+              )}
               
+              {/* Timestamp */}
               <span className="text-[8px] md:text-[9px] font-bold text-slate-400 mt-1 md:mt-1.5 px-1 tracking-widest uppercase">
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
