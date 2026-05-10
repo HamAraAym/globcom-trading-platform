@@ -71,7 +71,7 @@ export default function MobileNav() {
                 className="w-full flex items-center gap-4 p-4 rounded-2xl text-rose-600 font-bold hover:bg-rose-50 transition-colors"
               >
                 <LogOut size={20} className="text-rose-500" />
-                Secure Sign Out
+                Sign Out
               </button>
             </div>
           </div>

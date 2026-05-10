@@ -63,7 +63,7 @@ export default function RealtimeMessageFeed({ initialMessages, chatId, currentUs
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center">
         <MessageSquare className="mb-3 md:mb-4 opacity-20 w-10 h-10 md:w-12 md:h-12" />
-        <p className="text-xs md:text-sm font-bold text-slate-600">Secure connection established.</p>
+        <p className="text-xs md:text-sm font-bold text-slate-600">Connection established.</p>
         <p className="text-[10px] md:text-xs mt-1">Begin the negotiation process below.</p>
       </div>
     );

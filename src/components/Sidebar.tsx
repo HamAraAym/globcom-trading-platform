@@ -147,7 +147,7 @@ export default function Sidebar() {
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-500 rounded-xl text-sm font-bold transition-all border border-rose-500/20 hover:border-rose-500 shadow-sm"
         >
-          <LogOut size={16} /> Secure Sign Out
+          <LogOut size={16} /> Sign Out
         </button>
       </div>
 

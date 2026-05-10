@@ -132,5 +132,5 @@ export async function dispatchToClient(formData: FormData) {
   revalidatePath(`/crm/${buyer.id}`);
   revalidatePath(`/chat/${contextId}`);
 
-  return { success: true, message: `Secure email dispatched to ${buyer.email}` };
+  return { success: true, message: `Email dispatched to ${buyer.email}` };
 }

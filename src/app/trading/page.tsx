@@ -62,7 +62,7 @@ export default async function TradingHubPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Trading Hub Engine</h1>
           <p className="text-xs md:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            Live Matchmaking Dashboard. Compare open client Demands against available internal Supplies and initiate secure negotiation rooms.
+            Live Matchmaking Dashboard. Compare open client Demands against available internal Supplies and initiate negotiation rooms.
           </p>
         </div>
       </div>

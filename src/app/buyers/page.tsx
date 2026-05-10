@@ -36,7 +36,7 @@ export default async function BuyersPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Client CRM Directory</h1>
             <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              Secure database of verified corporate entities and individual traders. Manage compliance, assign Account Executives, and track trading histories.
+               Database of verified corporate entities and individual traders. Manage compliance, assign Account Executives, and track trading histories.
             </p>
           </div>
         </div>

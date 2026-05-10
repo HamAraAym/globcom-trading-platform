@@ -71,7 +71,7 @@ export default async function AuditPage() {
                   <td colSpan={4} className="p-12 text-center text-slate-500 bg-slate-50">
                     <History size={40} className="mx-auto mb-3 opacity-20" />
                     <p className="text-sm font-bold">Ledger is currently empty.</p>
-                    <p className="text-xs mt-1">System events will appear here securely.</p>
+                    <p className="text-xs mt-1">System events will appear here.</p>
                   </td>
                 </tr>
               ) : (

@@ -89,7 +89,7 @@ export default function LoginPage() {
 
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-slate-900 tracking-tight">System Access</h2>
-            <p className="text-slate-500 mt-2 text-sm">Enter your corporate credentials to access the secure ERP.</p>
+            <p className="text-slate-500 mt-2 text-sm">Enter your GlobCom credentials to access the ERP.</p>
           </div>
 
           {error && (

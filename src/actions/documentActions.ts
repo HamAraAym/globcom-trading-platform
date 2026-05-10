@@ -35,7 +35,7 @@ export async function saveGeneratedDocument(formData: FormData) {
     const fileUrl = blob.url;
 
     if (!fileUrl) {
-      throw new Error("Failed to upload document to secure storage.");
+      throw new Error("Failed to upload document.");
     }
 
     // 2. Save the Document record in the database

@@ -1,7 +1,7 @@
 {
   "name": "GlobCom ERP",
   "short_name": "GlobCom",
-  "description": "Secure Internal Trading & Commodity Management Platform for GlobCom International FZE.",
+  "description": "Internal Trading & Commodity Management Platform for GlobCom International FZE.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

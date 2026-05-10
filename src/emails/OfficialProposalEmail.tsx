@@ -117,7 +117,7 @@ export default function OfficialProposalEmail({
                   Review Official Proposal
                 </Button>
                 <Text className="text-slate-500 text-[12px] mt-4 mb-0">
-                  Click the secure link above to view full technical specifications, trade logistics, and download {attachedDocsCount > 0 ? `the ${attachedDocsCount} attached official document(s)` : "the official documents"}.
+                  Click the link above to view full technical specifications, trade logistics, and download {attachedDocsCount > 0 ? `the ${attachedDocsCount} attached official document(s)` : "the official documents"}.
                 </Text>
               </Section>
             </Section>

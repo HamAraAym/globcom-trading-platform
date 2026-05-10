@@ -72,7 +72,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
           <div className="bg-slate-900 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="text-green-500" size={20} />
-              <span className="text-white font-bold tracking-wide">VERIFIED SECURE DOCUMENT</span>
+              <span className="text-white font-bold tracking-wide">VERIFIED DOCUMENT</span>
             </div>
             <div className="text-slate-400 text-xs font-medium">
               Ref ID: <span className="text-slate-300 font-mono">{deal.id.split("").reverse().join("").substring(0, 8).toUpperCase()}</span>

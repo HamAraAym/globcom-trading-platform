@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s | GlobCom ERP",
     default: "Command Center | GlobCom ERP",
   },
-  description: "Secure Internal Trading & Commodity Management Platform for GlobCom International FZE.",
+  description: "Internal Trading & Commodity Management Platform for GlobCom International FZE.",
   applicationName: "GlobCom ERP",
   authors: [{ name: "GlobCom International FZE" }],
   generator: "Next.js",

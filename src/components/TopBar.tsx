@@ -159,7 +159,7 @@ export default function TopBar() {
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
               >
                 <LogOut size={16} className="text-rose-400 shrink-0" />
-                Secure Logout
+                Logout
               </button>
             </div>
           )}
