@@ -196,3 +196,32 @@ export async function deleteSupply(id: string) {
 
   revalidatePath("/supplies");
 }
+
+// 🔐 ROADMAP ITEM #5: Prevent unauthorized users from accepting/rejecting deals
+export async function updateSupplyStatus(id: string, status: any) {
+  const session = await getServerSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) throw new Error("User not found");
+
+  const existingSupply = await prisma.supply.findUnique({ where: { id } });
+  if (!existingSupply) throw new Error("Supply not found");
+
+  // Security Check: Only the creator (or an Admin) can change the status
+  if (user.role !== "ADMIN" && existingSupply.creatorId !== user.id) {
+    throw new Error("Only the creator of this supply can accept or reject offers.");
+  }
+
+  await prisma.supply.update({
+    where: { id },
+    data: { status }
+  });
+
+  await prisma.auditLog.create({
+    data: { action: "UPDATED_SUPPLY_STATUS", details: `Supply ${existingSupply.title} status changed to ${status}`, userId: user.id }
+  });
+
+  revalidatePath("/supplies");
+  revalidatePath(`/chat/${id}`);
+}

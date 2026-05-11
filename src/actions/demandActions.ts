@@ -190,3 +190,32 @@ export async function deleteDemand(id: string) {
 
   revalidatePath("/demands");
 }
+
+// 🔐 ROADMAP ITEM #5: Prevent unauthorized users from accepting/rejecting deals
+export async function updateDemandStatus(id: string, status: any) {
+  const session = await getServerSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) throw new Error("User not found");
+
+  const existingDemand = await prisma.demand.findUnique({ where: { id } });
+  if (!existingDemand) throw new Error("Demand not found");
+
+  // Security Check: Only the creator (or an Admin) can change the status
+  if (user.role !== "ADMIN" && existingDemand.creatorId !== user.id) {
+    throw new Error("Only the creator of this demand can accept or reject offers.");
+  }
+
+  await prisma.demand.update({
+    where: { id },
+    data: { status }
+  });
+
+  await prisma.auditLog.create({
+    data: { action: "UPDATED_DEMAND_STATUS", details: `Demand ${existingDemand.title} status changed to ${status}`, userId: user.id }
+  });
+
+  revalidatePath("/demands");
+  revalidatePath(`/chat/${id}`);
+}
