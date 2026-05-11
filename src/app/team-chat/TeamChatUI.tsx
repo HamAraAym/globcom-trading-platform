@@ -37,7 +37,7 @@ export default function TeamChatUI({
 
   // Connect to Pusher for Real-Time Updates
   useEffect(() => {
-    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY!, {
+    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, { // <-- Changed this line
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     });
 
