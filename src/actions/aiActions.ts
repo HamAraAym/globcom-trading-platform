@@ -1,5 +1,8 @@
 "use server";
 
+import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
+
 export async function extractDealData(formData: FormData) {
   try {
     const file = formData.get("file") as File;
@@ -82,4 +85,77 @@ export async function extractDealData(formData: FormData) {
     console.error("AI Extraction Error:", error);
     return { success: false, error: "Failed to extract data from document." };
   }
+}
+
+export async function processAIPrompt(message: string) {
+  const session = await getServerSession();
+  
+  let userName = "Team Member";
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    if (user) userName = user.firstName;
+  }
+
+  // 1. Try to use the real Gemini AI API
+  try {
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (apiKey) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: "user",
+            parts: [{ 
+              text: `You are the GlobCom AI Assistant, an internal ERP guide for GlobCom International FZE.
+              The user you are speaking to is named ${userName}.
+              Keep responses concise, helpful, and professional. Do not use complex markdown, just basic bolding/bullet points.
+              
+              Domain Knowledge:
+              - SCO: Soft Corporate Offer (non-binding initial offer).
+              - FCO: Full Corporate Offer (legally binding, requires approved KYC).
+              - KYC: Requires Passport, Trade License, Proof of Funds (POF), Bank Reference Letter (BRL). Only Admins can approve KYC.
+              
+              User's Message: ${message}` 
+            }]
+          }]
+        })
+      });
+
+      const result = await response.json();
+      if (response.ok && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+         return result.candidates[0].content.parts[0].text;
+      }
+    }
+  } catch(e) {
+    console.error("Gemini Chat API Error:", e);
+    // Suppress error and fall through to the local rules engine
+  }
+
+  // 2. FALLBACK: Local Rules Engine (If API fails or is missing)
+  await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate thinking
+
+  const prompt = message.toLowerCase();
+
+  if (prompt.includes("sco") || prompt.includes("soft corporate offer")) {
+    return `An **SCO (Soft Corporate Offer)** is a preliminary, non-binding document outlining the initial terms of supply.\n\n**How to draft one:**\n1. Open a Client profile in the CRM or go to the Trading board.\n2. Click the "Generate Official Proposal" button.\n3. Select "SCO" from the document type dropdown.`;
+  }
+  
+  if (prompt.includes("fco") || prompt.includes("full corporate offer")) {
+    return `An **FCO (Full Corporate Offer)** is a legally binding document issued after preliminary negotiations are complete.\n\nMake sure the client has an 'Approved' KYC Status before issuing an FCO to ensure compliance!`;
+  }
+
+  if (prompt.includes("kyc") || prompt.includes("compliance")) {
+    return `**KYC (Know Your Customer) Requirements:**\nTo clear a corporate client, you must upload:\n- Signatory Passport\n- Official Trade License\n- Proof of Funds (POF)\n- Bank Reference Letter (BRL)\n\n*Note: Only users with the ADMIN role can change a client's status from PENDING to VERIFIED.*`;
+  }
+
+  if (prompt.includes("role") || prompt.includes("access") || prompt.includes("admin")) {
+    return `**GlobCom Access Tiers:**\n- **Admin:** Supreme control. Can edit anyone's access, change global branding, and force-approve KYC.\n- **Management:** High-level oversight. Can manage standard users, but cannot edit Admin profiles.\n- **Trading Rep:** Standard Account Executive. Manages clients, demands, and deals.`;
+  }
+
+  if (prompt.includes("hello") || prompt.includes("hi") || prompt.includes("hey")) {
+    return `Hello ${userName}! I am your GlobCom AI Assistant. I can help you understand the dashboard, guide you on how to draft contracts, or explain compliance rules. What do you need help with?`;
+  }
+
+  return `I am currently operating on my local fallback network and didn't quite catch that. \n\nI can answer questions about **SCOs, FCOs, KYC Compliance, and User Roles**.`;
 }

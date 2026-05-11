@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // ⚡ FIXED: Removed the 'url' line that Prisma 7 now rejects
 }
 
 // ==============================
@@ -85,6 +85,7 @@ model User {
   demands         Demand[]
   supplies        Supply[]
   messages        Message[]
+  teamMessages    TeamMessage[]  // ⚡ THE FIX: Tells Prisma a user can have many team messages
   auditLogs       AuditLog[]
   notifications   Notification[]
   
@@ -320,4 +321,17 @@ model SystemSettings {
   companyName     String   @default("GlobCom International FZE")
   companyLogoUrl  String?  // Global sidebar logo
   updatedAt       DateTime @updatedAt
+}
+
+// ==============================
+// 6. GLOBAL TEAM CHAT
+// ==============================
+model TeamMessage {
+  id          String   @id @default(cuid())
+  content     String
+  
+  senderId    String
+  sender      User     @relation(fields: [senderId], references: [id])
+
+  createdAt   DateTime @default(now())
 }
