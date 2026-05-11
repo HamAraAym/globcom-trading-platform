@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ==============================
@@ -112,9 +113,13 @@ model Client {
   registrationNo  String?    
   website         String?
   
-  kycStatus       KycStatus  @default(PENDING)
-  tradeLicenseUrl String?    
-  passportUrl     String?    
+  // ⚡ EXPANDED KYC DOCUMENT SYSTEM
+  kycStatus         KycStatus  @default(PENDING)
+  tradeLicenseUrl   String?    
+  passportUrl       String?    
+  proofOfFundsUrl   String?    // NEW: Proof of Funds (POF)
+  bankReferenceUrl  String?    // NEW: Bank Reference Letter (BRL)
+  companyProfileUrl String?    // NEW: Official Company Profile/Deck
 
   assignedRepId   String?
   assignedRep     User?      @relation(fields: [assignedRepId], references: [id])
@@ -255,45 +260,45 @@ model Supply {
 // 3. COLLABORATION ENGINE
 // ==============================
 model ChatRoom {
-  id            String    @id @default(cuid())
+  id          String    @id @default(cuid())
   
-  demandId      String?   @unique
-  demand        Demand?   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  demandId    String?   @unique
+  demand      Demand?   @relation(fields: [demandId], references: [id], onDelete: Cascade)
   
-  supplyId      String?   @unique
-  supply        Supply?   @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+  supplyId    String?   @unique
+  supply      Supply?   @relation(fields: [supplyId], references: [id], onDelete: Cascade)
 
-  messages      Message[]
-  createdAt     DateTime  @default(now())
+  messages    Message[]
+  createdAt   DateTime  @default(now())
 }
 
 model Message {
-  id            String   @id @default(cuid())
-  content       String
-  attachments   String[] 
-  mentions      String[] 
+  id          String   @id @default(cuid())
+  content     String
+  attachments String[] 
+  mentions    String[] 
 
-  senderId      String
-  sender        User     @relation(fields: [senderId], references: [id])
+  senderId    String
+  sender      User     @relation(fields: [senderId], references: [id])
 
-  chatRoomId    String
-  chatRoom      ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoomId  String
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 
-  createdAt     DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 // ==============================
 // 4. GOVERNANCE & AUDIT
 // ==============================
 model AuditLog {
-  id            String   @id @default(cuid())
-  action        String   
-  details       String   
+  id          String   @id @default(cuid())
+  action      String   
+  details     String   
   
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
 
-  createdAt     DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model Notification {
