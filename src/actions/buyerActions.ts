@@ -29,19 +29,14 @@ export async function createBuyer(formData: FormData) {
   const addressParts = [area, city, country].filter(Boolean);
   const address = addressParts.length > 0 ? addressParts.join(", ") : null;
 
+  // File URL Variables
   let tradeLicenseUrl = null;
   let passportUrl = null;
+  let proofOfFundsUrl = null;
+  let bankReferenceUrl = null;
+  let companyProfileUrl = null;
 
-  if (type === "CORPORATE") {
-    const tradeLicenseFile = formData.get("tradeLicense") as File | null;
-    if (tradeLicenseFile && tradeLicenseFile.size > 0 && tradeLicenseFile.name !== 'undefined') {
-      const timestamp = Date.now();
-      const cleanFileName = tradeLicenseFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
-      const blob = await put(`kyc/${timestamp}-${cleanFileName}`, tradeLicenseFile, { access: 'public' });
-      tradeLicenseUrl = blob.url;
-    }
-  }
-
+  // 1. Process Passport (For Both Types)
   const passportFile = formData.get("passport") as File | null;
   if (passportFile && passportFile.size > 0 && passportFile.name !== 'undefined') {
     const timestamp = Date.now();
@@ -50,10 +45,53 @@ export async function createBuyer(formData: FormData) {
     passportUrl = blob.url;
   }
 
+  // 2. Process Proof of Funds (POF)
+  const pofFile = formData.get("proofOfFunds") as File | null;
+  if (pofFile && pofFile.size > 0 && pofFile.name !== 'undefined') {
+    const timestamp = Date.now();
+    const cleanFileName = pofFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`kyc/${timestamp}-${cleanFileName}`, pofFile, { access: 'public' });
+    proofOfFundsUrl = blob.url;
+  }
+
+  // 3. Process Bank Reference Letter (BRL)
+  const brlFile = formData.get("bankReference") as File | null;
+  if (brlFile && brlFile.size > 0 && brlFile.name !== 'undefined') {
+    const timestamp = Date.now();
+    const cleanFileName = brlFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const blob = await put(`kyc/${timestamp}-${cleanFileName}`, brlFile, { access: 'public' });
+    bankReferenceUrl = blob.url;
+  }
+
+  // 4. Process Corporate-Specific Documents
+  if (type === "CORPORATE") {
+    const tradeLicenseFile = formData.get("tradeLicense") as File | null;
+    if (tradeLicenseFile && tradeLicenseFile.size > 0 && tradeLicenseFile.name !== 'undefined') {
+      const timestamp = Date.now();
+      const cleanFileName = tradeLicenseFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+      const blob = await put(`kyc/${timestamp}-${cleanFileName}`, tradeLicenseFile, { access: 'public' });
+      tradeLicenseUrl = blob.url;
+    }
+
+    const profileFile = formData.get("companyProfile") as File | null;
+    if (profileFile && profileFile.size > 0 && profileFile.name !== 'undefined') {
+      const timestamp = Date.now();
+      const cleanFileName = profileFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+      const blob = await put(`kyc/${timestamp}-${cleanFileName}`, profileFile, { access: 'public' });
+      companyProfileUrl = blob.url;
+    }
+  }
+
+  // Save to Database
   const newClient = await prisma.client.create({
     data: {
       type, name, company, email, phone, address, country,
-      registrationNo, website, tradeLicenseUrl, passportUrl,
+      registrationNo, website, 
+      tradeLicenseUrl, 
+      passportUrl,
+      proofOfFundsUrl,    // NEW
+      bankReferenceUrl,   // NEW
+      companyProfileUrl,  // NEW
       kycStatus: "PENDING", 
     }
   });
