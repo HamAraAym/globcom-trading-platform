@@ -19,6 +19,7 @@ async function main() {
   console.log('🧹 Sweeping old test data...');
   
   // Note: We delete in this specific order to respect foreign key constraints
+  await prisma.teamMessage.deleteMany(); // ⚡ Added TeamMessage cleanup
   await prisma.message.deleteMany();
   await prisma.chatRoom.deleteMany();
   await prisma.document.deleteMany();
@@ -32,8 +33,8 @@ async function main() {
   await prisma.supply.deleteMany();
   await prisma.client.deleteMany();
 
-  // (Optional: Wipe all users except the ones we are about to upsert)
-  // await prisma.user.deleteMany(); 
+  // Wipe all users to ensure a perfectly clean slate for the production accounts
+  await prisma.user.deleteMany(); 
 
   console.log('✨ Database is clean!');
 
@@ -59,7 +60,7 @@ async function main() {
 
   // The Master Admin
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@globcom.com' }, // Feel free to change to your actual email
+    where: { email: 'admin@globcom.com' }, 
     update: { password: adminPassword, role: 'ADMIN' },
     create: {
       firstName: 'Harjot',
