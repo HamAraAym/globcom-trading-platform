@@ -57,6 +57,8 @@
         - page.tsx
     - crm
       - [clientId]
+        - edit
+          - page.tsx
         - page.tsx
     - demands
       - page.tsx
