@@ -62,8 +62,8 @@ async function main() {
     where: { email: 'admin@globcom.com' }, // Feel free to change to your actual email
     update: { password: adminPassword, role: 'ADMIN' },
     create: {
-      firstName: 'David',
-      lastName: 'Chen',
+      firstName: 'Harjot',
+      lastName: 'Singh',
       email: 'admin@globcom.com',
       password: adminPassword,
       role: 'ADMIN',
@@ -71,25 +71,25 @@ async function main() {
   });
 
   // The Trading Team
-  const sarah = await prisma.user.upsert({
-    where: { email: 'sarah@globcom.com' },
+  const maneesh = await prisma.user.upsert({
+    where: { email: 'maneesh@globcom.com' },
     update: { password: repPassword, role: 'TRADING_REP' },
     create: {
-      firstName: 'Sarah',
-      lastName: 'Jenkins',
-      email: 'sarah@globcom.com',
+      firstName: 'Maneesh',
+      lastName: 'Gupta',
+      email: 'maneesh@globcom.com',
       password: repPassword,
       role: 'TRADING_REP',
     },
   });
 
-  const mike = await prisma.user.upsert({
-    where: { email: 'mike@globcom.com' },
+  const hamid = await prisma.user.upsert({
+    where: { email: 'hamid@globcom.com' },
     update: { password: repPassword, role: 'BUYER_REP' },
     create: {
-      firstName: 'Mike',
-      lastName: 'Ross',
-      email: 'mike@globcom.com',
+      firstName: 'Hamid',
+      lastName: 'Ibrahim',
+      email: 'hamid@globcom.com',
       password: repPassword,
       role: 'BUYER_REP',
     },
@@ -100,8 +100,8 @@ async function main() {
   console.log('=========================================');
   console.log('You can now log in with the following accounts:');
   console.log(`🛡️  Admin: ${admin.email} | Pass: Admin@123`);
-  console.log(`📈 Trader: ${sarah.email} | Pass: Rep@123`);
-  console.log(`🤝 Buyer:  ${mike.email}  | Pass: Rep@123`);
+  console.log(`📈 Trader: ${maneesh.email} | Pass: Rep@123`);
+  console.log(`🤝 Buyer:  ${hamid.email}  | Pass: Rep@123`);
   console.log('=========================================\n');
 }
 
