@@ -59,6 +59,21 @@ export default function ClientModal() {
 
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          
+          {/* ⚡ GOOGLE PLACES Z-INDEX FIX ⚡ */}
+          <style>{`
+            .pac-container {
+              z-index: 10000 !important;
+              border-radius: 0.75rem;
+              margin-top: 4px;
+              box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+              border: 1px solid #e2e8f0;
+              font-family: inherit;
+            }
+            .pac-item { padding: 8px 12px; cursor: pointer; }
+            .pac-item:hover { background-color: #f8fafc; }
+          `}</style>
+
           {/* NATIVE MOBILE UPGRADE: Bottom Sheet on Mobile, Centered Modal on Desktop */}
           <div className="bg-white w-full max-w-4xl h-[92vh] sm:h-auto sm:max-h-[95vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
             
