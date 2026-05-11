@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
-import { FileEdit, X, Loader2, Download, FileText, CheckCircle2, User } from "lucide-react";
+import { FileEdit, X, Loader2, Download, FileText, CheckCircle2, User, Send, DownloadCloud } from "lucide-react";
 import { saveGeneratedDocument } from "@/actions/documentActions";
+import { dispatchToClient } from "@/actions/emailActions"; 
 import { DocumentType } from "@prisma/client";
 
 // Dynamically import React Quill for rich text editing without SSR issues
@@ -14,7 +15,7 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
 interface DocumentGeneratorProps {
-  clients: { id: string; name: string; company: string | null }[]; 
+  clients: { id: string; name: string; company: string | null; email?: string }[]; 
   contextItem?: any; 
   defaultDocType?: DocumentType;
   buttonStyle?: string;
@@ -30,9 +31,12 @@ export default function DocumentGenerator({
 }: DocumentGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [success, setSuccess] = useState(false);
   
+  // Track which action is currently loading
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isEmailing, setIsEmailing] = useState(false);
+  
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [docType, setDocType] = useState<DocumentType>(defaultDocType);
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
   const [content, setContent] = useState<string>("");
@@ -181,69 +185,110 @@ export default function DocumentGenerator({
     setContent(htmlTemplate);
   }, [isOpen, docType, selectedClientId, contextItem, activeClient]);
 
-  const handleGeneratePdf = async () => {
-    setIsGenerating(true);
+  // Core PDF Generation Logic
+  const generatePdfBlob = async () => {
+    const html2pdf = (await import("html2pdf.js")).default;
+    const element = document.createElement("div");
+    element.innerHTML = content;
+    
+    if (userLetterhead) {
+      element.style.backgroundImage = `url('${userLetterhead}')`;
+      element.style.backgroundSize = "8.5in 11in"; 
+      element.style.backgroundRepeat = "repeat-y"; 
+      element.style.backgroundPosition = "top center";
+      element.style.padding = "1.8in 1in 1.5in 1in"; 
+      element.style.minHeight = "11in";
+    } else {
+      element.style.padding = "1in"; 
+    }
+    
+    const opt: any = {
+      margin:       0, 
+      filename:     `${docType}_${(activeClient?.company || "Client").replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true,
+        onclone: (clonedDoc: any) => {
+          const styles = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
+          styles.forEach((s: any) => s.remove());
+        }
+      },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+    return { blob: pdfBlob, filename: opt.filename };
+  };
+
+  // ACTION 1: Download Only
+  const handleDownloadOnly = async () => {
+    setIsDownloading(true);
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
-      
-      const element = document.createElement("div");
-      element.innerHTML = content;
-      
-      if (userLetterhead) {
-        element.style.backgroundImage = `url('${userLetterhead}')`;
-        element.style.backgroundSize = "8.5in 11in"; 
-        element.style.backgroundRepeat = "repeat-y"; 
-        element.style.backgroundPosition = "top center";
-        element.style.padding = "1.8in 1in 1.5in 1in"; 
-        element.style.minHeight = "11in";
-      } else {
-        element.style.padding = "1in"; 
-      }
-      
-      const opt: any = {
-        margin:       0, 
-        filename:     `${docType}_${(activeClient?.company || "Client").replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { 
-          scale: 2, 
-          useCORS: true,
-          onclone: (clonedDoc: any) => {
-            const styles = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
-            styles.forEach((s: any) => s.remove());
-          }
-        },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
+      const { blob, filename } = await generatePdfBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to generate PDF download.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
-      const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-      const pdfFile = new File([pdfBlob], opt.filename, { type: "application/pdf" });
+  // ACTION 2: Save & Email Directly
+  const handleSaveAndEmail = async () => {
+    if (!contextItem?.id) return alert("You must be inside an active deal context to email a proposal directly.");
+    
+    setIsEmailing(true);
+    try {
+      const { blob, filename } = await generatePdfBlob();
+      const pdfFile = new File([blob], filename, { type: "application/pdf" });
 
-      const formData = new FormData();
-      formData.append("clientId", activeClient.id);
-      formData.append("title", `${docType} - ${contextItem?.title || "Commodity"}`);
-      formData.append("type", docType);
-      formData.append("pdf", pdfFile);
-      
-      if (contextItem?.id) {
-        if (contextItem.price !== undefined) formData.append("supplyId", contextItem.id);
-        else formData.append("demandId", contextItem.id);
-      }
+      // 1. Upload & Save to Database
+      const saveFormData = new FormData();
+      saveFormData.append("clientId", activeClient.id);
+      saveFormData.append("title", `${docType} - ${contextItem?.title || "Commodity"}`);
+      saveFormData.append("type", docType);
+      saveFormData.append("pdf", pdfFile);
+      if (contextItem.price !== undefined) saveFormData.append("supplyId", contextItem.id);
+      else saveFormData.append("demandId", contextItem.id);
 
-      await saveGeneratedDocument(formData);
+      const saveRes = await saveGeneratedDocument(saveFormData);
+
+      // 2. Dispatch the Email with the returned Vercel Blob URL
+      const emailFormData = new FormData();
+      emailFormData.append("buyerId", activeClient.id);
+      emailFormData.append("contextId", contextItem.id);
+      emailFormData.append("contextType", contextItem.price !== undefined ? "SUPPLY" : "DEMAND");
+      emailFormData.append("title", `${docType} - ${contextItem.title}`);
+      emailFormData.append("dispatchType", docType);
+      emailFormData.append("customMessage", `Please find attached our official ${docType} regarding ${contextItem.title}.`);
+      emailFormData.append("attachedDocs", JSON.stringify([saveRes.document.fileUrl])); 
+
+      await dispatchToClient(emailFormData);
       
-      setSuccess(true);
+      setSuccessMsg(`Document saved and emailed to ${activeClient.company || activeClient.name}!`);
       setTimeout(() => {
         setIsOpen(false);
-        setSuccess(false);
-      }, 2000);
+        setSuccessMsg(null);
+      }, 3000);
 
     } catch (error) {
       console.error(error);
-      alert("Failed to generate or save the document.");
+      alert("Failed to save and email the document.");
     } finally {
-      setIsGenerating(false);
+      setIsEmailing(false);
     }
   };
+
+  const isWorking = isDownloading || isEmailing;
 
   const modalContent = isOpen && mounted ? createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-sm">
@@ -255,16 +300,16 @@ export default function DocumentGenerator({
             <div className="bg-blue-600 p-2 rounded-lg shadow-sm border border-blue-500"><FileText size={20} /></div>
             <h2 className="text-lg font-bold tracking-wide">Live Contract Editor</h2>
           </div>
-          <button onClick={() => setIsOpen(false)} disabled={isGenerating} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full disabled:opacity-50">
+          <button onClick={() => setIsOpen(false)} disabled={isWorking} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full disabled:opacity-50">
             <X size={20} />
           </button>
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col relative">
-          {success ? (
+          {successMsg ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-50 text-green-600 z-50">
               <CheckCircle2 size={64} className="mb-4 animate-bounce drop-shadow-sm" />
-              <h2 className="text-2xl font-black">Document Generated & Saved!</h2>
+              <h2 className="text-2xl font-black text-center">{successMsg}</h2>
               <p className="text-sm font-bold text-green-700/70 mt-2">Added to CRM Activity Timeline.</p>
             </div>
           ) : (
@@ -297,7 +342,7 @@ export default function DocumentGenerator({
                   </select>
                 </div>
 
-                <p className="text-xs font-medium text-slate-400 ml-auto flex items-center gap-2">
+                <p className="text-xs font-medium text-slate-400 ml-auto flex items-center gap-2 hidden sm:flex">
                   <FileEdit size={14} className="text-blue-600"/> Modify text below before exporting
                 </p>
               </div>
@@ -345,17 +390,30 @@ export default function DocumentGenerator({
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-end items-center shrink-0 z-20">
-          <div className="flex gap-3">
-            <button onClick={() => setIsOpen(false)} disabled={isGenerating} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
-              Cancel
-            </button>
+        {/* ⚡ NEW: Dual-Action Footer */}
+        <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-between items-center shrink-0 z-20">
+          <button onClick={() => setIsOpen(false)} disabled={isWorking} className="px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
+            Cancel
+          </button>
+          
+          <div className="flex items-center gap-3">
             <button 
-              onClick={handleGeneratePdf} 
-              disabled={isGenerating || success} 
-              className="flex items-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-800/20 transition-all"
+              onClick={handleDownloadOnly} 
+              disabled={isWorking || !!successMsg} 
+              className="flex items-center gap-2 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-800 px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
             >
-              {isGenerating ? <><Loader2 size={18} className="animate-spin" /> Generating PDF...</> : <><Download size={18} /> Lock & Export to CRM</>}
+              {isDownloading ? <Loader2 size={18} className="animate-spin" /> : <DownloadCloud size={18} />}
+              Download PDF
+            </button>
+
+            <button 
+              onClick={handleSaveAndEmail} 
+              disabled={isWorking || !!successMsg || !contextItem?.id} 
+              title={!contextItem?.id ? "Emailing requires an active deal context" : "Generates PDF, saves to CRM, and emails Client"}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-green-600/20 transition-all disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none"
+            >
+              {isEmailing ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              Save & Email
             </button>
           </div>
         </div>
