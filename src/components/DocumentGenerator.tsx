@@ -110,47 +110,44 @@ export default function DocumentGenerator({
   const generatePdfBlob = async () => {
     const html2pdf = (await import("html2pdf.js")).default;
     
-    // Create an isolated container to prevent Tailwind's 'oklch' CSS from crashing html2canvas
+    // Create an isolated, pixel-perfect A4/Letter container
     const element = document.createElement("div");
     
-    // Inject a strict style reset so it only uses basic hex colors
+    // We wrap the content in a div that exactly matches an 8.5" x 11" paper at 96 DPI
     element.innerHTML = `
-      <style>
-        * { 
-          border-color: transparent !important; 
-          background-color: transparent !important;
-        }
-      </style>
-      ${content}
+      <div style="
+        width: 816px; 
+        min-height: 1056px; 
+        padding: ${userLetterhead ? '1.8in 1in 1.5in 1in' : '1in'}; 
+        background-color: white;
+        background-image: ${userLetterhead ? `url('${userLetterhead}')` : 'none'};
+        background-size: 100% 100%; 
+        background-repeat: no-repeat;
+        background-position: top center;
+        box-sizing: border-box;
+        color: #000000;
+        font-family: 'Times New Roman', Times, serif;
+      ">
+        ${content}
+      </div>
     `;
-    
-    // Force standard CSS values to override Tailwind's root variables
-    element.style.color = "#000000";
-    element.style.backgroundColor = "#ffffff";
-    element.style.fontFamily = "'Times New Roman', Times, serif";
-    element.style.all = "initial"; // Blocks inherited variables
-    
-    if (userLetterhead) {
-      element.style.backgroundImage = `url('${userLetterhead}')`;
-      element.style.backgroundSize = "8.5in 11in"; 
-      element.style.backgroundRepeat = "repeat-y"; 
-      element.style.backgroundPosition = "top center";
-      element.style.padding = "1.8in 1in 1.5in 1in"; 
-      element.style.minHeight = "11in";
-    } else {
-      element.style.padding = "1in"; 
-    }
     
     const opt: any = {
       margin: 0, 
       filename: `${docType}_${(activeClient?.company || "Client").replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg', quality: 1 },
       html2canvas: { 
         scale: 2, 
         useCORS: true,
-        logging: false, // Turn off console spam
-        // Ignore elements that might have complex Tailwind classes
-        ignoreElements: (node: Element) => node.tagName.toLowerCase() === 'style' || node.tagName.toLowerCase() === 'link'
+        logging: false,
+        // FORCE the canvas to render at exact paper width, regardless of the user's screen size
+        width: 816,
+        windowWidth: 816,
+        // THE MAGIC FIX: Strips out Tailwind CSS from the clone so 'oklch' doesn't crash it
+        onclone: (clonedDoc: any) => {
+          const styles = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
+          styles.forEach((s: any) => s.remove());
+        }
       },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
