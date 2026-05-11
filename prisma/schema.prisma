@@ -329,6 +329,7 @@ model SystemSettings {
 model TeamMessage {
   id          String   @id @default(cuid())
   content     String
+  attachments String[] // ⚡ NEW: Array to hold Vercel Blob URLs
   
   senderId    String
   sender      User     @relation(fields: [senderId], references: [id])

@@ -23,11 +23,12 @@ export default async function TeamChatPage() {
   const initialMessages = await getTeamMessages();
 
   return (
-    <main className="lg:pl-72 flex-1 w-full relative h-screen overflow-hidden">
+    // ⚡ FIX: Removed lg:pl-72. Used height calc to fill the remaining space inside your PageWrapper perfectly!
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-73px)] w-full flex flex-col bg-slate-50">
       <TeamChatUI 
         initialMessages={initialMessages} 
         currentUserId={user.id} 
       />
-    </main>
+    </div>
   );
 }
