@@ -99,20 +99,30 @@ model User {
   createdAt       DateTime     @default(now())
 }
 
+// ⚡ NEW: SECURE INVITATION SYSTEM
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role     
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+}
+
 model Client {
-  id              String     @id @default(cuid())
-  type            ClientType @default(CORPORATE) 
+  id                String     @id @default(cuid())
+  type              ClientType @default(CORPORATE) 
   
-  name            String     
-  email           String     @unique
-  phone           String?
-  address         String?
-  country         String?    
-  notes           String?
+  name              String     
+  email             String     @unique
+  phone             String?
+  address           String?
+  country           String?    
+  notes             String?
   
-  company         String?    
-  registrationNo  String?    
-  website         String?
+  company           String?    
+  registrationNo    String?    
+  website           String?
   
   // ⚡ EXPANDED KYC DOCUMENT SYSTEM
   kycStatus         KycStatus  @default(PENDING)
@@ -122,15 +132,15 @@ model Client {
   bankReferenceUrl  String?    // NEW: Bank Reference Letter (BRL)
   companyProfileUrl String?    // NEW: Official Company Profile/Deck
 
-  assignedRepId   String?
-  assignedRep     User?      @relation(fields: [assignedRepId], references: [id])
+  assignedRepId     String?
+  assignedRep       User?      @relation(fields: [assignedRepId], references: [id])
 
-  activities      ClientActivity[]
-  tasks           Task[]
-  documents       Document[]
+  activities        ClientActivity[]
+  tasks             Task[]
+  documents         Document[]
 
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
 
 model ClientActivity {
@@ -261,16 +271,16 @@ model Supply {
 // 3. COLLABORATION ENGINE
 // ==============================
 model ChatRoom {
-  id          String    @id @default(cuid())
+  id        String    @id @default(cuid())
   
-  demandId    String?   @unique
-  demand      Demand?   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  demandId  String?   @unique
+  demand    Demand?   @relation(fields: [demandId], references: [id], onDelete: Cascade)
   
-  supplyId    String?   @unique
-  supply      Supply?   @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+  supplyId  String?   @unique
+  supply    Supply?   @relation(fields: [supplyId], references: [id], onDelete: Cascade)
 
-  messages    Message[]
-  createdAt   DateTime  @default(now())
+  messages  Message[]
+  createdAt DateTime  @default(now())
 }
 
 model Message {
@@ -292,14 +302,14 @@ model Message {
 // 4. GOVERNANCE & AUDIT
 // ==============================
 model AuditLog {
-  id          String   @id @default(cuid())
-  action      String   
-  details     String   
+  id        String   @id @default(cuid())
+  action    String   
+  details   String   
   
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Notification {
@@ -317,10 +327,10 @@ model Notification {
 // 5. SYSTEM CONFIGURATION
 // ==============================
 model SystemSettings {
-  id              String   @id @default("global") // Enforce a single row
-  companyName     String   @default("GlobCom International FZE")
-  companyLogoUrl  String?  // Global sidebar logo
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default("global") // Enforce a single row
+  companyName    String   @default("GlobCom International FZE")
+  companyLogoUrl String?  // Global sidebar logo
+  updatedAt      DateTime @updatedAt
 }
 
 // ==============================

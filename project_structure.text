@@ -41,6 +41,7 @@
     - notificationActions.ts
     - searchActions.ts
     - supplyActions.ts
+    - teamChatActions.ts
     - uploadActions.ts
     - userActions.ts
   - app
@@ -76,6 +77,9 @@
       - page.tsx
     - supplies
       - page.tsx
+    - team-chat
+      - TeamChatUI.tsx
+      - page.tsx
     - trading
       - page.tsx
     - users
@@ -92,6 +96,7 @@
     - DocumentGenerator.tsx
     - EmailDispatcher.tsx
     - ExportButton.tsx
+    - GlobalAIAssistant.tsx
     - KycStatusUpdater.tsx
     - LocationAutocomplete.tsx
     - MatchingEngine.tsx
