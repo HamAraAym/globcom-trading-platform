@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Users, ShieldAlert, UserPlus } from "lucide-react";
+import { Users, ShieldAlert } from "lucide-react";
 import UserManagementTable from "./UserManagementTable";
 
 export default async function UsersPage() {
@@ -36,9 +36,7 @@ export default async function UsersPage() {
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">User Management</h1>
           <p className="text-xs md:text-sm text-slate-500 mt-1 md:mt-2">Manage employee permissions, deal desk access, and account status.</p>
         </div>
-        <button className="flex items-center justify-center gap-2 bg-blue-800 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-900 shadow-lg shadow-blue-800/20 transition-all w-full sm:w-auto shrink-0">
-          <UserPlus size={18} /> Invite User
-        </button>
+        {/* ⚡ THE DUPLICATE BUTTON HAS BEEN REMOVED FROM HERE */}
       </div>
 
       <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0">

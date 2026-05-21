@@ -4,9 +4,11 @@ import { acceptInvitation } from "@/actions/userActions";
 export default async function AcceptInvitePage({
   searchParams,
 }: {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>; // ⚡ FIX 1: Type it as a Promise
 }) {
-  const token = searchParams.token;
+  // ⚡ FIX 2: Await the searchParams before reading the token
+  const resolvedParams = await searchParams;
+  const token = resolvedParams.token;
 
   // 1. If there's no token in the URL, block them
   if (!token) {
@@ -50,7 +52,6 @@ export default async function AcceptInvitePage({
         </div>
 
         <form action={acceptInvitation} className="flex flex-col gap-4">
-          {/* Hidden input to pass the token to the server action */}
           <input type="hidden" name="token" value={token} />
           
           <div className="flex gap-4">
