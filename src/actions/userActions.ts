@@ -10,6 +10,7 @@ import InviteEmail from "@/emails/InviteEmail";
 import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
+import { render } from "@react-email/components"; // ⚡ IMPORT RENDER FIX
 
 // Initialize Resend for emails
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -64,42 +65,44 @@ export async function updateUserProfile(formData: FormData) {
 // ==========================================
 export async function sendUserInvite(email: string, role: Role) {
   try {
-    // Basic auth check to ensure only logged-in users trigger this
     const session = await getServerSession();
     if (!session?.user?.email) return { success: false, error: "Unauthorized" };
 
-    // Check if the user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) return { success: false, error: "User already exists." };
 
-    // Generate a secure token
     const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 1000 * 60 * 60 * 48); // Expires in 48 hours
+    const expires = new Date(Date.now() + 1000 * 60 * 60 * 48); 
 
-    // Save token to database
     await prisma.invitation.upsert({
       where: { email },
       update: { token, role, expires },
       create: { email, role, token, expires },
     });
 
-    // Construct the Magic Link
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"; 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.harjot.ae"; 
     const inviteLink = `${baseUrl}/accept-invite?token=${token}`;
 
-    // Send the Email
-    await resend.emails.send({
+    // ⚡ FIX: Render the React component to an HTML string FIRST
+    const htmlContent = await render(InviteEmail({ inviteLink, role }));
+
+    const { data, error: resendError } = await resend.emails.send({
       from: "GlobCom Admin <admin@harjot.ae>", 
       to: email,
       subject: "Invitation to join GlobCom ERP",
-      react: InviteEmail({ inviteLink, role }),
+      html: htmlContent, // ⚡ FIX: Pass the HTML string instead of the React component
     });
 
-    revalidatePath("/users"); // Refresh the users page to show pending invites if you add a table for it
+    if (resendError) {
+      console.error("Resend API Error:", resendError);
+      return { success: false, error: resendError.message }; 
+    }
+
+    revalidatePath("/users"); 
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Invite Error:", error);
-    return { success: false, error: "Failed to send invite." };
+    return { success: false, error: error?.message || "Critical system failure." };
   }
 }
 
