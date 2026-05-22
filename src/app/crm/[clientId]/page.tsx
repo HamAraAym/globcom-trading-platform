@@ -7,7 +7,7 @@ import {
   Building, Mail, Phone, MapPin, ShieldCheck, Clock, ShieldAlert, 
   Briefcase, Activity, FileText, CheckCircle2, ChevronLeft, Plus, FileEdit,
   User, FileBadge, Globe, ExternalLink, Trash2, Edit, Send, Download,
-  Package, ArrowRight
+  Package, ArrowRight, Landmark, FileSpreadsheet
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
 import KycStatusUpdater from "@/components/KycStatusUpdater"; 
@@ -92,7 +92,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           <ChevronLeft size={16} /> Back to Master Database
         </Link>
         
-        {/* HERO CARD: Styled to match the screenshot's dark header UI */}
+        {/* HERO CARD */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
           
           {/* Dark Structural Header */}
@@ -211,24 +211,49 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          {/* Compliance Vault Card */}
+          {/* ⚡ EXPANDED: Compliance Vault Card */}
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2 shrink-0">
-               <ShieldCheck className="text-green-600" size={16} />
-               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Compliance Vault</h3>
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+               <div className="flex items-center gap-2">
+                 <ShieldCheck className="text-green-600" size={16} />
+                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Compliance Vault</h3>
+               </div>
+               <Link href={`/crm/${clientId}/edit`} className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase tracking-widest">
+                  Upload <Plus size={12}/>
+               </Link>
             </div>
             <div className="p-6 space-y-3">
-              {client.type === "CORPORATE" && (
-                <a href={client.tradeLicenseUrl || "#"} target={client.tradeLicenseUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
-                  <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><FileText size={16}/> Trade License</span>
-                  {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
-                </a>
-              )}
-
+              
+              {/* Global KYC Docs */}
               <a href={client.passportUrl || "#"} target={client.passportUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.passportUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
-                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><FileText size={16}/> Signatory ID / Passport</span>
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.passportUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><User size={16}/> Signatory Passport</span>
                 {client.passportUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
               </a>
+
+              <a href={client.proofOfFundsUrl || "#"} target={client.proofOfFundsUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.proofOfFundsUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.proofOfFundsUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><Landmark size={16}/> Proof of Funds (POF)</span>
+                {client.proofOfFundsUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
+              </a>
+
+              <a href={client.bankReferenceUrl || "#"} target={client.bankReferenceUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.bankReferenceUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
+                <span className={`text-sm font-bold flex items-center gap-2 ${client.bankReferenceUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><FileSpreadsheet size={16}/> Bank Reference Letter</span>
+                {client.bankReferenceUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
+              </a>
+
+              {/* Corporate Specific KYC Docs */}
+              {client.type === "CORPORATE" && (
+                <>
+                  <a href={client.tradeLicenseUrl || "#"} target={client.tradeLicenseUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.tradeLicenseUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
+                    <span className={`text-sm font-bold flex items-center gap-2 ${client.tradeLicenseUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><FileText size={16}/> Trade License</span>
+                    {client.tradeLicenseUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
+                  </a>
+
+                  <a href={client.companyProfileUrl || "#"} target={client.companyProfileUrl ? "_blank" : "_self"} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left group ${client.companyProfileUrl ? 'border-green-200 bg-green-50/50 hover:border-green-400' : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50'}`}>
+                    <span className={`text-sm font-bold flex items-center gap-2 ${client.companyProfileUrl ? 'text-green-800' : 'text-slate-600 group-hover:text-blue-800'}`}><Briefcase size={16}/> Company Profile / Deck</span>
+                    {client.companyProfileUrl ? <ExternalLink size={16} className="text-green-600" /> : <Plus size={16} className="text-slate-400 group-hover:text-blue-600" />}
+                  </a>
+                </>
+              )}
             </div>
           </div>
 

@@ -215,13 +215,43 @@ export async function updateBuyer(formData: FormData) {
   const website = formData.get("website") as string | null;
   const registrationNo = formData.get("registrationNo") as string | null;
 
+  // ⚡ NEW: Handle Optional File Uploads on Edit
+  const updateData: any = { name, company, email, phone, address, website, registrationNo };
+
+  const processFile = async (fieldName: string) => {
+    const file = formData.get(fieldName) as File | null;
+    if (file && file.size > 0 && file.name !== 'undefined') {
+      const timestamp = Date.now();
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+      const blob = await put(`kyc/${timestamp}-${cleanFileName}`, file, { access: 'public' });
+      return blob.url;
+    }
+    return null;
+  };
+
+  const passportUrl = await processFile("passport");
+  if (passportUrl) updateData.passportUrl = passportUrl;
+
+  const proofOfFundsUrl = await processFile("proofOfFunds");
+  if (proofOfFundsUrl) updateData.proofOfFundsUrl = proofOfFundsUrl;
+
+  const bankReferenceUrl = await processFile("bankReference");
+  if (bankReferenceUrl) updateData.bankReferenceUrl = bankReferenceUrl;
+
+  const tradeLicenseUrl = await processFile("tradeLicense");
+  if (tradeLicenseUrl) updateData.tradeLicenseUrl = tradeLicenseUrl;
+
+  const companyProfileUrl = await processFile("companyProfile");
+  if (companyProfileUrl) updateData.companyProfileUrl = companyProfileUrl;
+
+  // Save to Database
   await prisma.client.update({
     where: { id },
-    data: { name, company, email, phone, address, website, registrationNo }
+    data: updateData
   });
 
   await prisma.auditLog.create({
-    data: { action: "UPDATED_CLIENT", details: `Updated profile for client: ${company || name}`, userId: user.id }
+    data: { action: "UPDATED_CLIENT", details: `Updated profile & documents for client: ${company || name}`, userId: user.id }
   });
 
   revalidatePath(`/crm/${id}`);
