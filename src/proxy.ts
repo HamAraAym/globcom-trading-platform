@@ -10,10 +10,13 @@ export async function proxy(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET 
   });
 
-  const isLoginPage = req.nextUrl.pathname.startsWith("/login");
-  const isPublicPage = req.nextUrl.pathname.startsWith("/proposal");
+  const pathname = req.nextUrl.pathname;
+  const isLoginPage = pathname.startsWith("/login");
+  
+  // ⚡ FIX: Add accept-invite to the public pages list alongside proposals!
+  const isPublicPage = pathname.startsWith("/proposal") || pathname.startsWith("/accept-invite");
 
-  // 1. If the user is NOT logged in and trying to access a secure page (not login, not proposal), bounce them to login
+  // 1. If the user is NOT logged in and trying to access a secure page (not login, not proposal, not invite), bounce them to login
   if (!token && !isLoginPage && !isPublicPage) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
@@ -29,5 +32,6 @@ export async function proxy(req: NextRequest) {
 
 // Keep the matcher to ignore static files and API routes
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Added image extensions just to ensure static assets aren't accidentally blocked
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
