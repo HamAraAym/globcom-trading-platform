@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Shield, UserCheck, UserX, Settings2, Check, X, Loader2, MailPlus, Send, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toggleUserStatus, updateUserPermissions } from "@/actions/adminActions";
-import { sendUserInvite } from "@/actions/userActions"; // ⚡ IMPORT NEW ACTION
+import { sendUserInvite } from "@/actions/userActions"; 
 
 interface UserManagementTableProps {
   users: any[];
-  currentUserRole: string; // Passed down from the server to enforce UI locks
+  currentUserRole: string; 
 }
 
 export default function UserManagementTable({ users, currentUserRole }: UserManagementTableProps) {
@@ -56,19 +56,24 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
     }
   };
 
+  // 🔐 GLOBAL UI LOCK: Only true if the logged-in user is an ADMIN
+  const canEdit = currentUserRole === "ADMIN";
+
   return (
     <>
       <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl shadow-sm overflow-hidden flex flex-col h-full relative">
         
-        {/* ⚡ HEADER WITH INVITE BUTTON */}
+        {/* HEADER WITH INVITE BUTTON */}
         <div className="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center bg-white z-10">
           <div>
             <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Team Directory</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Manage access, permissions, and roles.</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {canEdit ? "Manage access, permissions, and roles." : "View team members and access levels."}
+            </p>
           </div>
           
           {/* Only Admins can invite new users */}
-          {currentUserRole === "ADMIN" && (
+          {canEdit && (
             <button 
               onClick={() => setIsInviteOpen(true)}
               className="bg-black text-white px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-sm active:scale-95"
@@ -95,11 +100,6 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs md:text-sm bg-white">
               {users.map((user) => {
-                
-                // 🔐 HIERARCHY LOGIC: Admins edit anyone. Management edits ONLY non-Admins/non-Management.
-                const isTargetSuperior = user.role === "ADMIN" || user.role === "MANAGEMENT";
-                const canEdit = currentUserRole === "ADMIN" ? true : (currentUserRole === "MANAGEMENT" && !isTargetSuperior);
-
                 return (
                   <tr key={user.id} className={`transition-colors group ${user.isActive ? "hover:bg-blue-50/30" : "bg-rose-50/30 opacity-70"}`}>
                     <td className="p-3 md:p-4">
@@ -123,13 +123,13 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                     {["canAddDeals", "canEditDeals", "canNegotiate"].map((field) => (
                       <td key={field} className="p-3 md:p-4 text-center">
                         <button 
-                          disabled={!!loadingId || !canEdit || user.role === "ADMIN"} // Admins always have all perms, cannot be toggled off
+                          disabled={!!loadingId || !canEdit || user.role === "ADMIN"} 
                           onClick={() => handleTogglePermission(user.id, field, user[field])}
                           className={`p-1.5 rounded-lg transition-all ${
                             user[field] 
-                              ? "text-green-600 bg-green-50 hover:bg-green-100 border border-green-200" 
-                              : "text-slate-400 bg-slate-100 hover:bg-slate-200 border border-transparent"
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                              ? "text-green-600 bg-green-50 border border-green-200" 
+                              : "text-slate-400 bg-slate-100 border border-transparent"
+                          } ${canEdit && user.role !== "ADMIN" ? "hover:scale-110 cursor-pointer" : "cursor-default opacity-80"} disabled:cursor-default`}
                         >
                           {loadingId === user.id + field ? <Loader2 size={16} className="animate-spin" /> : (user[field] ? <Check size={16} /> : <X size={16} />)}
                         </button>
@@ -144,7 +144,8 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                     </td>
 
                     <td className="p-3 md:p-4 text-right">
-                      {user.role !== "ADMIN" && canEdit && (
+                      {/* If the current user is an ADMIN and target is not ADMIN */}
+                      {canEdit && user.role !== "ADMIN" ? (
                         <button 
                           onClick={() => handleToggleStatus(user.id, user.isActive)}
                           className={`text-[10px] md:text-xs font-bold px-2.5 md:px-3 py-1.5 rounded-lg border transition-all ${
@@ -155,10 +156,12 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                         >
                           {user.isActive ? "Suspend Access" : "Restore Access"}
                         </button>
-                      )}
-                      {!canEdit && user.role !== "ADMIN" && (
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Locked</span>
-                      )}
+                      ) : !canEdit ? (
+                        // If the current user is MANAGEMENT (or lower), show a read-only badge
+                        <span className="text-[10px] flex items-center justify-end gap-1 font-bold text-slate-400 uppercase tracking-widest">
+                          <Shield size={12} /> Read Only
+                        </span>
+                      ) : null}
                     </td>
                   </tr>
                 );
@@ -168,7 +171,7 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
         </div>
       </div>
 
-      {/* ⚡ INVITE MODAL OVERLAY */}
+      {/* INVITE MODAL OVERLAY */}
       {isInviteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
