@@ -87,8 +87,8 @@ export async function sendUserInvite(email: string, role: Role) {
     const htmlContent = await render(InviteEmail({ inviteLink, role }));
 
     const { data, error: resendError } = await resend.emails.send({
-      // from: "GlobCom Admin <admin@harjot.ae>", 
-      from: "onboarding@resend.dev",
+      from: "GlobCom Admin <admin@harjot.ae>", 
+      // from: "onboarding@resend.dev",
       to: email,
       subject: "Invitation to join GlobCom ERP",
       html: htmlContent, // ⚡ FIX: Pass the HTML string instead of the React component
