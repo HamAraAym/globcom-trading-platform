@@ -45,6 +45,8 @@
     - uploadActions.ts
     - userActions.ts
   - app
+    - accept-invite
+      - page.tsx
     - api
       - auth
         - [...nextauth]
@@ -112,6 +114,7 @@
     - TopBar.tsx
     - ViewDealModal.tsx
   - emails
+    - InviteEmail.tsx
     - OfficialProposalEmail.tsx
   - lib
     - prisma.ts

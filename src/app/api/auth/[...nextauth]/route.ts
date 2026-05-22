@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma"; // Import the Prisma client
+import { prisma } from "@/lib/prisma"; 
 import bcrypt from "bcryptjs";
 
 const handler = NextAuth({
@@ -23,6 +23,11 @@ const handler = NextAuth({
 
         if (!user) {
           throw new Error("User not found");
+        }
+
+        // ⚡ SECURITY FIX: Check if the account is suspended BEFORE verifying password
+        if (!user.isActive) {
+          throw new Error("Your account has been suspended. Please contact management.");
         }
 
         // 2. Verify the password
@@ -60,7 +65,7 @@ const handler = NextAuth({
     }
   },
   pages: {
-    signIn: '/login', // We will build this custom login page next
+    signIn: '/login', // Custom login page
   },
   session: {
     strategy: "jwt",
