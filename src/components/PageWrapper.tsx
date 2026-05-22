@@ -8,10 +8,14 @@ import CommandPalette from "@/components/CommandPalette";
 
 export default function PageWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  
+  // ⚡ FIX: Add accept-invite to our public page checks
   const isLogin = pathname === "/login";
+  const isAcceptInvite = pathname?.startsWith("/accept-invite");
 
-  // 1. LOGIN SCREEN: Completely clean, full width, no navigation components
-  if (isLogin) {
+  // 1. PUBLIC SCREENS: Completely clean, full width, no navigation components
+  // If they are on the login page OR accepting an invite, don't load the Sidebar/TopBar
+  if (isLogin || isAcceptInvite) {
     return (
       <main className="w-full min-h-screen flex flex-col bg-slate-50">
         {children}
@@ -38,11 +42,7 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
         {/* TOP BAR: Header & Notifications */}
         <TopBar />
         
-        {/* SCROLLABLE CONTENT AREA: 
-            pb-24 adds padding at the bottom of the phone so the MobileNav doesn't block content.
-            lg:pb-0 removes that padding on desktop.
-            FIX: Removed 'relative z-0' so modals can freely render over the TopBar.
-        */}
+        {/* SCROLLABLE CONTENT AREA */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 lg:pb-0">
           {children}
         </div>
