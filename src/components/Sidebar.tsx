@@ -36,16 +36,17 @@ export default function Sidebar() {
 
   const userRole = (session?.user as any)?.role || "GUEST";
 
+  // ⚡ FIX: Added "MANAGEMENT" to all the allowedRoles arrays so executives have full oversight!
   const navLinks = [
-    { name: "Command Center", href: "/", icon: LayoutDashboard, section: "Overview", allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
-    { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, section: "Operations", allowedRoles: ["ADMIN", "TRADING_REP"] },
-    { name: "Demand Board", href: "/demands", icon: FileBox, section: "Operations", allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP"] },
-    { name: "Supply Inventory", href: "/supplies", icon: Box, section: "Operations", allowedRoles: ["ADMIN", "TRADING_REP", "SUPPLIER_REP"] },
-    { name: "Team Chat", href: "/team-chat", icon: MessageSquare, section: "Collaboration", allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
-    { name: "Client CRM", href: "/buyers", icon: Users, section: "Relations", allowedRoles: ["ADMIN"] },
-    { name: "Team & Access", href: "/users", icon: UserCog, section: "Administration", allowedRoles: ["ADMIN"] },
-    { name: "Audit & Compliance", href: "/audit", icon: ShieldCheck, section: "Administration", allowedRoles: ["ADMIN"] },
-    { name: "System Settings", href: "/settings", icon: Settings, section: "Administration", allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
+    { name: "Command Center", href: "/", icon: LayoutDashboard, section: "Overview", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
+    { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP"] },
+    { name: "Demand Board", href: "/demands", icon: FileBox, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP"] },
+    { name: "Supply Inventory", href: "/supplies", icon: Box, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "SUPPLIER_REP"] },
+    { name: "Team Chat", href: "/team-chat", icon: MessageSquare, section: "Collaboration", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
+    { name: "Client CRM", href: "/buyers", icon: Users, section: "Relations", allowedRoles: ["ADMIN", "MANAGEMENT"] },
+    { name: "Team & Access", href: "/users", icon: UserCog, section: "Administration", allowedRoles: ["ADMIN", "MANAGEMENT"] },
+    { name: "Audit & Compliance", href: "/audit", icon: ShieldCheck, section: "Administration", allowedRoles: ["ADMIN", "MANAGEMENT"] },
+    { name: "System Settings", href: "/settings", icon: Settings, section: "Administration", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
   ];
 
   const visibleLinks = navLinks.filter(link => link.allowedRoles.includes(userRole));
