@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import MobileNav from "@/components/MobileNav";
 import CommandPalette from "@/components/CommandPalette";
+import GlobalAIAssistant from "@/components/GlobalAIAssistant";
 
 export default function PageWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,7 +15,7 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
   const isAcceptInvite = pathname?.startsWith("/accept-invite");
 
   // 1. PUBLIC SCREENS: Completely clean, full width, no navigation components
-  // If they are on the login page OR accepting an invite, don't load the Sidebar/TopBar
+  // If they are on the login page OR accepting an invite, don't load the Sidebar/TopBar/AI
   if (isLogin || isAcceptInvite) {
     return (
       <main className="w-full min-h-screen flex flex-col bg-slate-50">
@@ -29,6 +30,9 @@ export default function PageWrapper({ children }: { children: React.ReactNode })
       
       {/* GLOBAL SEARCH ENGINE: Always mounted, waiting for Cmd+K */}
       <CommandPalette />
+
+      {/* ⚡ GLOBCOM AI: Globally injected floating assistant (Safe to mount here) */}
+      <GlobalAIAssistant />
 
       {/* DESKTOP SIDEBAR: Hidden on mobile screens */}
       <div className="hidden lg:block z-40">

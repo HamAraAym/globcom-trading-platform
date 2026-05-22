@@ -7,7 +7,6 @@ import "./globals.css";
 
 import { Providers } from "@/components/Providers";
 import PageWrapper from "@/components/PageWrapper";
-import GlobalAIAssistant from "@/components/GlobalAIAssistant"; // NEW: Import the Assistant
 
 // Using Inter for clean, professional, high-density readability
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -67,10 +66,6 @@ export default function RootLayout({
           <PageWrapper>
             {children}
           </PageWrapper>
-          
-          {/* GLOBCOM AI: Globally injected floating assistant */}
-          <GlobalAIAssistant />
-          
         </Providers>
       </body>
     </html>
