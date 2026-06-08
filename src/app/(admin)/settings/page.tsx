@@ -22,7 +22,7 @@ export default async function SettingsPage() {
       lastName: true,
       email: true,
       role: true,
-      letterheadUrl: true,
+      // ⚡ FIX: Removed letterheadUrl since it now lives in SystemSettings
     }
   });
 
@@ -31,7 +31,7 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  // ⚡ 3. Strict Security Lock: Only Admin & Management can access Global Settings
+  // 3. Strict Security Lock: Only Admin & Management can access Global Settings
   if (user.role !== "ADMIN" && user.role !== "MANAGEMENT") {
     redirect("/"); // Safely bounce unauthorized personnel back to the Global Hub
   }
