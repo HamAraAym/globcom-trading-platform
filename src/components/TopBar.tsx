@@ -53,8 +53,11 @@ export default function TopBar() {
   };
 
   return (
-    // FIX: Lowered root z-index from z-40 to z-20 so modals can render over it
-    <div className="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 shrink-0">
+    // ⚡ FIX: Dynamically scales mobile layout height and structural padding to offset the native iOS notch
+    <div 
+      className="h-[calc(4rem+env(safe-area-inset-top))] lg:h-[calc(5rem+env(safe-area-inset-top))] px-4 lg:px-8 flex items-center justify-between lg:justify-end bg-slate-50/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 shrink-0 w-full"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
       
       {/* MOBILE LOGO */}
       <div className="flex items-center gap-2 lg:hidden">
