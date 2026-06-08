@@ -21,15 +21,26 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
   const [inviteMsg, setInviteMsg] = useState("");
 
   const handleToggleStatus = async (id: string, current: boolean) => {
-    setLoadingId(id);
-    await toggleUserStatus(id, current);
-    setLoadingId(null);
+    try {
+      setLoadingId(id);
+      await toggleUserStatus(id, current);
+    } catch (error: any) {
+      alert("Failed to update status. Database might be out of sync.");
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   const handleTogglePermission = async (id: string, field: string, current: boolean) => {
-    setLoadingId(id + field);
-    await updateUserPermissions(id, { [field]: !current });
-    setLoadingId(null);
+    try {
+      setLoadingId(id + field);
+      await updateUserPermissions(id, { [field]: !current });
+    } catch (error: any) {
+      console.error(error);
+      alert(`Failed to update ${field}. Did you push the latest database schema to production?`);
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   // --- INVITATION HANDLER ---
@@ -43,7 +54,6 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
     if (res.success) {
       setInviteStatus("success");
       setInviteMsg("Invitation sent successfully!");
-      // Auto-close modal after 2 seconds on success
       setTimeout(() => {
         setIsInviteOpen(false);
         setInviteStatus("idle");
@@ -56,7 +66,6 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
     }
   };
 
-  // 🔐 GLOBAL UI LOCK: Only true if the logged-in user is an ADMIN
   const canEdit = currentUserRole === "ADMIN";
 
   return (
@@ -72,7 +81,6 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
             </p>
           </div>
           
-          {/* Only Admins can invite new users */}
           {canEdit && (
             <button 
               onClick={() => setIsInviteOpen(true)}
@@ -95,7 +103,7 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                 <th className="p-3 md:p-4 font-black text-center border-l border-slate-200">Add Deals</th>
                 <th className="p-3 md:p-4 font-black text-center">Edit Deals</th>
                 <th className="p-3 md:p-4 font-black text-center">Negotiate</th>
-                {/* ⚡ NEW: Task Permissions */}
+                {/* Task Permissions */}
                 <th className="p-3 md:p-4 font-black text-center border-l border-slate-200">Create Tasks</th>
                 <th className="p-3 md:p-4 font-black text-center">Edit Tasks</th>
                 <th className="p-3 md:p-4 font-black text-center text-rose-600">Delete Tasks</th>
@@ -135,14 +143,14 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                             user[field] 
                               ? "text-green-600 bg-green-50 border border-green-200" 
                               : "text-slate-400 bg-slate-100 border border-transparent"
-                          } ${canEdit && user.role !== "ADMIN" ? "hover:scale-110 cursor-pointer" : "cursor-default opacity-80"} disabled:cursor-default`}
+                          } ${canEdit && user.role !== "ADMIN" ? "hover:scale-110 cursor-pointer" : "cursor-default opacity-50"} disabled:cursor-default`}
                         >
                           {loadingId === user.id + field ? <Loader2 size={16} className="animate-spin" /> : (user[field] ? <Check size={16} /> : <X size={16} />)}
                         </button>
                       </td>
                     ))}
 
-                    {/* ⚡ NEW: Task Permission Toggles */}
+                    {/* Task Permission Toggles */}
                     {["canCreateTasks", "canEditTasks", "canDeleteTasks"].map((field, i) => {
                       const isDestructive = field === "canDeleteTasks";
                       return (
@@ -154,7 +162,7 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                               user[field] 
                                 ? (isDestructive ? "text-rose-600 bg-rose-50 border border-rose-200" : "text-green-600 bg-green-50 border border-green-200")
                                 : "text-slate-400 bg-slate-100 border border-transparent"
-                            } ${canEdit && user.role !== "ADMIN" ? "hover:scale-110 cursor-pointer" : "cursor-default opacity-80"} disabled:cursor-default`}
+                            } ${canEdit && user.role !== "ADMIN" ? "hover:scale-110 cursor-pointer" : "cursor-default opacity-50"} disabled:cursor-default`}
                           >
                             {loadingId === user.id + field ? <Loader2 size={16} className="animate-spin" /> : (user[field] ? <Check size={16} /> : <X size={16} />)}
                           </button>
@@ -170,7 +178,6 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                     </td>
 
                     <td className="p-3 md:p-4 text-right">
-                      {/* If the current user is an ADMIN and target is not ADMIN */}
                       {canEdit && user.role !== "ADMIN" ? (
                         <button 
                           onClick={() => handleToggleStatus(user.id, user.isActive)}
@@ -183,7 +190,6 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                           {user.isActive ? "Suspend Access" : "Restore Access"}
                         </button>
                       ) : !canEdit ? (
-                        // If the current user is MANAGEMENT (or lower), show a read-only badge
                         <span className="text-[10px] flex items-center justify-end gap-1 font-bold text-slate-400 uppercase tracking-widest">
                           <Shield size={12} /> Read Only
                         </span>
