@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendMessage } from "@/actions/messageActions";
 import { getServerSession } from "next-auth";
+import { getGlobalSettings } from "@/actions/adminActions"; // ⚡ Imported Global Settings
 import { 
   MessageSquare, AlertCircle, Info, 
   MapPin, Calendar, CircleDollarSign, Scale, FileBox, Package,
@@ -18,22 +19,24 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
   const resolvedParams = await params;
   const chatId = resolvedParams.chatId;
 
-  // 1. Secure Role & Enterprise Branding Check
+  // 1. Secure Role Check
   let userRole = "GUEST";
-  let userLetterhead: string | null = null;
   
   if (session?.user?.email) {
     const dbUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { role: true, letterheadUrl: true }
+      select: { role: true } // ⚡ Removed deprecated letterheadUrl
     });
     if (dbUser) {
       userRole = dbUser.role;
-      userLetterhead = dbUser.letterheadUrl;
     }
   }
 
-  // 2. Fetch Room, Users, and Clients
+  // ⚡ 2. Fetch the Global Enterprise Letterhead
+  const systemSettings = await getGlobalSettings();
+  const userLetterhead = systemSettings?.letterheadUrl || null;
+
+  // 3. Fetch Room, Users, and Clients
   const [room, internalUsers, clients] = await Promise.all([
     prisma.chatRoom.findUnique({
       where: { id: chatId },
@@ -71,7 +74,7 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ chatI
   const isDemand = !!room.demand;
   const typeLabel = isDemand ? "DEMAND" : "SUPPLY";
   
-  // NEW: Hardcoded GlobCom Theming
+  // Hardcoded GlobCom Theming
   const themeColor = isDemand ? "blue" : "green";
   const ThemeIcon = isDemand ? FileBox : Package;
 
