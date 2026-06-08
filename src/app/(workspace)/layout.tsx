@@ -19,10 +19,15 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
     : null;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-slate-50">
+    // ⚡ FIX 1: Upgraded h-screen to h-[100dvh] so the Kanban board doesn't get cut off by mobile browser toolbars
+    <div className="flex flex-col md:flex-row h-[100dvh] overflow-hidden bg-slate-50">
       
       {/* 📱 Mobile Top Bar (Only visible on phones) */}
-      <div className="md:hidden flex-shrink-0 bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800 z-50">
+      <div 
+        // ⚡ FIX 2: Applied safe-area inset to push the custom dark header below the Dynamic Island
+        className="md:hidden flex-shrink-0 bg-slate-950 text-white px-4 pb-4 flex items-center justify-between border-b border-slate-800 z-50"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
+      >
         <Link href="/" className="flex items-center gap-3 group">
           {brandLogo ? (
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex items-center justify-center border border-slate-700 shadow-md">
@@ -46,6 +51,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
         
         <div className="flex items-center gap-1">
           <NotificationBell variant="dark" />
+          {/* Note: This menu button is currently static. We can wire it to open a mobile sidebar next if you want! */}
           <button className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-1">
             <Menu className="w-5 h-5 text-slate-300" />
           </button>
