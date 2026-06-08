@@ -19,7 +19,14 @@ export default async function PersonalProfilePage() {
   if (!user) redirect("/login");
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-12">
+    <div 
+      // ⚡ FIX: Added safe-area padding to push content below the Dynamic Island
+      className="min-h-screen bg-slate-50 px-4 md:px-12"
+      style={{ 
+        paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)'
+      }}
+    >
       <div className="max-w-3xl mx-auto">
         
         {/* Navigation & Header */}
@@ -35,7 +42,7 @@ export default async function PersonalProfilePage() {
           </div>
           <Link 
             href="/"
-            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-sm font-bold transition-all border border-slate-200 shadow-sm shrink-0"
+            className="flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-sm font-bold transition-all border border-slate-200 shadow-sm shrink-0"
           >
             <LayoutDashboard size={16} /> Back to Hub
           </Link>
@@ -46,17 +53,17 @@ export default async function PersonalProfilePage() {
           <div className="p-6 md:p-8 space-y-8">
             
             {/* Read-Only Identity Block */}
-            <div className="flex items-center gap-6 pb-8 border-b border-slate-100">
-              <div className="w-20 h-20 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-3xl shadow-inner border border-blue-200">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6 pb-8 border-b border-slate-100">
+              <div className="w-20 h-20 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-3xl shadow-inner border border-blue-200 shrink-0">
                 {user.firstName[0]}{user.lastName[0]}
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900">{user.firstName} {user.lastName}</h2>
-                <div className="flex items-center gap-4 mt-2">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
                   <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                    <Mail size={14} className="text-slate-400" /> {user.email}
+                    <Mail size={14} className="text-slate-400 shrink-0" /> <span className="truncate">{user.email}</span>
                   </span>
-                  <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
+                  <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 shrink-0">
                     <Shield size={12} /> {user.role.replace(/_/g, " ")}
                   </span>
                 </div>
