@@ -29,11 +29,17 @@ export const metadata: Metadata = {
   },
 };
 
+// ⚡ FIX: Added viewportFit: "cover" and userScalable: false to stretch into the iPhone Notch
 export const viewport: Viewport = {
-  themeColor: "#0f172a", 
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+  ],
 };
 
 export default function RootLayout({
