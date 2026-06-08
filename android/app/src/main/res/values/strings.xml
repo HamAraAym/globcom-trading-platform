@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GlobCom</string>
+    <string name="title_activity_main">GlobCom</string>
+    <string name="package_name">com.globcom.erp</string>
+    <string name="custom_url_scheme">com.globcom.erp</string>
+</resources>

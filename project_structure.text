@@ -80,10 +80,11 @@
           - edit
             - page.tsx
           - page.tsx
+      - dashboard
+        - page.tsx
       - demands
         - page.tsx
       - layout.tsx
-      - page.tsx
       - supplies
         - page.tsx
       - team-chat
@@ -152,9 +153,11 @@
       - TaskCard.tsx
       - TaskModal.tsx
       - WorkspaceSidebar.tsx
+  - email
   - emails
     - InviteEmail.tsx
     - OfficialProposalEmail.tsx
+    - SystemAlertEmail.tsx
   - lib
     - prisma.ts
   - proxy.ts
