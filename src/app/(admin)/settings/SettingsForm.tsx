@@ -89,8 +89,8 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
   };
 
   return (
-    <div className="w-full flex flex-col h-full">
-      {/* Dark Enterprise Header */}
+    <div className="w-full flex flex-col h-full min-h-0">
+      {/* Dark Enterprise Header (Pinned to top) */}
       <div className="bg-slate-900 px-6 md:px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-3 text-white">
           <Globe size={24} className="text-blue-400 shrink-0" />
@@ -101,7 +101,8 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
         </div>
       </div>
 
-      <form ref={formRef} onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8 flex-1">
+      {/* ⚡ FIX: overflow-y-auto allows the form inside the card to scroll independently! */}
+      <form ref={formRef} onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar pb-12">
         {/* Enterprise Name Field */}
         <div>
           <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-2">
@@ -192,7 +193,7 @@ export default function SettingsForm({ user, systemSettings }: SettingsFormProps
           <button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-8 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-800/20 transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-900 disabled:bg-blue-400 text-white px-8 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-800/20 transition-all shrink-0"
           >
             {isSubmitting ? (
               <><Loader2 size={18} className="animate-spin" /> Publishing Brand...</>
