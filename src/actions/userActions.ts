@@ -10,7 +10,7 @@ import InviteEmail from "@/emails/InviteEmail";
 import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
-import { render } from "@react-email/components"; // ⚡ IMPORT RENDER FIX
+import { render } from "@react-email/components"; 
 
 // Initialize Resend for emails
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -30,29 +30,39 @@ export async function updateUserProfile(formData: FormData) {
   const letterhead = formData.get("letterhead") as File | null;
   const removeLetterhead = formData.get("removeLetterhead") === "true"; 
 
-  let letterheadUrl = user.letterheadUrl; 
-
+  // ⚡ FIX: Process letterhead globally for Admins
   if (user.role === "ADMIN") {
+    let newLetterheadUrl: string | null | undefined = undefined;
+
     if (removeLetterhead) {
-      letterheadUrl = null;
+      newLetterheadUrl = null;
     } else if (letterhead && letterhead.size > 0 && letterhead.name !== "undefined") {
       if (letterhead.size > 5242880) throw new Error("Image exceeds 5MB limit."); 
       
       const timestamp = Date.now();
       const cleanFileName = letterhead.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
-      const blob = await put(`users/${timestamp}-${cleanFileName}`, letterhead, {
+      const blob = await put(`settings/${timestamp}-${cleanFileName}`, letterhead, {
         access: 'public',
       });
-      letterheadUrl = blob.url;
+      newLetterheadUrl = blob.url;
+    }
+
+    // Upsert into SystemSettings instead of the User model
+    if (newLetterheadUrl !== undefined) {
+      await prisma.systemSettings.upsert({
+        where: { id: "global" },
+        update: { letterheadUrl: newLetterheadUrl },
+        create: { id: "global", letterheadUrl: newLetterheadUrl },
+      });
     }
   }
 
+  // Update the basic user info without the letterhead property
   await prisma.user.update({
     where: { id: user.id },
     data: {
       firstName,
       lastName,
-      ...(user.role === "ADMIN" && { letterheadUrl })
     }
   });
 
@@ -83,15 +93,13 @@ export async function sendUserInvite(email: string, role: Role) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.harjot.ae"; 
     const inviteLink = `${baseUrl}/accept-invite?token=${token}`;
 
-    // ⚡ FIX: Render the React component to an HTML string FIRST
     const htmlContent = await render(InviteEmail({ inviteLink, role }));
 
     const { data, error: resendError } = await resend.emails.send({
       from: "GlobCom Admin <admin@harjot.ae>", 
-      // from: "onboarding@resend.dev",
       to: email,
       subject: "Invitation to join GlobCom ERP",
-      html: htmlContent, // ⚡ FIX: Pass the HTML string instead of the React component
+      html: htmlContent, 
     });
 
     if (resendError) {
@@ -143,6 +151,6 @@ export async function acceptInvitation(formData: FormData) {
   // Delete the used invitation so it can't be reused
   await prisma.invitation.delete({ where: { id: invitation.id } });
 
-  // Send them to the login page!
+  // Send them to the login page
   redirect("/login?registered=true");
 }
