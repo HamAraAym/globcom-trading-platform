@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // ⚡ FIXED: Removed the 'url' line that Prisma 7 now rejects
 }
 
 // ==============================
@@ -40,10 +39,19 @@ enum KycStatus {
   REJECTED
 }
 
+// ⚡ Kanban-style columns
 enum TaskStatus {
-  PENDING
+  TODO
   IN_PROGRESS
-  COMPLETED
+  IN_REVIEW
+  DONE
+}
+
+enum TaskType {
+  TASK
+  MEETING
+  ISSUE
+  FEATURE
 }
 
 enum DocumentType {
@@ -71,35 +79,40 @@ model User {
   role            Role         @default(BUYER_REP)
   
   // Enterprise User Management & Permissions
-  isActive        Boolean      @default(true) // Admins can toggle to suspend accounts
-  canAddDeals     Boolean      @default(true) // Restrict who can post to the board
-  canEditDeals    Boolean      @default(true) // Restrict who can modify existing deals
-  canNegotiate    Boolean      @default(true) // Restrict access to Deal Desk Chat Rooms
+  isActive        Boolean      @default(true) 
+  canAddDeals     Boolean      @default(true) 
+  canEditDeals    Boolean      @default(true) 
+  canNegotiate    Boolean      @default(true) 
 
   onlineStatus    OnlineStatus @default(OFFLINE)
   lastSeen        DateTime     @default(now())
   
-  letterheadUrl   String?      // Vercel Blob URL for official document header
-
   // Relations
   demands         Demand[]
   supplies        Supply[]
   messages        Message[]
-  teamMessages    TeamMessage[]  // ⚡ THE FIX: Tells Prisma a user can have many team messages
+  teamMessages    TeamMessage[]  
   auditLogs       AuditLog[]
   notifications   Notification[]
   
   // CRM Relations
   assignedClients Client[]         
   clientActivities ClientActivity[] 
-  tasks           Task[]           
+  
+  // Many-to-Many Task Assignments
+  assignedTasks   Task[]       @relation("TaskAssignees")
+  createdTasks    Task[]       @relation("TaskCreator")
+
+  // ⚡ NEW: Task Management Enhancements
+  taskComments    TaskComment[]
+  taskAttachments TaskAttachment[]
+
   documents       Document[]       
 
   lastActive      DateTime     @default(now())
   createdAt       DateTime     @default(now())
 }
 
-// ⚡ NEW: SECURE INVITATION SYSTEM
 model Invitation {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -124,13 +137,12 @@ model Client {
   registrationNo    String?    
   website           String?
   
-  // ⚡ EXPANDED KYC DOCUMENT SYSTEM
   kycStatus         KycStatus  @default(PENDING)
   tradeLicenseUrl   String?    
   passportUrl       String?    
-  proofOfFundsUrl   String?    // NEW: Proof of Funds (POF)
-  bankReferenceUrl  String?    // NEW: Bank Reference Letter (BRL)
-  companyProfileUrl String?    // NEW: Official Company Profile/Deck
+  proofOfFundsUrl   String?    
+  bankReferenceUrl  String?    
+  companyProfileUrl String?    
 
   assignedRepId     String?
   assignedRep       User?      @relation(fields: [assignedRepId], references: [id])
@@ -157,21 +169,80 @@ model ClientActivity {
   createdAt   DateTime @default(now())
 }
 
+// ⚡ COMPLETELY REWRITTEN: Jira-Style Task Model
 model Task {
-  id           String     @id @default(cuid())
-  title        String
-  description  String?
-  dueDate      DateTime
-  status       TaskStatus @default(PENDING)
+  id             String     @id @default(cuid())
+  title          String
+  description    String?
+  dueDate        DateTime?  
+  priority       String     @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status         TaskStatus @default(TODO)
+  type           TaskType   @default(TASK)
   
-  clientId     String
-  client       Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  // Jira-style Time Tracking & Tags
+  estimatedHours Float?
+  actualHours    Float      @default(0)
+  tags           String[]
   
-  assignedToId String
-  assignedTo   User       @relation(fields: [assignedToId], references: [id])
+  // Optional Link to CRM (If it's a client task)
+  clientId       String?
+  client         Client?    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  // Multiple Users can be assigned to one ticket
+  assignees      User[]     @relation("TaskAssignees")
+  
+  // Audit Trail
+  creatorId      String
+  createdBy      User       @relation("TaskCreator", fields: [creatorId], references: [id])
+
+  // ⚡ NEW: Advanced Task Features
+  comments       TaskComment[]
+  subtasks       Subtask[]
+  attachments    TaskAttachment[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+// ⚡ NEW: Subtasks for Checklists
+model Subtask {
+  id        String   @id @default(cuid())
+  title     String
+  isDone    Boolean  @default(false)
+  
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
+
+// ⚡ NEW: Comments & Activity Feed
+model TaskComment {
+  id        String   @id @default(cuid())
+  text      String
+  
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+// ⚡ NEW: File Attachments (KYC, PDFs, Screenshots)
+model TaskAttachment {
+  id           String   @id @default(cuid())
+  fileName     String
+  fileUrl      String
+  
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  
+  createdAt    DateTime @default(now())
 }
 
 model Document {
@@ -199,72 +270,72 @@ model Document {
 // 2. INTERNAL MARKETPLACE 
 // ==============================
 model Demand {
-  id            String     @id @default(cuid())
-  title         String
-  quantity      Float      
-  quantityUnit  String     @default("MT") 
-  tolerance     String?    
-  targetPrice   Float?     
-  timeline      String
+  id           String     @id @default(cuid())
+  title        String
+  quantity     Float      
+  quantityUnit String     @default("MT") 
+  tolerance    String?    
+  targetPrice  Float?     
+  timeline     String
   
-  origin        String?
-  destination   String?
-  incoterms     String?
-  paymentTerms  String?
-  inspection    String?
-  packaging     String?
-  insurance     String?    
-  loadPort      String?    
+  origin       String?
+  destination  String?
+  incoterms    String?
+  paymentTerms String?
+  inspection   String?
+  packaging    String?
+  insurance    String?    
+  loadPort     String?    
 
-  keyTerms      Json?      
+  keyTerms     Json?      
 
-  specs         String     
-  attachments   String[]   
-  status        DealStatus @default(ACTIVE)
+  specs        String     
+  attachments  String[]   
+  status       DealStatus @default(ACTIVE)
 
-  creatorId     String
-  createdBy     User       @relation(fields: [creatorId], references: [id])
+  creatorId    String
+  createdBy    User       @relation(fields: [creatorId], references: [id])
   
-  chatRoom      ChatRoom?  
-  documents     Document[] 
+  chatRoom     ChatRoom?  
+  documents    Document[] 
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Supply {
-  id            String     @id @default(cuid())
-  title         String
-  quantity      Float      
-  quantityUnit  String     @default("MT") 
-  tolerance     String?    
-  price         Float?     
-  location      String
+  id           String     @id @default(cuid())
+  title        String
+  quantity     Float      
+  quantityUnit String     @default("MT") 
+  tolerance    String?    
+  price        Float?     
+  location     String
   
-  origin        String?
-  destination   String?
-  incoterms     String?
-  paymentTerms  String?
-  inspection    String?
-  packaging     String?
-  insurance     String?    
-  loadPort      String?    
-  validityDate  DateTime?  
+  origin       String?
+  destination  String?
+  incoterms    String?
+  paymentTerms String?
+  inspection   String?
+  packaging    String?
+  insurance    String?    
+  loadPort     String?    
+  validityDate DateTime?  
 
-  keyTerms      Json?      
+  keyTerms     Json?      
 
-  specs         String
-  attachments   String[]   
-  status        DealStatus @default(ACTIVE)
+  specs        String
+  attachments  String[]   
+  status       DealStatus @default(ACTIVE)
 
-  creatorId     String
-  createdBy     User       @relation(fields: [creatorId], references: [id])
+  creatorId    String
+  createdBy    User       @relation(fields: [creatorId], references: [id])
 
-  chatRoom      ChatRoom?
-  documents     Document[] 
+  chatRoom     ChatRoom?
+  documents    Document[] 
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 // ==============================
@@ -327,10 +398,11 @@ model Notification {
 // 5. SYSTEM CONFIGURATION
 // ==============================
 model SystemSettings {
-  id             String   @id @default("global") // Enforce a single row
-  companyName    String   @default("GlobCom International FZE")
-  companyLogoUrl String?  // Global sidebar logo
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default("global")
+  companyName     String   @default("GlobCom International FZE")
+  companyLogoUrl  String?  
+  letterheadUrl   String?  
+  updatedAt       DateTime @updatedAt
 }
 
 // ==============================
@@ -339,7 +411,7 @@ model SystemSettings {
 model TeamMessage {
   id          String   @id @default(cuid())
   content     String
-  attachments String[] // ⚡ NEW: Array to hold Vercel Blob URLs
+  attachments String[] 
   
   senderId    String
   sender      User     @relation(fields: [senderId], references: [id])

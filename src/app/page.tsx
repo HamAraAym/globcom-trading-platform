@@ -1,204 +1,147 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { Activity, Box, FileBox, Globe, ShieldCheck, Users, CheckCircle2, BarChart3, Wallet } from "lucide-react";
 import Link from "next/link";
-import MatchingEngine from "@/components/MatchingEngine";
-import DashboardCharts from "@/components/DashboardCharts"; // Recharts integration
+import { getServerSession } from "next-auth";
+import { 
+  Briefcase, 
+  KanbanSquare, 
+  Users, 
+  ShieldAlert, 
+  Settings, 
+  Activity,
+  ArrowRight,
+} from "lucide-react";
+import GlobalUserMenu from "@/components/GlobalUserMenu";
+import { getGlobalSettings } from "@/actions/adminActions";
 
-export default async function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function GlobalHomePage() {
   const session = await getServerSession();
-  if (!session) redirect("/login");
 
-  // 1. Fetch all required data in parallel
-  const [demands, supplies, buyerCount, userCount, recentLogs, verifiedClientsCount] = await Promise.all([
-    prisma.demand.findMany(),
-    prisma.supply.findMany(),
-    prisma.client.count(),
-    prisma.user.count(),
-    prisma.auditLog.findMany({ 
-      take: 6, 
-      orderBy: { createdAt: "desc" },
-      include: { user: true }
-    }),
-    prisma.client.count({ where: { kycStatus: "VERIFIED" } })
-  ]);
+  // Fetch the global branding from the database
+  const systemSettings = await getGlobalSettings();
+  const brandName = systemSettings?.companyName || "GlobCom International";
+  const brandLogo = systemSettings?.companyLogoUrl;
 
-  // 2. Aggregate Financial Metrics & Pipeline Health
-  let pipelineValue = 0;
-  let closedValue = 0;
-  let closedCount = 0;
-  let activeDemandsCount = 0;
-  let activeSuppliesCount = 0;
-
-  demands.forEach(d => {
-    const val = d.quantity * (d.targetPrice || 0);
-    if (d.status === "CLOSED_WON") { closedValue += val; closedCount++; }
-    else if (d.status !== "CANCELLED" && d.status !== "CLOSED_LOST") { pipelineValue += val; activeDemandsCount++; }
-  });
-
-  supplies.forEach(s => {
-    const val = s.quantity * (s.price || 0);
-    if (s.status === "CLOSED_WON") { closedValue += val; closedCount++; }
-    else if (s.status !== "CANCELLED" && s.status !== "CLOSED_LOST") { pipelineValue += val; activeSuppliesCount++; }
-  });
-
-  const totalValue = pipelineValue + closedValue;
-  const closedPercentage = totalValue > 0 ? Math.round((closedValue / totalValue) * 100) : 0;
-
-  // Formatter for large currency values
-  const formatCurrency = (value: number) => {
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
-  };
-
-  // 3. Format Data for the Recharts Component
-  const chartData = {
-    volumeData: [
-      { name: "Active Demands", volume: activeDemandsCount },
-      { name: "Available Supply", volume: activeSuppliesCount },
-    ],
-    kycData: [
-      { name: "Verified & Approved", value: verifiedClientsCount },
-      { name: "Pending Compliance", value: buyerCount - verifiedClientsCount },
-    ]
-  };
+  const modules = [
+    {
+      name: "Trading Platform",
+      description: "Command Center, Demand/Supply Ledgers, and Matchmaking.",
+      href: "/trading",
+      icon: Briefcase,
+      color: "text-blue-600",
+      bg: "bg-blue-100",
+      border: "hover:border-blue-500",
+    },
+    {
+      name: "Task Management",
+      description: "Internal sprint tracking, multi-user assignments, and team ops.",
+      href: "/tasks", 
+      icon: KanbanSquare,
+      color: "text-indigo-600",
+      bg: "bg-indigo-100",
+      border: "hover:border-indigo-500",
+    },
+    {
+      name: "CRM Database",
+      description: "Client KYC verification, entity network, and relationship history.",
+      href: "/buyers",
+      icon: Users,
+      color: "text-emerald-600",
+      bg: "bg-emerald-100",
+      border: "hover:border-emerald-500",
+    },
+    {
+      name: "System Audit",
+      description: "Immutable logs of all platform actions and compliance tracking.",
+      href: "/audit",
+      icon: ShieldAlert,
+      color: "text-amber-600",
+      bg: "bg-amber-100",
+      border: "hover:border-amber-500",
+    },
+    {
+      name: "Team & Access",
+      description: "Admin panel for user roles, access control, and onboarding.",
+      href: "/users",
+      icon: Activity,
+      color: "text-purple-600",
+      bg: "bg-purple-100",
+      border: "hover:border-purple-500",
+    },
+    {
+      name: "System Settings",
+      description: "Global configurations, integrations, and company profile.",
+      href: "/settings",
+      icon: Settings,
+      color: "text-slate-600",
+      bg: "bg-slate-200",
+      border: "hover:border-slate-500",
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-3 md:p-6 lg:p-10 font-sans overflow-x-hidden">
-      <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-8">
+    <div className="min-h-screen bg-[#0B0F19] flex items-center justify-center p-6">
+      <div className="max-w-6xl w-full">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4">
+        {/* Hub Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-slate-800/50 pb-8">
           <div>
-            <h1 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight">Command Center</h1>
-            <p className="text-slate-500 mt-1 flex items-center gap-1.5 md:gap-2 font-medium text-xs md:text-sm">
-              <Globe size={14} className="text-blue-600 shrink-0 md:w-4 md:h-4" />
-              Global Commodity Trading Overview
-            </p>
-          </div>
-          <div className="bg-white px-4 md:px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm w-full md:w-auto">
-            <p className="text-xs md:text-sm font-bold text-slate-900 truncate">Welcome, {session.user?.name || session.user?.email}</p>
-            <p className="text-[9px] md:text-[10px] text-blue-800 font-black uppercase tracking-widest mt-0.5">GlobCom Personnel</p>
-          </div>
-        </div>
-
-        {/* TOP FINANCIAL METRICS */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
-          <div className="bg-blue-900 p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-blue-800 relative overflow-hidden flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
-            <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4 hidden sm:block"><BarChart3 size={150} /></div>
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1.5 md:gap-2">
-               <Activity size={14} className="text-blue-400 shrink-0 md:w-4 md:h-4" /> Active Pipeline Value
-            </p>
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter drop-shadow-sm truncate">
-              {formatCurrency(pipelineValue)}
-            </h2>
-            <p className="text-[10px] md:text-sm font-medium text-slate-400 mt-1.5 md:mt-3 relative z-10">
-              Total volume currently <span className="text-blue-300 font-bold">active</span> or <span className="text-amber-400 font-bold">under negotiation</span>.
-            </p>
-          </div>
-
-          <div className="bg-green-600 p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-green-500 relative overflow-hidden flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
-            <div className="absolute right-0 bottom-0 opacity-20 translate-x-4 translate-y-4 hidden sm:block"><Wallet size={150} /></div>
-            <p className="text-[9px] md:text-[10px] font-black text-green-100 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1.5 md:gap-2">
-               <CheckCircle2 size={14} className="text-white shrink-0 md:w-4 md:h-4" /> Closed Won Revenue
-            </p>
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter drop-shadow-sm truncate">
-              {formatCurrency(closedValue)}
-            </h2>
-            <div className="mt-2.5 md:mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 relative z-10">
-              <div className="w-full sm:flex-1 h-1.5 md:h-2 bg-green-900/50 rounded-full overflow-hidden">
-                <div className="h-full bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${closedPercentage}%` }}></div>
-              </div>
-              <span className="text-[9px] md:text-[10px] font-bold text-green-50 tracking-wider whitespace-nowrap">{closedPercentage}% CAPTURE</span>
-            </div>
-          </div>
-        </div>
-
-        {/* SECONDARY KPI CARDS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-          <Link href="/demands" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-blue-300 hover:shadow-md transition-all group">
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-blue-800 transition-colors truncate"><FileBox size={12} className="text-blue-600 shrink-0 md:w-3.5 md:h-3.5"/> Active Demands</p>
-            <h2 className="text-xl md:text-3xl font-black text-slate-900">{activeDemandsCount}</h2>
-          </Link>
-          <Link href="/supplies" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-green-300 hover:shadow-md transition-all group">
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-green-600 transition-colors truncate"><Box size={12} className="text-green-500 shrink-0 md:w-3.5 md:h-3.5"/> Available Supply</p>
-            <h2 className="text-xl md:text-3xl font-black text-slate-900">{activeSuppliesCount}</h2>
-          </Link>
-          <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm">
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 truncate"><CheckCircle2 size={12} className="text-amber-500 shrink-0 md:w-3.5 md:h-3.5"/> Deals Closed</p>
-            <h2 className="text-xl md:text-3xl font-black text-slate-900 truncate">{closedCount} <span className="text-[10px] md:text-sm text-slate-400 font-medium ml-0.5 md:ml-1">Won</span></h2>
-          </div>
-          <Link href="/buyers" className="bg-white border border-slate-200 p-4 md:p-6 rounded-xl md:rounded-3xl shadow-sm hover:border-slate-400 hover:shadow-md transition-all group">
-            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2 flex items-center gap-1 md:gap-2 group-hover:text-slate-700 transition-colors truncate"><Users size={12} className="text-slate-500 shrink-0 md:w-3.5 md:h-3.5"/> Client Network</p>
-            <h2 className="text-xl md:text-3xl font-black text-slate-900 truncate">{buyerCount} <span className="text-[10px] md:text-sm text-slate-400 font-medium ml-0.5 md:ml-1">Entities</span></h2>
-          </Link>
-        </div>
-
-        {/* ANALYTICS CHARTS (Recharts) */}
-        <DashboardCharts chartData={chartData} />
-
-        {/* THE AUTOMATED MATCHING ENGINE */}
-        <div className="my-4 md:my-8 w-full overflow-x-hidden">
-           <MatchingEngine />
-        </div>
-
-        {/* Lower Section: Action & Compliance */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
-          
-          {/* Action Center */}
-          <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 lg:p-10 border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
-            <div className="relative z-10">
-              <h3 className="text-lg md:text-2xl font-black text-slate-900 mb-1.5 md:mb-2 tracking-tight">Agile Execution. Ethical Trade.</h3>
-              <p className="text-slate-500 mb-5 md:mb-8 max-w-xl text-[11px] md:text-sm leading-relaxed">
-                Facilitating global trade in fertilizers, petrochemicals, metals, and fuels. Ensure all transactions comply with internal transparency guidelines and standard operating procedures.
-              </p>
-              <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 md:gap-4">
-                <Link href="/demands" className="bg-blue-800 hover:bg-blue-900 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-sm font-bold transition-all shadow-md shadow-blue-800/20 text-center w-full sm:w-auto">
-                  Access Demand Board
-                </Link>
-                <Link href="/supplies" className="bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-slate-700 hover:text-green-800 px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-sm font-bold transition-all shadow-sm text-center w-full sm:w-auto">
-                  Manage Supply Inventory
-                </Link>
-              </div>
-            </div>
-            {/* Subtle background decoration */}
-            <div className="absolute -right-10 -bottom-10 opacity-[0.03] pointer-events-none hidden md:block">
-              <Globe size={250} />
-            </div>
-          </div>
-
-          {/* Compliance Mini-Log */}
-          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm flex flex-col h-[280px] md:h-[350px]">
-            <div className="flex items-center justify-between mb-3 md:mb-4 shrink-0">
-              <h3 className="font-bold text-slate-900 flex items-center gap-1.5 md:gap-2 text-[11px] md:text-sm uppercase tracking-wider">
-                <ShieldCheck size={16} className="text-blue-800 shrink-0 md:w-4 md:h-4" /> Audit Log
-              </h3>
-              <Link href="/audit" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-blue-800 hover:text-blue-900 transition-colors bg-blue-50 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg whitespace-nowrap border border-blue-100">
-                View All
-              </Link>
-            </div>
-            
-            <div className="flex-1 space-y-2.5 md:space-y-4 overflow-y-auto custom-scrollbar pr-2">
-              {recentLogs.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
-                   <p className="text-[11px] md:text-sm font-bold text-slate-400">No recent activity.</p>
+            <div className="flex items-center gap-3 mb-4">
+              {brandLogo ? (
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center border border-slate-700 shadow-lg shadow-white/10 shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={brandLogo} alt="Logo" className="w-full h-full object-contain p-0.5" />
                 </div>
               ) : (
-                recentLogs.map(log => (
-                  <div key={log.id} className="border-l-2 border-slate-100 hover:border-blue-300 transition-colors pl-2.5 md:pl-4 py-1">
-                    <p className="text-[10px] md:text-xs font-bold text-slate-900 leading-tight">{log.action.replace(/_/g, " ")}</p>
-                    <p className="text-[9px] md:text-[10px] text-slate-500 mt-0.5 md:mt-1 line-clamp-2 leading-relaxed" title={log.details}>{log.details}</p>
-                    <p className="text-[8px] md:text-[9px] font-black text-slate-400 mt-1 md:mt-1.5 uppercase tracking-widest flex items-center gap-1">
-                      <span className="truncate max-w-[80px] md:max-w-[100px]">{log.user.firstName}</span> <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0"></span> {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                ))
+                <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-blue-600/20 shrink-0">
+                  GC
+                </div>
               )}
+              <h2 className="text-xl font-black text-white tracking-widest uppercase">{brandName}</h2>
             </div>
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+              Welcome, {session?.user?.name || "Operator"}
+            </h1>
+            <p className="text-slate-400 mt-3 text-lg">
+              Select an enterprise module to launch your workspace.
+            </p>
           </div>
+          
+          {/* Global User Menu (Profile & Logout) */}
+          <div className="shrink-0">
+            <GlobalUserMenu />
+          </div>
+        </div>
 
+        {/* Module Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {modules.map((mod) => {
+            const Icon = mod.icon;
+            return (
+              <Link 
+                key={mod.name} 
+                href={mod.href}
+                className={`group relative bg-slate-900 p-8 rounded-3xl border border-slate-800 transition-all duration-300 ${mod.border} hover:shadow-2xl hover:-translate-y-1 focus:outline-none`}
+              >
+                <div className={`w-14 h-14 rounded-2xl ${mod.bg} flex items-center justify-center mb-6 transition-transform group-hover:scale-110`}>
+                  <Icon className={`w-7 h-7 ${mod.color}`} />
+                </div>
+                
+                <h3 className="text-2xl font-black text-white mb-3 tracking-tight group-hover:text-blue-400 transition-colors">
+                  {mod.name}
+                </h3>
+                
+                <p className="text-slate-400 font-medium leading-relaxed mb-8">
+                  {mod.description}
+                </p>
+
+                <div className="flex items-center font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-400 transition-colors mt-auto text-sm">
+                  Launch Module 
+                  <ArrowRight className="w-5 h-5 ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
       </div>

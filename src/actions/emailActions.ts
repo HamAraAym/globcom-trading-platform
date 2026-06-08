@@ -5,10 +5,14 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import OfficialProposalEmail from "@/emails/OfficialProposalEmail";
+import SystemAlertEmail from "@/emails/SystemAlertEmail"; // ⚡ New Template
 import React from "react";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// ==========================================
+// 1. EXTERNAL: CLIENT PROPOSAL DISPATCH
+// ==========================================
 export async function dispatchToClient(formData: FormData) {
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
@@ -66,10 +70,8 @@ export async function dispatchToClient(formData: FormData) {
   const location = contextItem.location || contextItem.timeline || "Not specified";
 
   // Process attachments for Resend
-  // Resend requires attachments to either be a base64 string or a direct URL buffer.
   const processedAttachments = await Promise.all(
     attachedDocs.map(async (url, index) => {
-      // Fetch the file from Vercel Blob
       const response = await fetch(url);
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
@@ -83,7 +85,7 @@ export async function dispatchToClient(formData: FormData) {
 
   // Send the Email via Resend
   const { data, error } = await resend.emails.send({
-    from: "GlobCom Trading <onboarding@resend.dev>", // NOTE: Change to your verified domain in production (e.g., sales@globcom.com)
+    from: "GlobCom Trading <onboarding@resend.dev>", 
     to: [buyer.email],
     subject: getSubject(),
     react: OfficialProposalEmail({
@@ -100,7 +102,6 @@ export async function dispatchToClient(formData: FormData) {
       location: location,
       specs: contextItem.specs || "",
       attachedDocsCount: attachedDocs.length,
-      // 👇 ADDED THE MISSING PROP HERE 👇
       dealLink: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/proposal/${contextId}`,
     }) as React.ReactElement,
     attachments: processedAttachments
@@ -133,4 +134,39 @@ export async function dispatchToClient(formData: FormData) {
   revalidatePath(`/chat/${contextId}`);
 
   return { success: true, message: `Email dispatched to ${buyer.email}` };
+}
+
+// ==========================================
+// 2. INTERNAL: SYSTEM ALERT NOTIFICATIONS
+// ==========================================
+export async function sendSystemAlertEmail(data: {
+  toEmail: string;
+  userName: string;
+  title: string;
+  message: string;
+  link?: string;
+}) {
+  try {
+    const { error } = await resend.emails.send({
+      from: "GlobCom Alerts <onboarding@resend.dev>", // NOTE: Change to verified domain later
+      to: [data.toEmail],
+      subject: `System Alert: ${data.title}`,
+      react: SystemAlertEmail({
+        userName: data.userName,
+        title: data.title,
+        message: data.message,
+        link: data.link ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${data.link}` : undefined,
+      }) as React.ReactElement,
+    });
+
+    if (error) {
+      console.error("Resend System Alert Error:", error);
+      return { success: false, error };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to send system alert email:", error);
+    return { success: false, error };
+  }
 }

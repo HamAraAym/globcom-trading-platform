@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { 
   Globe, LayoutDashboard, FileBox, Box, ArrowRightLeft, Users, 
-  ShieldCheck, Settings, UserCog, LogOut, MapPin, Phone, Mail, MessageSquare 
+  UserCog, LogOut, MapPin, Phone, Mail, MessageSquare 
 } from "lucide-react";
 
 import { getGlobalSettings } from "@/actions/adminActions"; 
@@ -36,17 +36,14 @@ export default function Sidebar() {
 
   const userRole = (session?.user as any)?.role || "GUEST";
 
-  // ⚡ FIX: Added "MANAGEMENT" to all the allowedRoles arrays so executives have full oversight!
+  // ⚡ UPDATED: Removed Admin routes and repointed Command Center/Trading Hub
   const navLinks = [
-    { name: "Command Center", href: "/", icon: LayoutDashboard, section: "Overview", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
-    { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP"] },
+    { name: "Command Center", href: "/trading", icon: LayoutDashboard, section: "Overview", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
+    { name: "Trading Hub", href: "/trading/match", icon: ArrowRightLeft, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP"] },
     { name: "Demand Board", href: "/demands", icon: FileBox, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP"] },
     { name: "Supply Inventory", href: "/supplies", icon: Box, section: "Operations", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "SUPPLIER_REP"] },
     { name: "Team Chat", href: "/team-chat", icon: MessageSquare, section: "Collaboration", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
     { name: "Client CRM", href: "/buyers", icon: Users, section: "Relations", allowedRoles: ["ADMIN", "MANAGEMENT"] },
-    { name: "Team & Access", href: "/users", icon: UserCog, section: "Administration", allowedRoles: ["ADMIN", "MANAGEMENT"] },
-    { name: "Audit & Compliance", href: "/audit", icon: ShieldCheck, section: "Administration", allowedRoles: ["ADMIN", "MANAGEMENT"] },
-    { name: "System Settings", href: "/settings", icon: Settings, section: "Administration", allowedRoles: ["ADMIN", "MANAGEMENT", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
   ];
 
   const visibleLinks = navLinks.filter(link => link.allowedRoles.includes(userRole));
@@ -125,7 +122,7 @@ export default function Sidebar() {
         )}
       </nav>
 
-      {/* FOOTER BRANDING & LOGOUT */}
+      {/* FOOTER BRANDING & EXIT ACTIONS */}
       <div className="p-4 border-t border-slate-800/60 bg-slate-950/50 flex flex-col shrink-0">
         
         {/* Official Letterhead Context */}
@@ -144,6 +141,14 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+
+        {/* ⚡ NEW: Exit to Global Hub */}
+        <Link 
+          href="/"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600/20 hover:bg-blue-600 hover:text-white text-blue-400 rounded-xl text-sm font-bold transition-all border border-blue-600/30 hover:border-blue-600 shadow-sm mb-3"
+        >
+          <LayoutDashboard size={16} /> Global Hub
+        </Link>
 
         <button 
           onClick={() => signOut({ callbackUrl: "/login" })}

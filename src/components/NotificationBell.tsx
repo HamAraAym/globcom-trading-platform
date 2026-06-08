@@ -5,7 +5,6 @@ import { Bell, Check, ExternalLink, Activity, X } from "lucide-react";
 import Link from "next/link";
 import { getMyNotifications, markAsRead, markAllAsRead } from "@/actions/notificationActions";
 
-// Define the shape based on our Prisma schema
 type Notification = {
   id: string;
   title: string;
@@ -15,7 +14,11 @@ type Notification = {
   createdAt: Date;
 };
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  variant?: "dark" | "light";
+}
+
+export default function NotificationBell({ variant = "dark" }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -24,7 +27,12 @@ export default function NotificationBell() {
   const fetchAlerts = async () => {
     try {
       const data = await getMyNotifications();
-      setNotifications(data);
+      // Ensure the server-passed date is instantiated correctly on the client
+      const formattedData = data.map(n => ({
+        ...n,
+        createdAt: new Date(n.createdAt)
+      }));
+      setNotifications(formattedData);
     } catch (error) {
       console.error("Failed to fetch notifications", error);
     }
@@ -58,23 +66,30 @@ export default function NotificationBell() {
   }, [isOpen]);
 
   const handleMarkAsRead = async (id: string) => {
-    await markAsRead(id);
+    // Optimistic UI update for instant feedback
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    await markAsRead(id);
   };
 
   const handleMarkAll = async () => {
-    await markAllAsRead();
+    // Optimistic UI update
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    await markAllAsRead();
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Dynamic Button Styling based on where the Bell is placed
+  const buttonStyles = variant === "dark" 
+    ? "text-slate-400 hover:bg-slate-800 hover:text-white" 
+    : "text-slate-500 hover:bg-slate-100 hover:text-indigo-600";
 
   return (
     <div className="relative flex items-center justify-center" ref={dropdownRef}>
       {/* The Bell Icon */}
       <button 
         onClick={() => setIsOpen(!isOpen)} 
-        className="relative p-2 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition-colors rounded-xl focus:outline-none"
+        className={`relative p-2 transition-colors rounded-xl focus:outline-none ${buttonStyles}`}
       >
         <Bell size={20} className="md:w-5 md:h-5" />
         {unreadCount > 0 && (
@@ -87,14 +102,14 @@ export default function NotificationBell() {
 
       {/* The Dropdown Menu (Fixed on mobile, Absolute on Desktop) */}
       {isOpen && (
-        <div className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-full sm:left-auto sm:-right-2 sm:mt-4 sm:w-96 bg-white rounded-2xl md:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-full sm:left-auto sm:-right-2 sm:mt-4 sm:w-96 bg-white rounded-2xl md:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 text-left">
           
           <div className="bg-slate-900 px-4 py-3 md:py-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2 md:gap-3 text-white">
               <div className="bg-indigo-500/20 p-1.5 rounded-lg border border-indigo-500/30">
                 <Activity size={16} className="text-indigo-400 md:w-4 md:h-4" />
               </div>
-              <h3 className="font-bold text-sm md:text-base tracking-wide">System Alerts</h3>
+              <h3 className="font-bold text-sm md:text-base tracking-wide m-0">System Alerts</h3>
             </div>
             <div className="flex items-center gap-3">
               {unreadCount > 0 && (
@@ -130,7 +145,7 @@ export default function NotificationBell() {
                     
                     <div className="flex items-center justify-between mt-auto">
                       <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        {new Date(notif.createdAt).toLocaleDateString()}
+                        {notif.createdAt.toLocaleDateString()} {notif.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <div className="flex items-center gap-2 md:gap-3">
                         {!notif.isRead && (
