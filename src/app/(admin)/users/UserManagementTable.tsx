@@ -86,15 +86,21 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
         </div>
 
         <div className="overflow-x-auto overflow-y-auto custom-scrollbar flex-1">
-          <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+          <table className="w-full text-left border-collapse whitespace-nowrap min-w-[1200px]">
             <thead className="sticky top-0 bg-slate-50 z-10 shadow-sm border-b border-slate-200">
               <tr className="text-blue-800 text-[10px] uppercase tracking-widest">
                 <th className="p-3 md:p-4 font-black">User</th>
                 <th className="p-3 md:p-4 font-black">Role</th>
-                <th className="p-3 md:p-4 font-black text-center">Add Deals</th>
+                {/* Trading Permissions */}
+                <th className="p-3 md:p-4 font-black text-center border-l border-slate-200">Add Deals</th>
                 <th className="p-3 md:p-4 font-black text-center">Edit Deals</th>
                 <th className="p-3 md:p-4 font-black text-center">Negotiate</th>
-                <th className="p-3 md:p-4 font-black">Status</th>
+                {/* ⚡ NEW: Task Permissions */}
+                <th className="p-3 md:p-4 font-black text-center border-l border-slate-200">Create Tasks</th>
+                <th className="p-3 md:p-4 font-black text-center">Edit Tasks</th>
+                <th className="p-3 md:p-4 font-black text-center text-rose-600">Delete Tasks</th>
+                
+                <th className="p-3 md:p-4 font-black border-l border-slate-200">Status</th>
                 <th className="p-3 md:p-4 font-black text-right">Actions</th>
               </tr>
             </thead>
@@ -119,9 +125,9 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                       </span>
                     </td>
                     
-                    {/* Permission Toggles */}
-                    {["canAddDeals", "canEditDeals", "canNegotiate"].map((field) => (
-                      <td key={field} className="p-3 md:p-4 text-center">
+                    {/* Trading Permission Toggles */}
+                    {["canAddDeals", "canEditDeals", "canNegotiate"].map((field, i) => (
+                      <td key={field} className={`p-3 md:p-4 text-center ${i === 0 ? "border-l border-slate-100" : ""}`}>
                         <button 
                           disabled={!!loadingId || !canEdit || user.role === "ADMIN"} 
                           onClick={() => handleTogglePermission(user.id, field, user[field])}
@@ -136,7 +142,27 @@ export default function UserManagementTable({ users, currentUserRole }: UserMana
                       </td>
                     ))}
 
-                    <td className="p-3 md:p-4">
+                    {/* ⚡ NEW: Task Permission Toggles */}
+                    {["canCreateTasks", "canEditTasks", "canDeleteTasks"].map((field, i) => {
+                      const isDestructive = field === "canDeleteTasks";
+                      return (
+                        <td key={field} className={`p-3 md:p-4 text-center ${i === 0 ? "border-l border-slate-100" : ""}`}>
+                          <button 
+                            disabled={!!loadingId || !canEdit || user.role === "ADMIN"} 
+                            onClick={() => handleTogglePermission(user.id, field, user[field])}
+                            className={`p-1.5 rounded-lg transition-all ${
+                              user[field] 
+                                ? (isDestructive ? "text-rose-600 bg-rose-50 border border-rose-200" : "text-green-600 bg-green-50 border border-green-200")
+                                : "text-slate-400 bg-slate-100 border border-transparent"
+                            } ${canEdit && user.role !== "ADMIN" ? "hover:scale-110 cursor-pointer" : "cursor-default opacity-80"} disabled:cursor-default`}
+                          >
+                            {loadingId === user.id + field ? <Loader2 size={16} className="animate-spin" /> : (user[field] ? <Check size={16} /> : <X size={16} />)}
+                          </button>
+                        </td>
+                      );
+                    })}
+
+                    <td className="p-3 md:p-4 border-l border-slate-100">
                       <span className={`flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${user.isActive ? "text-green-600" : "text-rose-600"}`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-rose-500"}`} />
                         {user.isActive ? "Active" : "Suspended"}

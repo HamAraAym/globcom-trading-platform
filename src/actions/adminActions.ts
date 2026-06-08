@@ -1,3 +1,5 @@
+"use client";
+
 "use server";
 
 import { prisma } from "@/lib/prisma";
@@ -35,6 +37,10 @@ export async function updateUserPermissions(userId: string, permissions: {
   canAddDeals?: boolean,
   canEditDeals?: boolean,
   canNegotiate?: boolean,
+  // ⚡ NEW: Task Management Permissions
+  canCreateTasks?: boolean,
+  canEditTasks?: boolean,
+  canDeleteTasks?: boolean,
   role?: Role
 }) {
   await ensureAdmin();
@@ -67,7 +73,11 @@ export async function createNewUser(formData: FormData) {
       isActive: true,
       canAddDeals: true,
       canEditDeals: true,
-      canNegotiate: true
+      canNegotiate: true,
+      // ⚡ NEW: Default Task Permissions
+      canCreateTasks: true,
+      canEditTasks: true,
+      canDeleteTasks: false // Safely defaulted to false
     }
   });
 

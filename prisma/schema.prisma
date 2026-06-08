@@ -80,9 +80,16 @@ model User {
   
   // Enterprise User Management & Permissions
   isActive        Boolean      @default(true) 
+  
+  // Trading Permissions
   canAddDeals     Boolean      @default(true) 
   canEditDeals    Boolean      @default(true) 
   canNegotiate    Boolean      @default(true) 
+
+  // ⚡ NEW: Task Management Granular Permissions
+  canCreateTasks  Boolean      @default(true)
+  canEditTasks    Boolean      @default(true)
+  canDeleteTasks  Boolean      @default(false)
 
   onlineStatus    OnlineStatus @default(OFFLINE)
   lastSeen        DateTime     @default(now())
@@ -103,7 +110,7 @@ model User {
   assignedTasks   Task[]       @relation("TaskAssignees")
   createdTasks    Task[]       @relation("TaskCreator")
 
-  // ⚡ NEW: Task Management Enhancements
+  // Task Management Enhancements
   taskComments    TaskComment[]
   taskAttachments TaskAttachment[]
 
@@ -195,7 +202,7 @@ model Task {
   creatorId      String
   createdBy      User       @relation("TaskCreator", fields: [creatorId], references: [id])
 
-  // ⚡ NEW: Advanced Task Features
+  // Advanced Task Features
   comments       TaskComment[]
   subtasks       Subtask[]
   attachments    TaskAttachment[]
@@ -204,7 +211,7 @@ model Task {
   updatedAt      DateTime   @updatedAt
 }
 
-// ⚡ NEW: Subtasks for Checklists
+// NEW: Subtasks for Checklists
 model Subtask {
   id        String   @id @default(cuid())
   title     String
@@ -216,7 +223,7 @@ model Subtask {
   createdAt DateTime @default(now())
 }
 
-// ⚡ NEW: Comments & Activity Feed
+// NEW: Comments & Activity Feed
 model TaskComment {
   id        String   @id @default(cuid())
   text      String
@@ -230,7 +237,7 @@ model TaskComment {
   createdAt DateTime @default(now())
 }
 
-// ⚡ NEW: File Attachments (KYC, PDFs, Screenshots)
+// NEW: File Attachments (KYC, PDFs, Screenshots)
 model TaskAttachment {
   id           String   @id @default(cuid())
   fileName     String
