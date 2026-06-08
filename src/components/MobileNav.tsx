@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { 
   LayoutDashboard, Users, FileBox, Box, Menu, 
-  ArrowRightLeft, UserCog, ShieldCheck, Settings, LogOut, X 
+  ArrowRightLeft, UserCog, ShieldCheck, Settings, LogOut, X, Globe // ⚡ FIX: Added Globe import
 } from "lucide-react";
 
 export default function MobileNav() {
@@ -18,7 +18,6 @@ export default function MobileNav() {
 
   // 1. Primary Bottom Bar Links (Max 4 slots + 1 Menu Button)
   const primaryLinks = [
-    // ⚡ FIX: Aligned Home to the new /dashboard route
     { name: "Home", href: "/dashboard", icon: LayoutDashboard, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
     { name: "Demands", href: "/demands", icon: FileBox, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP"] },
     { name: "Supplies", href: "/supplies", icon: Box, allowedRoles: ["ADMIN", "TRADING_REP", "SUPPLIER_REP"] },
@@ -27,6 +26,8 @@ export default function MobileNav() {
 
   // 2. Secondary Menu Links (Slide-Up Drawer)
   const secondaryLinks = [
+    // ⚡ FIX: Added explicit Global Hub link to the top of the drawer
+    { name: "Global Hub", href: "/", icon: Globe, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
     { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, allowedRoles: ["ADMIN", "TRADING_REP"] },
     { name: "Team Access", href: "/users", icon: UserCog, allowedRoles: ["ADMIN"] },
     { name: "Audit Log", href: "/audit", icon: ShieldCheck, allowedRoles: ["ADMIN"] },
@@ -40,7 +41,6 @@ export default function MobileNav() {
         <div className="lg:hidden fixed inset-0 z-40 flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm transition-opacity">
           <div 
             className="bg-white rounded-t-3xl p-6 animate-in slide-in-from-bottom-8 duration-300 shadow-[0_-20px_40px_-10px_rgba(0,0,0,0.1)]"
-            // ⚡ FIX: Ensures the drawer content clears the bottom navigation AND the safe area
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 6rem)' }}
           >
             <div className="flex items-center justify-between mb-6">
@@ -86,7 +86,6 @@ export default function MobileNav() {
       {/* BOTTOM NAVIGATION BAR */}
       <div 
         className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]"
-        // ⚡ FIX: Prevents the icons from colliding with the iOS home swipe indicator
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex items-center justify-around px-2 py-2">

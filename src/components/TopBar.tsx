@@ -60,12 +60,13 @@ export default function TopBar() {
     >
       
       {/* MOBILE LOGO */}
-      <div className="flex items-center gap-2 lg:hidden">
+      {/* ⚡ FIX: Now acts as a back button to the Global Hub */}
+      <Link href="/" className="flex items-center gap-2 lg:hidden hover:opacity-80 transition-opacity">
         <div className="w-8 h-8 bg-blue-800 rounded-lg flex items-center justify-center text-white shadow-md">
           <Globe size={18} />
         </div>
         <span className="font-black text-slate-900 tracking-tight text-lg">GlobCom</span>
-      </div>
+      </Link>
 
       {/* RIGHT SIDE ACTIONS */}
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">

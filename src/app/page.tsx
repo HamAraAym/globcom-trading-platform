@@ -81,8 +81,8 @@ export default async function GlobalHomePage() {
 
   return (
     <div 
-      // ⚡ FIX: min-h-[100dvh] ensures the dark background reaches the absolute bottom of the screen
-      className="min-h-[100dvh] w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6"
+      // ⚡ FIX: absolute inset-0 locks the container to the screen size, restoring internal scrolling!
+      className="absolute inset-0 w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6"
       style={{ 
         paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
         paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)'
@@ -91,7 +91,6 @@ export default async function GlobalHomePage() {
       <div className="max-w-6xl w-full my-auto pb-8">
         
         {/* Hub Header */}
-        {/* ⚡ FIX: flex-col on mobile prevents the profile button from being pushed off screen */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8 border-b border-slate-800/50 pb-6">
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -121,7 +120,7 @@ export default async function GlobalHomePage() {
           </div>
         </div>
 
-        {/* ⚡ FIX: 1 column on mobile, 2 on tablet, 3 on desktop. Descriptions restored! */}
+        {/* Module Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {modules.map((mod) => {
             const Icon = mod.icon;
@@ -140,7 +139,6 @@ export default async function GlobalHomePage() {
                   </h3>
                 </div>
                 
-                {/* ⚡ Restored the descriptions with proper text sizing */}
                 <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed mb-6 flex-1">
                   {mod.description}
                 </p>
