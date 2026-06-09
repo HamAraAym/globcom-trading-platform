@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import Pusher from "pusher";
 import { put } from "@vercel/blob"; 
+import { createSystemNotification } from "./notificationActions"; // ⚡ NEW: Imported the Notification Engine
 
 // Initialize Pusher Server
 const pusherServer = new Pusher({
@@ -85,6 +86,17 @@ export async function createChannel(memberIds: string[], name?: string, isGroup:
     }
   });
 
+  // ⚡ AUTOMATION: Notify all other members that they were added to a chat
+  const otherIds = allMemberIds.filter(id => id !== currentUser.id);
+  for (const targetId of otherIds) {
+    await createSystemNotification({
+      userId: targetId,
+      title: isGroup ? "Added to a New Group" : "New Direct Message",
+      message: `${currentUser.firstName} ${currentUser.lastName} has started a conversation with you.`,
+      link: "/team-chat",
+    });
+  }
+
   return newChannel;
 }
 
@@ -125,6 +137,14 @@ export async function sendChannelMessage(formData: FormData) {
   if (!content.trim() && (!file || file.size === 0)) {
     throw new Error("Message cannot be empty");
   }
+
+  // Get channel details to know who to notify
+  const channel = await prisma.teamChannel.findUnique({
+    where: { id: channelId },
+    include: { members: true }
+  });
+
+  if (!channel) throw new Error("Channel not found");
 
   let fileUrl = null;
   let fileName = null;
@@ -172,6 +192,36 @@ export async function sendChannelMessage(formData: FormData) {
 
   // Broadcast instantly via Pusher WebSocket (Isolated to this specific channel)
   await pusherServer.trigger(`channel-${channelId}`, "new-message", newMessage);
+
+  // ⚡ AUTOMATION: Notification Engine Dispatch
+  const previewText = content.trim() !== "" ? content : `Sent an attachment: ${fileName}`;
+
+  if (!channel.isGroup) {
+    // Rule 1: It's a Direct Message. Always notify the other person.
+    const otherUser = channel.members.find(m => m.id !== user.id);
+    if (otherUser) {
+      await createSystemNotification({
+        userId: otherUser.id,
+        title: `New message from ${user.firstName}`,
+        message: previewText,
+        link: "/team-chat",
+      });
+    }
+  } else {
+    // Rule 2: It's a Group. Only notify if they are explicitly @ mentioned by First Name.
+    const mentionedMembers = channel.members.filter(m => 
+      m.id !== user.id && content.toLowerCase().includes(`@${m.firstName.toLowerCase()}`)
+    );
+
+    for (const mentionedUser of mentionedMembers) {
+      await createSystemNotification({
+        userId: mentionedUser.id,
+        title: `You were mentioned in ${channel.name || "a group"}`,
+        message: `${user.firstName}: ${previewText}`,
+        link: "/team-chat",
+      });
+    }
+  }
 
   return newMessage;
 }
