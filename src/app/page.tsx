@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
 import { 
   Briefcase, 
   KanbanSquare, 
@@ -8,6 +9,8 @@ import {
   Settings, 
   Activity,
   ArrowRight,
+  BellRing,
+  ChevronRight
 } from "lucide-react";
 import GlobalUserMenu from "@/components/GlobalUserMenu";
 import { getGlobalSettings } from "@/actions/adminActions";
@@ -21,6 +24,23 @@ export default async function GlobalHomePage() {
   const systemSettings = await getGlobalSettings();
   const brandName = systemSettings?.companyName || "GlobCom International";
   const brandLogo = systemSettings?.companyLogoUrl;
+
+  // ⚡ NEW: Securely fetch the current user's unread notifications
+  let unreadNotifications: any[] = [];
+  if (session?.user?.email) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true }
+    });
+
+    if (dbUser) {
+      unreadNotifications = await prisma.notification.findMany({
+        where: { userId: dbUser.id, isRead: false },
+        orderBy: { createdAt: 'desc' },
+        take: 4 // Limit to top 4 so it doesn't crowd out the modules
+      });
+    }
+  }
 
   const modules = [
     {
@@ -81,8 +101,7 @@ export default async function GlobalHomePage() {
 
   return (
     <div 
-      // ⚡ FIX: absolute inset-0 locks the container to the screen size, restoring internal scrolling!
-      className="absolute inset-0 w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6"
+      className="absolute inset-0 w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6 custom-scrollbar"
       style={{ 
         paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
         paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)'
@@ -119,6 +138,37 @@ export default async function GlobalHomePage() {
             <GlobalUserMenu />
           </div>
         </div>
+
+        {/* ⚡ NEW: Live Action Alerts Feed */}
+        {unreadNotifications.length > 0 && (
+          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <BellRing size={16} className="text-rose-500" /> Action Required
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {unreadNotifications.map((notif) => (
+                <Link 
+                  key={notif.id} 
+                  href={notif.link || "#"}
+                  className="bg-slate-900 border border-slate-800 p-4 rounded-2xl hover:bg-slate-800 transition-colors flex items-center justify-between gap-4 group"
+                >
+                  <div className="flex flex-col overflow-hidden">
+                    <h4 className="text-slate-200 font-bold text-sm mb-0.5 group-hover:text-white transition-colors truncate">
+                      {notif.title}
+                    </h4>
+                    <p className="text-slate-400 text-xs truncate">
+                      {notif.message}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse"></div>
+                    <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Module Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
