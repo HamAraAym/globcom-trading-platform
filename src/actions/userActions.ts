@@ -30,7 +30,7 @@ export async function updateUserProfile(formData: FormData) {
   const letterhead = formData.get("letterhead") as File | null;
   const removeLetterhead = formData.get("removeLetterhead") === "true"; 
 
-  // ⚡ FIX: Process letterhead globally for Admins
+  // Process letterhead globally for Admins
   if (user.role === "ADMIN") {
     let newLetterheadUrl: string | null | undefined = undefined;
 
@@ -153,4 +153,38 @@ export async function acceptInvitation(formData: FormData) {
 
   // Send them to the login page
   redirect("/login?registered=true");
+}
+
+// ==========================================
+// 4. REGISTER DEVICE PUSH TOKEN
+// ==========================================
+export async function registerPushToken(token: string) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user?.email) return { success: false, error: "Unauthorized" };
+
+    const user = await prisma.user.findUnique({ 
+      where: { email: session.user.email },
+      select: { id: true, pushTokens: true } 
+    });
+    
+    if (!user) return { success: false, error: "User not found" };
+
+    // Prevent duplicate tokens for the same user
+    if (!user.pushTokens.includes(token)) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          pushTokens: {
+            push: token
+          }
+        }
+      });
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Push Token Error:", error);
+    return { success: false, error: "Failed to register push token." };
+  }
 }
