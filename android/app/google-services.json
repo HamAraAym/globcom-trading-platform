@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652986633373",
+    "project_id": "globcom-erp-c1c59",
+    "storage_bucket": "globcom-erp-c1c59.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652986633373:android:901a3d1f141504ba04d874",
+        "android_client_info": {
+          "package_name": "com.globcom.erp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDYMhnfYpxGJkC1IXb_18u55D3wTTZ63o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

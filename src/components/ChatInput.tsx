@@ -50,7 +50,7 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
     green: {
       primary: "bg-green-600",
       lightBg: "bg-green-50",
-      text: "text-green-700", // slightly darker for readability
+      text: "text-green-700", 
       ring: "focus:ring-green-600/20",
       border: "focus:border-green-600",
       hover: "hover:bg-green-700",
@@ -182,7 +182,7 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
   };
 
   return (
-    <div className="relative p-3 md:p-4 bg-white border-t border-slate-200 shrink-0 z-20 pb-safe">
+    <div className="relative p-3 md:p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 shrink-0 z-20">
       
       {/* THE MENTION DROPDOWN (Responsive Width & Position) */}
       {showMentions && filteredUsers.length > 0 && !isOfferMode && (
@@ -215,14 +215,14 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
       )}
 
       {/* THE INPUT AREA */}
-      <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-2">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-4xl mx-auto w-full">
         
         {/* Toggle Bar */}
         <div className="flex justify-between items-center px-1">
           <button 
             type="button" 
             onClick={() => setIsOfferMode(!isOfferMode)}
-            className={`text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 shadow-sm ${
+            className={`text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
               isOfferMode 
                 ? `${theme.primary} text-white border-transparent` 
                 : theme.buttonBg
@@ -233,7 +233,7 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
           </button>
           
           {!isOfferMode && (
-            <button type="button" className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg transition-colors">
+            <button type="button" className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg transition-colors active:scale-95">
               <Paperclip size={18} />
             </button>
           )}
@@ -245,29 +245,32 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
           <div className="flex-1 relative">
             {isOfferMode ? (
               // ⚡ OFFER MODE FORM
-              <div className={`p-4 bg-slate-50 border-2 ${theme.border} rounded-2xl animate-in fade-in slide-in-from-bottom-2`}>
+              <div className={`p-3 md:p-4 bg-slate-50 border-2 ${theme.border} rounded-2xl animate-in fade-in slide-in-from-bottom-2`}>
                 <h3 className={`text-[10px] md:text-xs font-black uppercase tracking-widest mb-3 ${theme.text}`}>Structured Deal Terms</h3>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div className="relative">
-                    <DollarSign size={14} className="absolute left-3 top-3 text-slate-400" />
+                    <DollarSign size={14} className="absolute left-3 top-3.5 text-slate-400" />
                     <input 
                       type="number" step="0.01" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} required
-                      className={`w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} text-sm font-bold placeholder:text-slate-400`}
+                      // ⚡ FIX: text-base on mobile prevents iOS from zooming in when the user taps the input!
+                      className={`w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} text-base md:text-sm font-bold placeholder:text-slate-400 placeholder:font-medium`}
                       placeholder="Target Price"
                     />
                   </div>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Scale size={14} className="absolute left-3 top-3 text-slate-400" />
+                      <Scale size={14} className="absolute left-3 top-3.5 text-slate-400" />
                       <input 
                         type="number" step="any" value={offerQty} onChange={(e) => setOfferQty(e.target.value)} required
-                        className={`w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} text-sm font-bold placeholder:text-slate-400`}
+                        // ⚡ FIX: text-base on mobile prevents iOS zoom
+                        className={`w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} text-base md:text-sm font-bold placeholder:text-slate-400 placeholder:font-medium`}
                         placeholder="Volume"
                       />
                     </div>
                     <select 
                       value={offerUnit} onChange={(e) => setOfferUnit(e.target.value)}
-                      className={`w-16 bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-xs font-bold focus:outline-none focus:ring-2 ${theme.ring} ${theme.border}`}
+                      // ⚡ FIX: text-base on mobile prevents iOS zoom
+                      className={`w-20 bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-base md:text-sm font-bold focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} appearance-none text-center cursor-pointer`}
                     >
                       <option value="MT">MT</option>
                       <option value="KG">KG</option>
@@ -276,10 +279,11 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
                   </div>
                 </div>
                 <div className="relative">
-                  <FileText size={14} className="absolute left-3 top-3 text-slate-400" />
+                  <FileText size={14} className="absolute left-3 top-3.5 text-slate-400" />
                   <input 
                     type="text" value={offerNotes} onChange={(e) => setOfferNotes(e.target.value)}
-                    className={`w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} text-sm font-medium placeholder:text-slate-400`}
+                    // ⚡ FIX: text-base on mobile prevents iOS zoom
+                    className={`w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} text-base md:text-sm font-medium placeholder:text-slate-400`}
                     placeholder="Optional conditions (e.g., Delivery in March)"
                   />
                 </div>
@@ -295,7 +299,8 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
                 rows={2}
                 placeholder="Type your message... (@ to tag)"
                 required
-                className={`w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 md:px-4 py-2.5 md:py-3 text-base md:text-sm focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} transition-all resize-none custom-scrollbar shadow-inner`}
+                // ⚡ FIX: text-base on mobile prevents iOS zoom
+                className={`w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 md:px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 ${theme.ring} ${theme.border} transition-all resize-none custom-scrollbar shadow-inner`}
               />
             )}
           </div>
@@ -303,7 +308,7 @@ export default function ChatInput({ chatId, users, themeColor, sendAction }: Cha
           <button 
             type="submit" 
             disabled={isOfferMode ? (!offerPrice || !offerQty || isSubmitting) : (!content.trim() || isSubmitting)}
-            className={`p-3 md:p-3.5 ${theme.primary} ${theme.hover} disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl transition-all shadow-lg shadow-slate-900/10 group shrink-0 self-end`}
+            className={`p-3 md:p-3.5 ${theme.primary} ${theme.hover} disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl transition-all shadow-lg shadow-slate-900/10 group shrink-0 self-end active:scale-95`}
           >
             {isSubmitting ? <Loader2 size={20} className="animate-spin w-5 h-5" /> : <Send size={20} className="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
           </button>

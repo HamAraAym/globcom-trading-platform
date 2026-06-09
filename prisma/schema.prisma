@@ -86,10 +86,13 @@ model User {
   canEditDeals    Boolean      @default(true) 
   canNegotiate    Boolean      @default(true) 
 
-  // ⚡ NEW: Task Management Granular Permissions
+  // Task Management Granular Permissions
   canCreateTasks  Boolean      @default(true)
   canEditTasks    Boolean      @default(true)
   canDeleteTasks  Boolean      @default(false)
+
+  // ⚡ NEW: Native Device Tokens for iOS/Android Push Notifications
+  pushTokens      String[]
 
   onlineStatus    OnlineStatus @default(OFFLINE)
   lastSeen        DateTime     @default(now())
@@ -186,6 +189,11 @@ model Task {
   status         TaskStatus @default(TODO)
   type           TaskType   @default(TASK)
   
+  // ⚡ NEW: Recurring Task Engine Fields
+  isRecurring    Boolean    @default(false)
+  cronExpression String?    // e.g., "0 9 1 * *" for the 1st of every month
+  nextRunAt      DateTime?
+
   // Jira-style Time Tracking & Tags
   estimatedHours Float?
   actualHours    Float      @default(0)

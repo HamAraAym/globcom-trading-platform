@@ -3,7 +3,28 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { sendSystemAlertEmail } from "./emailActions"; // ⚡ Injected Email Engine
+import { sendSystemAlertEmail } from "./emailActions"; 
+import * as admin from "firebase-admin"; // ⚡ Injected Firebase Admin SDK
+
+// ==========================================
+// FIREBASE ADMIN INITIALIZATION
+// ==========================================
+// Prevents Next.js hot-reloads from initializing Firebase multiple times
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        // Safely parses the escaped newlines from the .env string
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+    console.log("🔥 Firebase Admin SDK Initialized");
+  } catch (error) {
+    console.error("Firebase Admin Initialization Error:", error);
+  }
+}
 
 // ==========================================
 // 1. FETCH CURRENT USER'S NOTIFICATIONS
@@ -22,7 +43,7 @@ export async function getMyNotifications() {
   return prisma.notification.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
-    take: 25, // Only load the 25 most recent alerts to prevent payload bloat
+    take: 25, 
   });
 }
 
@@ -38,7 +59,7 @@ export async function markAsRead(notificationId: string) {
     data: { isRead: true }
   });
   
-  revalidatePath("/", "layout"); // Instantly updates the Bell badge
+  revalidatePath("/", "layout"); 
 }
 
 // ==========================================
@@ -77,14 +98,12 @@ export async function sendPing(targetUserId: string) {
   
   if (!sender) throw new Error("User not found");
 
-  await prisma.notification.create({
-    data: {
-      userId: targetUserId,
-      title: "Incoming Team Ping",
-      message: `${sender.firstName} ${sender.lastName} has directly pinged you from the Command Center.`,
-      link: "/team-chat", 
-      isRead: false,
-    }
+  // ⚡ Refactored to use the central engine so Pings also trigger mobile push!
+  await createSystemNotification({
+    userId: targetUserId,
+    title: "Incoming Team Ping",
+    message: `${sender.firstName} ${sender.lastName} has directly pinged you from the Command Center.`,
+    link: "/team-chat",
   });
 
   revalidatePath("/", "layout");
@@ -115,7 +134,6 @@ export async function getUnreadNotificationCount() {
 // ==========================================
 // 6. INTERNAL UTILITY: CREATE SYSTEM ALERT
 // ==========================================
-// Other action files (like taskActions) will import and use this!
 export async function createSystemNotification(data: {
   userId: string;
   title: string;
@@ -123,7 +141,7 @@ export async function createSystemNotification(data: {
   link?: string;
 }) {
   try {
-    // 1. Save to Database (Triggers the UI Bell)
+    // 1. Save to Database (Triggers the UI Bell & Dashboard Feed)
     await prisma.notification.create({
       data: {
         userId: data.userId,
@@ -134,25 +152,49 @@ export async function createSystemNotification(data: {
       }
     });
 
-    // 2. Fetch User Email for Resend
+    // 2. Fetch User Email AND Native Push Tokens
     const user = await prisma.user.findUnique({
       where: { id: data.userId },
-      select: { email: true, firstName: true }
+      select: { email: true, firstName: true, pushTokens: true }
     });
 
-    // 3. Dispatch the Email via Resend
-    if (user && user.email) {
-      await sendSystemAlertEmail({
-        toEmail: user.email,
-        userName: user.firstName,
-        title: data.title,
-        message: data.message,
-        link: data.link,
-      });
-    }
+    if (user) {
+      // 3. Dispatch the Email via Resend
+      if (user.email) {
+        await sendSystemAlertEmail({
+          toEmail: user.email,
+          userName: user.firstName,
+          title: data.title,
+          message: data.message,
+          link: data.link,
+        }).catch(err => console.error("Email Dispatch Error:", err));
+      }
 
-    // Deliberately skipping revalidatePath here, as the action calling this 
-    // (like createTask) will usually run its own revalidation.
+      // 4. ⚡ DISPATCH NATIVE PUSH TO iOS/ANDROID
+      if (user.pushTokens && user.pushTokens.length > 0) {
+        const messagePayload = {
+          notification: {
+            title: data.title,
+            body: data.message,
+          },
+          data: {
+            link: data.link || "/", // Deep link support if they tap the lock screen notification
+          },
+          tokens: user.pushTokens,
+        };
+
+        try {
+          const pushResponse = await admin.messaging().sendEachForMulticast(messagePayload);
+          
+          // Optional: Log failures to clean up dead device tokens later
+          if (pushResponse.failureCount > 0) {
+            console.warn(`Push Notice: ${pushResponse.failureCount} tokens failed to receive the message.`);
+          }
+        } catch (pushError) {
+          console.error("Firebase FCM Push Error:", pushError);
+        }
+      }
+    }
   } catch (error) {
     console.error("Failed to create system notification:", error);
   }
