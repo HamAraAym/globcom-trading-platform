@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createTask } from "@/actions/taskActions";
+import { useState, useEffect } from "react";
+import { createTask, updateTaskDetails } from "@/actions/taskActions";
 import { 
   X, Users, AlertCircle, CheckSquare, 
   Bug, Users as MeetingIcon, Zap, Clock, Calendar, Loader2,
@@ -15,11 +15,26 @@ interface User {
   email: string;
 }
 
+// ⚡ NEW: Interface to support Edit Mode
+interface TaskData {
+  id: string;
+  title: string;
+  description?: string | null;
+  type: string;
+  priority: string;
+  estimatedHours?: number | null;
+  dueDate?: Date | null;
+  assignees: { id: string }[];
+  isRecurring: boolean;
+  cronExpression?: string | null;
+}
+
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   users: User[];
   currentUserId: string;
+  initialData?: TaskData | null; // ⚡ Passed in when editing an existing task
 }
 
 const ISSUE_TYPES = [
@@ -29,7 +44,8 @@ const ISSUE_TYPES = [
   { id: "FEATURE", label: "Feature", icon: Zap, color: "text-emerald-600", bg: "bg-emerald-100" },
 ];
 
-export default function TaskModal({ isOpen, onClose, users, currentUserId }: TaskModalProps) {
+export default function TaskModal({ isOpen, onClose, users, currentUserId, initialData }: TaskModalProps) {
+  // ⚡ Auto-fill states if initialData (Edit Mode) exists
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("TASK");
@@ -39,10 +55,49 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ⚡ NEW: Recurring Alert State
+  // ⚡ Advanced Recurring State
   const [isRecurring, setIsRecurring] = useState(false);
-  const [frequency, setFrequency] = useState("DAILY"); // DAILY, WEEKLY, MONTHLY
+  const [frequency, setFrequency] = useState("DAILY"); 
   const [recurringTime, setRecurringTime] = useState("09:00");
+  const [dayOfWeek, setDayOfWeek] = useState("1"); // 1 = Monday
+  const [dayOfMonth, setDayOfMonth] = useState("15"); // 1-31
+
+  // ⚡ Populate Form when Edit Mode opens
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setTitle(initialData.title);
+      setDescription(initialData.description || "");
+      setType(initialData.type);
+      setPriority(initialData.priority);
+      setEstimatedHours(initialData.estimatedHours ? initialData.estimatedHours.toString() : "");
+      setDueDate(initialData.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : "");
+      setSelectedAssignees(initialData.assignees.map(a => a.id));
+      
+      setIsRecurring(initialData.isRecurring);
+      
+      // Parse existing Cron String to rebuild the UI visually
+      if (initialData.isRecurring && initialData.cronExpression) {
+        const parts = initialData.cronExpression.split(" ");
+        if (parts.length === 5) {
+          setRecurringTime(`${parts[1].padStart(2, '0')}:${parts[0].padStart(2, '0')}`);
+          if (parts[4] !== "*") { 
+            setFrequency("WEEKLY"); 
+            setDayOfWeek(parts[4]); 
+          } else if (parts[2] !== "*") { 
+            setFrequency("MONTHLY"); 
+            setDayOfMonth(parts[2]); 
+          } else { 
+            setFrequency("DAILY"); 
+          }
+        }
+      }
+    } else if (isOpen && !initialData) {
+      // Reset form for "Create New"
+      setTitle(""); setDescription(""); setType("TASK"); setPriority("MEDIUM");
+      setEstimatedHours(""); setDueDate(""); setSelectedAssignees([]);
+      setIsRecurring(false); setFrequency("DAILY"); setRecurringTime("09:00");
+    }
+  }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -52,7 +107,7 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
     );
   };
 
-  // Helper to generate a basic Cron Expression and Next Run Date
+  // ⚡ Advanced Cron & Next Date Calculator
   const calculateRecurringData = () => {
     if (!isRecurring) return { cron: undefined, next: undefined };
 
@@ -62,16 +117,18 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
     next.setHours(hours, minutes, 0, 0);
 
     if (frequency === "WEEKLY") {
-      cron = `${minutes} ${hours} * * 1`; // Every Monday
-    } else if (frequency === "MONTHLY") {
-      cron = `${minutes} ${hours} 1 * *`; // 1st of every month
-    }
+      cron = `${minutes} ${hours} * * ${dayOfWeek}`; 
+      // Math to jump to the next specific day of the week
+      next.setDate(next.getDate() + ((parseInt(dayOfWeek) + 7 - next.getDay()) % 7));
+      if (next <= new Date()) next.setDate(next.getDate() + 7);
 
-    // Ensure next run isn't in the past
-    if (next < new Date()) {
-      if (frequency === "DAILY") next.setDate(next.getDate() + 1);
-      if (frequency === "WEEKLY") next.setDate(next.getDate() + 7);
-      if (frequency === "MONTHLY") next.setMonth(next.getMonth() + 1);
+    } else if (frequency === "MONTHLY") {
+      cron = `${minutes} ${hours} ${dayOfMonth} * *`; 
+      // Jump to the specific day of the month
+      next.setDate(parseInt(dayOfMonth));
+      if (next <= new Date()) next.setMonth(next.getMonth() + 1);
+    } else {
+      if (next <= new Date()) next.setDate(next.getDate() + 1);
     }
 
     return { cron, next };
@@ -82,36 +139,39 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
     if (!title.trim()) return;
 
     setIsSubmitting(true);
-    
     const { cron, next } = calculateRecurringData();
 
-    const res = await createTask({
-      title,
-      description,
-      type,
-      priority,
-      estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-      creatorId: currentUserId,
-      assigneeIds: selectedAssignees,
-      // ⚡ Pass Recurring Data to Server Action
-      isRecurring,
-      cronExpression: cron,
-      nextRunAt: next,
-    });
+    if (initialData) {
+      // EDIT MODE
+      await updateTaskDetails(initialData.id, {
+        title,
+        description,
+        priority,
+        estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
+        assigneeIds: selectedAssignees,
+        isRecurring,
+        cronExpression: cron,
+        nextRunAt: next,
+      });
+    } else {
+      // CREATE MODE
+      await createTask({
+        title,
+        description,
+        type,
+        priority,
+        estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        creatorId: currentUserId,
+        assigneeIds: selectedAssignees,
+        isRecurring,
+        cronExpression: cron,
+        nextRunAt: next,
+      });
+    }
 
     setIsSubmitting(false);
-    if (res.success) {
-      setTitle("");
-      setDescription("");
-      setType("TASK");
-      setPriority("MEDIUM");
-      setEstimatedHours("");
-      setDueDate("");
-      setSelectedAssignees([]);
-      setIsRecurring(false);
-      onClose();
-    }
+    onClose();
   };
 
   return (
@@ -122,20 +182,19 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50 rounded-t-2xl shrink-0">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-indigo-600" />
-            Create Enterprise Ticket
+            {initialData ? "Edit Enterprise Ticket" : "Create Enterprise Ticket"}
           </h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* 2-Column Form Layout */}
         <form onSubmit={handleSubmit} className="flex flex-col md:flex-row flex-1 overflow-hidden">
           
           {/* LEFT COLUMN: Scope & Details */}
           <div className="flex-1 p-6 space-y-6 border-r border-slate-200 overflow-y-auto custom-scrollbar">
             
-            {/* Issue Type Selector */}
+            {/* Issue Type Selector (Locked in Edit Mode for safety) */}
             <div>
               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Core Category</label>
               <div className="flex flex-wrap gap-2.5">
@@ -144,12 +203,14 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
                   const isActive = type === t.id;
                   return (
                     <button
-                      key={t.id} type="button" onClick={() => setType(t.id)}
+                      key={t.id} type="button" 
+                      onClick={() => !initialData && setType(t.id)}
+                      disabled={!!initialData}
                       className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
                         isActive 
                           ? `border-indigo-200 bg-indigo-50/50 text-indigo-700 ring-1 ring-indigo-100` 
-                          : `border-slate-100 hover:bg-slate-50 text-slate-500`
-                      }`}
+                          : `border-slate-100 bg-white text-slate-500 ${!initialData && 'hover:bg-slate-50'}`
+                      } ${initialData && !isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className={`p-1 rounded-lg ${t.bg}`}>
                         <Icon className={`w-3.5 h-3.5 ${t.color}`} />
@@ -167,7 +228,7 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
               <input 
                 type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder="Briefly describe the task or deposit item..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-medium"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-bold text-slate-900 placeholder:text-slate-400"
               />
             </div>
 
@@ -176,12 +237,11 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Context & Acceptance Criteria</label>
               <textarea 
                 rows={5} value={description} onChange={(e) => setDescription(e.target.value)}
-                placeholder="Provide detailed context for the assigned team members..."
                 className="w-full bg-slate-50 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all resize-none text-slate-800 text-sm leading-relaxed"
               />
             </div>
 
-            {/* ⚡ NEW: Automation & Recurring Section */}
+            {/* ⚡ ADVANCED: Automation & Recurring Section */}
             <div className="pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -189,8 +249,8 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
                     <RefreshCw className="w-4 h-4 text-amber-700" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 leading-tight">Recurring Alert</h3>
-                    <p className="text-[10px] text-slate-500 font-medium">Auto-notify assignees on a schedule</p>
+                    <h3 className="text-sm font-bold text-slate-900 leading-tight">Recurring Schedule</h3>
+                    <p className="text-[10px] text-slate-500 font-medium">Auto-recreate and notify assignees</p>
                   </div>
                 </div>
                 <button 
@@ -204,27 +264,61 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
 
               {isRecurring && (
                 <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 animate-in slide-in-from-top-2 duration-300">
-                  <div>
+                  <div className="col-span-2 md:col-span-1">
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Frequency</label>
                     <select 
                       value={frequency} onChange={(e) => setFrequency(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                     >
-                      <option value="DAILY">Daily</option>
-                      <option value="WEEKLY">Every Monday</option>
-                      <option value="MONTHLY">1st of Month</option>
+                      <option value="DAILY">Every Day</option>
+                      <option value="WEEKLY">Specific Day of Week</option>
+                      <option value="MONTHLY">Specific Date of Month</option>
                     </select>
                   </div>
-                  <div>
+
+                  {frequency === "WEEKLY" && (
+                    <div className="col-span-2 md:col-span-1">
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Which Day?</label>
+                      <select 
+                        value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="1">Monday</option>
+                        <option value="2">Tuesday</option>
+                        <option value="3">Wednesday</option>
+                        <option value="4">Thursday</option>
+                        <option value="5">Friday</option>
+                        <option value="6">Saturday</option>
+                        <option value="0">Sunday</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {frequency === "MONTHLY" && (
+                    <div className="col-span-2 md:col-span-1">
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Which Date?</label>
+                      <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
+                        <span className="text-xs font-bold text-slate-400">The</span>
+                        <input 
+                          type="number" min="1" max="31" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)}
+                          className="w-12 outline-none text-xs font-bold text-center"
+                        />
+                        <span className="text-xs font-bold text-slate-400">of the month</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="col-span-2 md:col-span-1">
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alert Time</label>
                     <input 
                       type="time" value={recurringTime} onChange={(e) => setRecurringTime(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                     />
                   </div>
-                  <div className="col-span-2 flex items-center gap-2 text-indigo-600 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
-                    <BellRing className="w-3 h-3 shrink-0" />
-                    <p className="text-[10px] font-bold">This will trigger Push, In-App, and Email notifications.</p>
+
+                  <div className="col-span-2 flex items-center gap-2 text-indigo-600 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100">
+                    <BellRing className="w-4 h-4 shrink-0" />
+                    <p className="text-[10px] font-bold">This will trigger Push, In-App, and Email notifications automatically.</p>
                   </div>
                 </div>
               )}
@@ -273,7 +367,6 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
                   </label>
                   <input 
                     type="number" min="0" step="0.5" value={estimatedHours} onChange={(e) => setEstimatedHours(e.target.value)}
-                    placeholder="0.0"
                     className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold"
                   />
                 </div>
@@ -304,7 +397,6 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
                           <span className={`font-bold truncate ${isSelected ? "text-indigo-900" : "text-slate-700"}`}>
                             {user.firstName} {user.lastName}
                           </span>
-                          <span className="text-[9px] text-slate-400 truncate">{user.email}</span>
                         </div>
                         {isSelected && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />}
                       </button>
@@ -320,13 +412,13 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId }: Tas
                 type="submit" disabled={isSubmitting || !title.trim()}
                 className="w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98]"
               >
-                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Finalizing...</> : "Publish Ticket"}
+                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : (initialData ? "Save Changes" : "Publish Ticket")}
               </button>
               <button 
                 type="button" onClick={onClose}
                 className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
               >
-                Discard Draft
+                Cancel
               </button>
             </div>
           </div>

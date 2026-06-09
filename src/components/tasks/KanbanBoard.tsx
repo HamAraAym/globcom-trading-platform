@@ -6,17 +6,21 @@ import { updateTaskStatus } from "@/actions/taskActions";
 import { TaskStatus } from "@prisma/client";
 import { CheckCircle2, Inbox } from "lucide-react";
 import TaskCard from "./TaskCard"; 
+import TaskModal from "./TaskModal"; // ⚡ NEW: Imported the Smart Modal
 
 type Task = {
   id: string;
   title: string;
   description?: string | null;
+  type: string; // ⚡ Added for Edit Modal
   priority: string;
   status: TaskStatus;
   estimatedHours?: number | null; 
   actualHours: number;            
+  dueDate?: Date | null; // ⚡ Added for Edit Modal
+  isRecurring: boolean; // ⚡ Added for Edit Modal
+  cronExpression?: string | null; // ⚡ Added for Edit Modal
   assignees: { id: string; firstName: string; lastName: string }[];
-  // ⚡ Added subtasks and comments to match the backend
   subtasks?: { id: string; title: string; isDone: boolean }[];
   comments?: { id: string; text: string; createdAt: Date; author: { firstName: string; lastName: string } }[];
 };
@@ -25,7 +29,7 @@ interface KanbanBoardProps {
   initialTasks: Task[];
   onOpenModal?: () => void; 
   users: any[]; 
-  currentUserId: string; // ⚡ Added to pass down to TaskCard
+  currentUserId: string; 
 }
 
 const COLUMNS: { id: TaskStatus; label: string; bg: string; border: string; accent: string }[] = [
@@ -39,6 +43,9 @@ export default function KanbanBoard({ initialTasks, onOpenModal, users, currentU
   const [isMounted, setIsMounted] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [, startTransition] = useTransition();
+
+  // ⚡ NEW: State to hold the task currently being edited
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
     setTasks(initialTasks);
@@ -72,74 +79,88 @@ export default function KanbanBoard({ initialTasks, onOpenModal, users, currentU
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 md:gap-6 h-full items-start pb-6 px-4 md:px-0 overflow-x-auto w-full custom-scrollbar">
-        {COLUMNS.map((col) => {
-          const columnTasks = tasks.filter((t) => t.status === col.id);
+    <>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex gap-4 md:gap-6 h-full items-start pb-6 px-4 md:px-0 overflow-x-auto w-full custom-scrollbar">
+          {COLUMNS.map((col) => {
+            const columnTasks = tasks.filter((t) => t.status === col.id);
 
-          return (
-            <div key={col.id} className="flex flex-col w-80 shrink-0 h-full max-h-[calc(100vh-180px)]">
-              <div className="flex items-center justify-between mb-4 px-2">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${
-                    col.id === "TODO" ? "bg-indigo-500" :
-                    col.id === "IN_PROGRESS" ? "bg-blue-500" :
-                    col.id === "IN_REVIEW" ? "bg-amber-500" : "bg-emerald-500"
-                  }`} />
-                  <h3 className="font-semibold text-sm text-slate-800 tracking-tight">{col.label}</h3>
-                </div>
-                <span className="text-xs font-bold bg-slate-200/70 text-slate-600 px-2.5 py-0.5 rounded-full">
-                  {columnTasks.length}
-                </span>
-              </div>
-
-              <Droppable droppableId={col.id}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`flex-1 overflow-y-auto p-3 rounded-2xl border transition-all flex flex-col gap-3 min-h-[350px] ${
-                      snapshot.isDraggingOver 
-                        ? `${col.bg} ${col.border} shadow-inner` 
-                        : "bg-slate-100/70 border-slate-200/60"
-                    }`}
-                  >
-                    {columnTasks.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-slate-300 rounded-xl bg-white/50 text-center my-auto transition-all">
-                        {col.id === "DONE" ? <CheckCircle2 className="w-8 h-8 text-slate-400 mb-2 stroke-[1.5]" /> : <Inbox className="w-8 h-8 text-slate-400 mb-2 stroke-[1.5]" />}
-                        <p className="text-xs font-semibold text-slate-700">No tasks {col.label.toLowerCase()}</p>
-                        <p className="text-[11px] text-slate-400 max-w-[160px] mt-0.5 leading-relaxed">
-                          {col.id === "TODO" ? "Create a ticket to kickstart your next team workflow." : "Drag a card here to sync team operations."}
-                        </p>
-                        {col.id === "TODO" && onOpenModal && (
-                          <button onClick={onOpenModal} className="mt-4 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 px-4 py-2 rounded-lg transition-colors cursor-pointer border border-indigo-100">
-                            + Add Ticket
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      columnTasks.map((task, index) => (
-                        <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(provided, snapshot) => (
-                            <TaskCard 
-                              task={task} 
-                              provided={provided} 
-                              snapshot={snapshot} 
-                              users={users} 
-                              currentUserId={currentUserId} // ⚡ Passing it securely down to the modal
-                            />
-                          )}
-                        </Draggable>
-                      ))
-                    )}
-                    {provided.placeholder}
+            return (
+              <div key={col.id} className="flex flex-col w-80 shrink-0 h-full max-h-[calc(100vh-180px)]">
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${
+                      col.id === "TODO" ? "bg-indigo-500" :
+                      col.id === "IN_PROGRESS" ? "bg-blue-500" :
+                      col.id === "IN_REVIEW" ? "bg-amber-500" : "bg-emerald-500"
+                    }`} />
+                    <h3 className="font-semibold text-sm text-slate-800 tracking-tight">{col.label}</h3>
                   </div>
-                )}
-              </Droppable>
-            </div>
-          );
-        })}
-      </div>
-    </DragDropContext>
+                  <span className="text-xs font-bold bg-slate-200/70 text-slate-600 px-2.5 py-0.5 rounded-full">
+                    {columnTasks.length}
+                  </span>
+                </div>
+
+                <Droppable droppableId={col.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`flex-1 overflow-y-auto p-3 rounded-2xl border transition-all flex flex-col gap-3 min-h-[350px] ${
+                        snapshot.isDraggingOver 
+                          ? `${col.bg} ${col.border} shadow-inner` 
+                          : "bg-slate-100/70 border-slate-200/60"
+                      }`}
+                    >
+                      {columnTasks.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-slate-300 rounded-xl bg-white/50 text-center my-auto transition-all">
+                          {col.id === "DONE" ? <CheckCircle2 className="w-8 h-8 text-slate-400 mb-2 stroke-[1.5]" /> : <Inbox className="w-8 h-8 text-slate-400 mb-2 stroke-[1.5]" />}
+                          <p className="text-xs font-semibold text-slate-700">No tasks {col.label.toLowerCase()}</p>
+                          <p className="text-[11px] text-slate-400 max-w-[160px] mt-0.5 leading-relaxed">
+                            {col.id === "TODO" ? "Create a ticket to kickstart your next team workflow." : "Drag a card here to sync team operations."}
+                          </p>
+                          {col.id === "TODO" && onOpenModal && (
+                            <button onClick={onOpenModal} className="mt-4 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 px-4 py-2 rounded-lg transition-colors cursor-pointer border border-indigo-100">
+                              + Add Ticket
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        columnTasks.map((task, index) => (
+                          <Draggable key={task.id} draggableId={task.id} index={index}>
+                            {(provided, snapshot) => (
+                              <TaskCard 
+                                task={task} 
+                                provided={provided} 
+                                snapshot={snapshot} 
+                                users={users} 
+                                currentUserId={currentUserId}
+                                onEdit={(taskData) => setEditingTask(taskData)} // ⚡ TRIGER: Opens the Smart Modal
+                              />
+                            )}
+                          </Draggable>
+                        ))
+                      )}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            );
+          })}
+        </div>
+      </DragDropContext>
+
+      {/* ⚡ RENDER THE SMART MODAL FOR EDITING */}
+      {editingTask && (
+        <TaskModal 
+          isOpen={true} 
+          onClose={() => setEditingTask(null)} 
+          users={users} 
+          currentUserId={currentUserId} 
+          initialData={editingTask as any} 
+        />
+      )}
+    </>
   );
 }
