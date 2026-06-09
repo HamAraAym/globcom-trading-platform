@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { 
   LayoutDashboard, Users, FileBox, Box, Menu, 
-  ArrowRightLeft, UserCog, ShieldCheck, Settings, LogOut, X, Globe // ⚡ FIX: Added Globe import
+  ArrowRightLeft, UserCog, ShieldCheck, Settings, LogOut, X, Globe, MessageSquare, CheckSquare
 } from "lucide-react";
 
 export default function MobileNav() {
@@ -21,13 +21,16 @@ export default function MobileNav() {
     { name: "Home", href: "/dashboard", icon: LayoutDashboard, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
     { name: "Demands", href: "/demands", icon: FileBox, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP"] },
     { name: "Supplies", href: "/supplies", icon: Box, allowedRoles: ["ADMIN", "TRADING_REP", "SUPPLIER_REP"] },
-    { name: "CRM", href: "/buyers", icon: Users, allowedRoles: ["ADMIN"] },
+    // ⚡ FIX: Added Comms to the primary bottom bar for instant access
+    { name: "Comms", href: "/team-chat", icon: MessageSquare, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
   ].filter(link => link.allowedRoles.includes(userRole)).slice(0, 4);
 
   // 2. Secondary Menu Links (Slide-Up Drawer)
   const secondaryLinks = [
-    // ⚡ FIX: Added explicit Global Hub link to the top of the drawer
     { name: "Global Hub", href: "/", icon: Globe, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
+    // ⚡ FIX: Moved CRM here to make room on the bottom bar, and added Task Engine
+    { name: "Task Engine", href: "/tasks", icon: CheckSquare, allowedRoles: ["ADMIN", "TRADING_REP", "BUYER_REP", "SUPPLIER_REP"] },
+    { name: "Client CRM", href: "/buyers", icon: Users, allowedRoles: ["ADMIN"] },
     { name: "Trading Hub", href: "/trading", icon: ArrowRightLeft, allowedRoles: ["ADMIN", "TRADING_REP"] },
     { name: "Team Access", href: "/users", icon: UserCog, allowedRoles: ["ADMIN"] },
     { name: "Audit Log", href: "/audit", icon: ShieldCheck, allowedRoles: ["ADMIN"] },
@@ -50,7 +53,7 @@ export default function MobileNav() {
               </button>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
               {secondaryLinks.map((link) => {
                 const Icon = link.icon;
                 return (
