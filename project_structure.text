@@ -4,7 +4,6 @@
     - neon-postgres
       - SKILL.md
 - .env
-- .env.local
 - .gitignore
 - .vercel
   - README.txt
@@ -38,6 +37,7 @@
       - .npmkeep
     - build.gradle
     - capacitor.build.gradle
+    - google-services.json
     - proguard-rules.pro
     - src
       - androidTest
@@ -175,6 +175,7 @@
       - Base.lproj
         - LaunchScreen.storyboard
         - Main.storyboard
+      - GoogleService-Info.plist
       - Info.plist
       - capacitor.config.json
       - config.xml
@@ -320,6 +321,8 @@
       - auth
         - [...nextauth]
           - route.ts
+      - cron
+        - route.ts
       - v1
         - tasks
           - route.ts
@@ -355,6 +358,7 @@
     - NotificationBell.tsx
     - PageWrapper.tsx
     - Providers.tsx
+    - PushRegistry.tsx
     - RealtimeMessageFeed.tsx
     - Sidebar.tsx
     - SupplyCard.tsx
@@ -375,3 +379,4 @@
     - prisma.ts
   - proxy.ts
 - tsconfig.json
+- vercel.json
