@@ -43,7 +43,8 @@ export default function GlobalAIAssistant() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+    // ⚡ FIX: Adjusted bottom spacing specifically for mobile (bottom-24) to clear the nav bar!
+    <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[9999] flex flex-col items-end">
       
       {/* Chat Window */}
       {isOpen && (
