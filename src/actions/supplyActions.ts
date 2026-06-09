@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob"; 
+import { createSystemNotification } from "./notificationActions"; // ⚡ NEW: Central Notification Engine
 
 export async function createSupply(formData: FormData) {
   const session = await getServerSession();
@@ -70,19 +71,17 @@ export async function createSupply(formData: FormData) {
     data: { action: "CREATED_SUPPLY", details: `Supply posted: ${title}`, userId: user.id }
   });
 
-  // 🔔 NOTIFICATION: Alert active traders about the new Inventory
+  // ⚡ AUTOMATION: Alert active traders about the new Inventory
   const traders = await prisma.user.findMany({ 
     where: { id: { not: user.id }, role: { in: ["ADMIN", "TRADING_REP"] } } 
   });
   
-  if (traders.length > 0) {
-    await prisma.notification.createMany({
-      data: traders.map(t => ({
-        userId: t.id,
-        title: "New Inventory Added",
-        message: `${user.firstName} just added ${new Intl.NumberFormat().format(quantity)} ${quantityUnit} of ${title} to the global supply board.`,
-        link: `/supplies`,
-      }))
+  for (const trader of traders) {
+    await createSystemNotification({
+      userId: trader.id,
+      title: "New Inventory Added",
+      message: `${user.firstName} just added ${new Intl.NumberFormat().format(quantity)} ${quantityUnit} of ${title} to the global supply board.`,
+      link: `/supplies`,
     });
   }
 
@@ -172,7 +171,6 @@ export async function updateSupply(formData: FormData) {
   revalidatePath(`/chat/${existingSupply.id}`); 
 }
 
-// 🗑️ SECURE DELETE ACTION
 export async function deleteSupply(id: string) {
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
@@ -183,7 +181,6 @@ export async function deleteSupply(id: string) {
   const existingSupply = await prisma.supply.findUnique({ where: { id } });
   if (!existingSupply) throw new Error("Supply not found");
 
-  // 🔐 SERVER-SIDE RBAC ENFORCEMENT
   if (user.role !== "ADMIN" && existingSupply.creatorId !== user.id) {
     throw new Error("You do not have permission to delete this supply.");
   }
@@ -197,7 +194,6 @@ export async function deleteSupply(id: string) {
   revalidatePath("/supplies");
 }
 
-// 🔐 ROADMAP ITEM #5: Prevent unauthorized users from accepting/rejecting deals
 export async function updateSupplyStatus(id: string, status: any) {
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
@@ -208,7 +204,6 @@ export async function updateSupplyStatus(id: string, status: any) {
   const existingSupply = await prisma.supply.findUnique({ where: { id } });
   if (!existingSupply) throw new Error("Supply not found");
 
-  // Security Check: Only the creator (or an Admin) can change the status
   if (user.role !== "ADMIN" && existingSupply.creatorId !== user.id) {
     throw new Error("Only the creator of this supply can accept or reject offers.");
   }

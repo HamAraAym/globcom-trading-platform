@@ -1,11 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { openChatRoom } from "@/actions/chatActions";
+import { getServerSession } from "next-auth";
 import { 
   ArrowRightLeft, MessageSquare, ClipboardList, Package, Scale, 
   CircleDollarSign, Calendar, MapPin, Clock, Truck, Sparkles, Zap, ArrowRight 
 } from "lucide-react";
 
+// ⚡ NEW: Importing the Posting Forms
+import DemandForm from "@/components/DemandForm";
+import SupplyForm from "@/components/SupplyForm";
+
 export default async function TradingHubPage() {
+  const session = await getServerSession();
+  const userRole = (session?.user as any)?.role || "GUEST";
+
+  // Role-Based Permissions
+  const canPostDemand = ["ADMIN", "TRADING_REP", "BUYER_REP"].includes(userRole);
+  const canPostSupply = ["ADMIN", "TRADING_REP", "SUPPLIER_REP"].includes(userRole);
+
   // Fetch Demands and Supplies in parallel for speed
   const [demands, supplies] = await Promise.all([
     prisma.demand.findMany({
@@ -21,7 +33,7 @@ export default async function TradingHubPage() {
   ]);
 
   // =========================================================
-  // 🧠 SERVER-SIDE AI MATCHING ENGINE (Mock Algorithm)
+  // 🧠 SERVER-SIDE AI MATCHING ENGINE 
   // =========================================================
   const getAiMatches = () => {
     const matches = [];
@@ -125,16 +137,18 @@ export default async function TradingHubPage() {
         {/* ========================================================= */}
         <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full lg:max-h-[calc(100vh-250px)]">
           
-          <div className="bg-slate-900 px-4 md:px-6 py-4 md:py-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div className="bg-slate-900 px-4 md:px-6 py-4 flex items-center justify-between border-b border-slate-800 shrink-0">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="bg-blue-800 p-1.5 md:p-2 rounded-lg text-white">
                 <ClipboardList size={18} className="md:w-5 md:h-5" />
               </div>
-              <h2 className="text-lg md:text-xl font-bold text-white tracking-wide">Open Demands</h2>
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-white tracking-wide">Open Demands</h2>
+                <p className="text-[10px] text-slate-400 mt-0.5">{demands.length} Active Records</p>
+              </div>
             </div>
-            <div className="bg-blue-800 text-white text-[10px] md:text-xs font-bold px-2.5 md:px-3 py-1 rounded-full shadow-sm">
-              {demands.length} Active
-            </div>
+            {/* ⚡ NEW: Interactive Post Button */}
+            {canPostDemand && <DemandForm />}
           </div>
 
           <div className="p-4 md:p-6 space-y-4 md:space-y-5 bg-slate-50/50 flex-1 overflow-y-auto custom-scrollbar">
@@ -212,16 +226,18 @@ export default async function TradingHubPage() {
         {/* ========================================================= */}
         <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full lg:max-h-[calc(100vh-250px)]">
           
-          <div className="bg-slate-900 px-4 md:px-6 py-4 md:py-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div className="bg-slate-900 px-4 md:px-6 py-4 flex items-center justify-between border-b border-slate-800 shrink-0">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="bg-green-600 p-1.5 md:p-2 rounded-lg text-white">
                 <Package size={18} className="md:w-5 md:h-5" />
               </div>
-              <h2 className="text-lg md:text-xl font-bold text-white tracking-wide">Available Supply</h2>
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-white tracking-wide">Available Supply</h2>
+                <p className="text-[10px] text-slate-400 mt-0.5">{supplies.length} Active Records</p>
+              </div>
             </div>
-            <div className="bg-green-600 text-white text-[10px] md:text-xs font-bold px-2.5 md:px-3 py-1 rounded-full shadow-sm">
-              {supplies.length} Active
-            </div>
+            {/* ⚡ NEW: Interactive Post Button */}
+            {canPostSupply && <SupplyForm />}
           </div>
 
           <div className="p-4 md:p-6 space-y-4 md:space-y-5 bg-slate-50/50 flex-1 overflow-y-auto custom-scrollbar">

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob"; 
+import { createSystemNotification } from "./notificationActions"; // ⚡ NEW: Central Notification Engine
 
 export async function createDemand(formData: FormData) {
   const session = await getServerSession();
@@ -67,19 +68,17 @@ export async function createDemand(formData: FormData) {
     data: { action: "CREATED_DEMAND", details: `Demand posted: ${title}`, userId: user.id }
   });
 
-  // 🔔 NOTIFICATION: Alert active traders about the new Demand
+  // ⚡ AUTOMATION: Alert active traders about the new Demand using Central Engine
   const traders = await prisma.user.findMany({ 
     where: { id: { not: user.id }, role: { in: ["ADMIN", "TRADING_REP"] } } 
   });
   
-  if (traders.length > 0) {
-    await prisma.notification.createMany({
-      data: traders.map(t => ({
-        userId: t.id,
-        title: "New Demand Board Listing",
-        message: `${user.firstName} just posted a demand for ${new Intl.NumberFormat().format(quantity)} ${quantityUnit} of ${title}.`,
-        link: `/demands`,
-      }))
+  for (const trader of traders) {
+    await createSystemNotification({
+      userId: trader.id,
+      title: "New Demand Board Listing",
+      message: `${user.firstName} just posted a demand for ${new Intl.NumberFormat().format(quantity)} ${quantityUnit} of ${title}.`,
+      link: `/demands`,
     });
   }
 
@@ -191,7 +190,6 @@ export async function deleteDemand(id: string) {
   revalidatePath("/demands");
 }
 
-// 🔐 ROADMAP ITEM #5: Prevent unauthorized users from accepting/rejecting deals
 export async function updateDemandStatus(id: string, status: any) {
   const session = await getServerSession();
   if (!session?.user?.email) throw new Error("Unauthorized");
@@ -202,7 +200,6 @@ export async function updateDemandStatus(id: string, status: any) {
   const existingDemand = await prisma.demand.findUnique({ where: { id } });
   if (!existingDemand) throw new Error("Demand not found");
 
-  // Security Check: Only the creator (or an Admin) can change the status
   if (user.role !== "ADMIN" && existingDemand.creatorId !== user.id) {
     throw new Error("Only the creator of this demand can accept or reject offers.");
   }
