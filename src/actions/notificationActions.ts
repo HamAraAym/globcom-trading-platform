@@ -4,16 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { sendSystemAlertEmail } from "./emailActions"; 
-import * as admin from "firebase-admin"; // ⚡ Injected Firebase Admin SDK
+
+// ⚡ FIX: Use the modern, modular Firebase Admin imports!
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getMessaging } from "firebase-admin/messaging";
 
 // ==========================================
 // FIREBASE ADMIN INITIALIZATION
 // ==========================================
 // Prevents Next.js hot-reloads from initializing Firebase multiple times
-if (!admin.apps.length) {
+if (!getApps().length) {
   try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
+    initializeApp({
+      credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         // Safely parses the escaped newlines from the .env string
@@ -98,7 +101,6 @@ export async function sendPing(targetUserId: string) {
   
   if (!sender) throw new Error("User not found");
 
-  // ⚡ Refactored to use the central engine so Pings also trigger mobile push!
   await createSystemNotification({
     userId: targetUserId,
     title: "Incoming Team Ping",
@@ -178,15 +180,15 @@ export async function createSystemNotification(data: {
             body: data.message,
           },
           data: {
-            link: data.link || "/", // Deep link support if they tap the lock screen notification
+            link: data.link || "/", 
           },
           tokens: user.pushTokens,
         };
 
         try {
-          const pushResponse = await admin.messaging().sendEachForMulticast(messagePayload);
+          // ⚡ FIX: Use the modular getMessaging() function
+          const pushResponse = await getMessaging().sendEachForMulticast(messagePayload);
           
-          // Optional: Log failures to clean up dead device tokens later
           if (pushResponse.failureCount > 0) {
             console.warn(`Push Notice: ${pushResponse.failureCount} tokens failed to receive the message.`);
           }
