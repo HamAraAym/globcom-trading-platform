@@ -28,23 +28,34 @@ export async function sendMessage(chatId: string, formData: FormData): Promise<v
   const content = formData.get("content") as string;
   if (!content || !content.trim()) return;
 
-  // 2. 🧠 SMART NOTIFICATION ENGINE: Detect @mentions BEFORE saving
+  // 2. 🧠 SMART NOTIFICATION ENGINE: Handle standard text AND JSON structured offers
+  let textToParseForMentions = content;
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && parsed.type === "COUNTER_OFFER") {
+      // If it's an offer, only scan the 'notes' field for @mentions
+      textToParseForMentions = parsed.notes || "";
+    }
+  } catch (e) {
+    // Standard text message, proceed safely
+  }
+
   // Regex to find all words starting with '@' (e.g., @JohnDoe)
-  const mentionMatches = content.match(/@(\w+)/g) || [];
+  const mentionMatches = textToParseForMentions.match(/@(\w+)/g) || [];
   
   // Remove the '@' and convert to lowercase for clean database storage & matching
   const mentionNames = mentionMatches.map(m => m.slice(1).toLowerCase());
 
-  // 3. Save the message to the database (Now storing the actual mentions!)
+  // 3. Save the message to the database
   const newMessage = await prisma.message.create({
     data: {
       content: content.trim(),
       chatRoomId: chatId,
       senderId: user.id,
       attachments: [], 
-      mentions: mentionNames, // Saves the array of tagged names to DB
+      mentions: mentionNames, 
     },
-    // CRITICAL FIX: We MUST include the sender object so the UI knows whose name to put on the chat bubble when it broadcasts!
+    // Include sender so the UI knows whose name to put on the chat bubble when broadcasted
     include: {
       sender: {
         select: {
@@ -58,7 +69,6 @@ export async function sendMessage(chatId: string, formData: FormData): Promise<v
   });
 
   // 4. 🔥 LIVE WEBSOCKET BROADCAST
-  // This blasts the message to everyone currently looking at the chat room without them needing to refresh!
   try {
     await pusherServer.trigger(`chat-${chatId}`, "new-message", newMessage);
   } catch (error) {
@@ -67,12 +77,10 @@ export async function sendMessage(chatId: string, formData: FormData): Promise<v
 
   // 5. Cross-reference and Dispatch Notifications
   if (mentionNames.length > 0) {
-    // Fetch all internal users to cross-reference the tagged names
     const allUsers = await prisma.user.findMany({ 
       select: { id: true, firstName: true, lastName: true } 
     });
 
-    // Find the actual User IDs of the people mentioned
     const mentionedUserIds = allUsers
       .filter(u => 
         u.id !== user.id && // PREVENT self-notifications
@@ -80,7 +88,6 @@ export async function sendMessage(chatId: string, formData: FormData): Promise<v
       )
       .map(u => u.id);
 
-    // If we have valid users to notify, fetch the room context and dispatch!
     if (mentionedUserIds.length > 0) {
       const room = await prisma.chatRoom.findUnique({
         where: { id: chatId },
@@ -102,6 +109,4 @@ export async function sendMessage(chatId: string, formData: FormData): Promise<v
 
   // 6. Refresh the server caches for fallback
   revalidatePath(`/chat/${chatId}`);
-  
-  // Notice: The return { success: true } is gone. It now perfectly matches the Promise<void> signature!
 }
