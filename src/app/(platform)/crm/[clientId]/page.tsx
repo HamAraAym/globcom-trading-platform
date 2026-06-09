@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import DocumentGenerator from "@/components/DocumentGenerator";
 import KycStatusUpdater from "@/components/KycStatusUpdater"; 
+import { createSystemNotification } from "@/actions/notificationActions"; // ⚡ NEW: Hooked into the Alert Engine
 
 export default async function ClientProfilePage({ params }: { params: Promise<{ clientId: string }> }) {
   const session = await getServerSession();
@@ -61,9 +62,22 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
   const isAdmin = currentUser?.role === "ADMIN";
 
-  // INLINE SERVER ACTIONS 
+  // ==========================================
+  // INLINE SERVER ACTIONS (Now securely wired!)
+  // ==========================================
   const deleteEntity = async () => {
     "use server";
+    if (currentUser?.role !== "ADMIN") return;
+
+    // ⚡ Log the destructive action before deletion
+    await prisma.auditLog.create({
+      data: {
+        action: "PURGED_CLIENT",
+        details: `Deleted client entity: ${client.company || client.name}`,
+        userId: currentUser.id
+      }
+    });
+
     await prisma.client.delete({ where: { id: clientId } });
     redirect("/buyers");
   };
@@ -72,6 +86,8 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     "use server";
     const docTitle = formData.get("docTitle") as string;
     if (currentUser) {
+      
+      // 1. Log the Activity
       await prisma.clientActivity.create({
         data: {
           type: "DOCUMENT_DISPATCHED",
@@ -80,6 +96,17 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
           userId: currentUser.id
         }
       });
+
+      // ⚡ 2. Notify the assigned rep (if someone else sent it)
+      if (client.assignedRepId && client.assignedRepId !== currentUser.id) {
+        await createSystemNotification({
+          userId: client.assignedRepId,
+          title: "Document Dispatched",
+          message: `A new document [${docTitle}] was sent to your client ${client.company || client.name}.`,
+          link: `/crm/${clientId}`
+        });
+      }
+
       revalidatePath(`/crm/${clientId}`);
     }
   };
@@ -211,7 +238,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          {/* ⚡ EXPANDED: Compliance Vault Card */}
+          {/* Compliance Vault Card */}
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-2">
