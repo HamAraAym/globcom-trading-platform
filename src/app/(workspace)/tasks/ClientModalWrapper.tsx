@@ -19,12 +19,15 @@ interface Task {
   id: string;
   title: string;
   description?: string | null;
+  type: string; // ⚡ Added to fix Vercel build
   priority: string;
   status: TaskStatus;
   estimatedHours?: number | null;
   actualHours: number;
+  dueDate?: Date | null; // ⚡ Added to fix Vercel build
+  isRecurring: boolean; // ⚡ Added to fix Vercel build
+  cronExpression?: string | null; // ⚡ Added to fix Vercel build
   assignees: { id: string; firstName: string; lastName: string }[];
-  // ⚡ Updated to match our new advanced Jira features
   subtasks?: { id: string; title: string; isDone: boolean }[];
   comments?: { id: string; text: string; createdAt: Date; author: { firstName: string; lastName: string } }[];
 }
@@ -137,7 +140,7 @@ export default function ClientModalWrapper({ tasks: initialTasks, users, current
           initialTasks={filteredTasks} 
           onOpenModal={() => setIsModalOpen(true)} 
           users={users}
-          currentUserId={currentUserId} // ⚡ Successfully passed down to power the Activity Feed
+          currentUserId={currentUserId}
         />
       </div>
 
