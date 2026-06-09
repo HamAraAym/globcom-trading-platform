@@ -97,17 +97,20 @@ model User {
   onlineStatus    OnlineStatus @default(OFFLINE)
   lastSeen        DateTime     @default(now())
   
-  // Relations
+// Relations
   demands         Demand[]
   supplies        Supply[]
   messages        Message[]
-  teamMessages    TeamMessage[]  
   auditLogs       AuditLog[]
   notifications   Notification[]
   
   // CRM Relations
   assignedClients Client[]         
   clientActivities ClientActivity[] 
+  
+  // ⚡ NEW: Slack-Style Internal Comms
+  channels         TeamChannel[] @relation("ChannelMembers")
+  sentTeamMessages TeamMessage[] @relation("MessageSender")
   
   // Many-to-Many Task Assignments
   assignedTasks   Task[]       @relation("TaskAssignees")
@@ -421,15 +424,34 @@ model SystemSettings {
 }
 
 // ==============================
-// 6. GLOBAL TEAM CHAT
+// 6. INTERNAL TEAM COMMS (SLACK/WHATSAPP STYLE)
 // ==============================
-model TeamMessage {
-  id          String   @id @default(cuid())
-  content     String
-  attachments String[] 
-  
-  senderId    String
-  sender      User     @relation(fields: [senderId], references: [id])
+model TeamChannel {
+  id          String        @id @default(cuid())
+  name        String?       // E.g., "Marketing Team" (Null for 1-on-1 DMs)
+  isGroup     Boolean       @default(false)
 
-  createdAt   DateTime @default(now())
+  members     User[]        @relation("ChannelMembers")
+  messages    TeamMessage[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model TeamMessage {
+  id          String        @id @default(cuid())
+  content     String?       // Optional because a message might JUST be a file attachment
+  
+  // ⚡ Vercel Blob File Attachments
+  fileUrl     String?
+  fileName    String?
+  fileType    String?       // e.g., "IMAGE", "PDF", "DOCUMENT"
+
+  senderId    String
+  sender      User          @relation("MessageSender", fields: [senderId], references: [id])
+
+  channelId   String
+  channel     TeamChannel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime      @default(now())
 }
