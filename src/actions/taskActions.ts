@@ -3,7 +3,11 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { TaskStatus } from "@prisma/client";
-import { createSystemNotification } from "./notificationActions"; // ⚡ Injected Notification Engine
+import { createSystemNotification } from "./notificationActions";
+import { Resend } from "resend";
+
+// Initialize the Resend Email Engine
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface TaskFilters {
   userId?: string;
@@ -86,7 +90,7 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
 }
 
 // ==========================================
-// 3. CREATE A NEW TICKET (JIRA-STYLE)
+// 3. CREATE A NEW TICKET (With Email & Recurring Hooks)
 // ==========================================
 export async function createTask(data: {
   title: string;
@@ -98,6 +102,10 @@ export async function createTask(data: {
   creatorId: string;
   assigneeIds?: string[];
   clientId?: string;
+  // ⚡ NEW: Recurring Engine Hooks
+  isRecurring?: boolean;
+  cronExpression?: string;
+  nextRunAt?: Date;
 }) {
   try {
     const newTask = await prisma.task.create({
@@ -111,23 +119,60 @@ export async function createTask(data: {
         status: "TODO",
         creatorId: data.creatorId,
         clientId: data.clientId || undefined,
+        isRecurring: data.isRecurring || false,
+        cronExpression: data.cronExpression,
+        nextRunAt: data.nextRunAt,
         assignees: data.assigneeIds && data.assigneeIds.length > 0
           ? { connect: data.assigneeIds.map((id) => ({ id })) }
           : undefined,
       },
     });
 
-    // ⚡ TRIGGER: Notify all assigned users
+    // ⚡ TRIGGER: Multi-Channel Notifications (In-App + Email)
     if (data.assigneeIds && data.assigneeIds.length > 0) {
-      for (const userId of data.assigneeIds) {
-        if (userId === data.creatorId) continue; // Don't notify the creator
+      // Fetch user data so we have their actual emails
+      const assignees = await prisma.user.findMany({
+        where: { id: { in: data.assigneeIds } },
+        select: { id: true, email: true, firstName: true }
+      });
+
+      for (const user of assignees) {
+        if (user.id === data.creatorId) continue; 
         
+        // 1. Dispatch In-App Notification (Global Hub & Bell Icon)
         await createSystemNotification({
-          userId,
-          title: "New Task Assigned",
-          message: `You have been assigned to a new ticket: ${data.title}`,
+          userId: user.id,
+          title: data.isRecurring ? "Recurring Alert Setup" : "New Task Assigned",
+          message: `You have been assigned to: ${data.title}`,
           link: "/tasks",
         });
+
+        // 2. Dispatch Official Email via Resend
+        if (process.env.RESEND_API_KEY) {
+          try {
+            await resend.emails.send({
+              from: 'GlobCom Enterprise <onboarding@resend.dev>', // Update this to your verified domain later!
+              to: user.email,
+              subject: data.isRecurring ? `Recurring Alert Active: ${data.title}` : `New Task Assigned: ${data.title}`,
+              html: `
+                <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                  <h2 style="color: #0f172a;">Hello ${user.firstName},</h2>
+                  <p style="color: #475569;">You have been assigned to a new operational ticket in the GlobCom Enterprise system.</p>
+                  
+                  <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin: 0 0 8px 0; color: #1e293b;">${data.title}</h3>
+                    <p style="margin: 0; color: #64748b; font-size: 14px;"><strong>Priority:</strong> ${data.priority}</p>
+                    ${data.isRecurring ? `<p style="margin: 8px 0 0 0; color: #0284c7; font-size: 14px; font-weight: bold;">🔄 This is a recurring alert (${data.cronExpression}).</p>` : ''}
+                  </div>
+                  
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/tasks" style="display: inline-block; background-color: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Launch Task Engine</a>
+                </div>
+              `
+            });
+          } catch (emailError) {
+            console.error("Failed to dispatch Resend email:", emailError);
+          }
+        }
       }
     }
 
@@ -166,6 +211,10 @@ export async function updateTaskDetails(taskId: string, data: {
   estimatedHours?: number;
   actualHours?: number;
   assigneeIds?: string[];
+  // ⚡ NEW: Allow updating to recurring mid-sprint
+  isRecurring?: boolean;
+  cronExpression?: string;
+  nextRunAt?: Date;
 }) {
   try {
     const updatedTask = await prisma.task.update({
@@ -176,6 +225,9 @@ export async function updateTaskDetails(taskId: string, data: {
         priority: data.priority,
         estimatedHours: data.estimatedHours,
         actualHours: data.actualHours,
+        isRecurring: data.isRecurring,
+        cronExpression: data.cronExpression,
+        nextRunAt: data.nextRunAt,
         assignees: {
           set: [],
           connect: data.assigneeIds?.map((id) => ({ id })) || [],
@@ -183,15 +235,31 @@ export async function updateTaskDetails(taskId: string, data: {
       },
     });
 
-    // ⚡ TRIGGER: Notify assigned users of scope/priority changes
+    // ⚡ TRIGGER: Notify assigned users of scope/priority changes (or newly setup recurring alerts)
     if (data.assigneeIds && data.assigneeIds.length > 0) {
-      for (const userId of data.assigneeIds) {
+      const assignees = await prisma.user.findMany({
+        where: { id: { in: data.assigneeIds } },
+        select: { id: true, email: true, firstName: true }
+      });
+
+      for (const user of assignees) {
+        // In-App
         await createSystemNotification({
-          userId,
-          title: "Ticket Updated",
+          userId: user.id,
+          title: data.isRecurring ? "Recurring Alert Updated" : "Ticket Updated",
           message: `Scope or assignments were updated for: ${data.title}`,
           link: "/tasks",
         });
+
+        // Email Alert if they set up a new recurring rule mid-sprint
+        if (data.isRecurring && process.env.RESEND_API_KEY) {
+           await resend.emails.send({
+             from: 'GlobCom Enterprise <onboarding@resend.dev>', 
+             to: user.email,
+             subject: `System Alert: Task set to Recurring`,
+             html: `<p>The task <strong>${data.title}</strong> has been configured as a recurring workflow (${data.cronExpression}).</p>`
+           });
+        }
       }
     }
 
@@ -252,7 +320,6 @@ export async function addTaskComment(taskId: string, authorId: string, text: str
       data: { taskId, authorId, text }
     });
 
-    // ⚡ TRIGGER: Notify other assignees that a comment was added
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: { assignees: true }
@@ -260,7 +327,7 @@ export async function addTaskComment(taskId: string, authorId: string, text: str
 
     if (task && task.assignees.length > 0) {
       for (const assignee of task.assignees) {
-        if (assignee.id === authorId) continue; // Don't notify the person who wrote the comment
+        if (assignee.id === authorId) continue; 
 
         await createSystemNotification({
           userId: assignee.id,
