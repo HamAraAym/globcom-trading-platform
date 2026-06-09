@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { ClientType } from "@prisma/client";
 import { put } from "@vercel/blob"; 
+import { createSystemNotification } from "./notificationActions"; // ⚡ NEW: Imported the Global Alert Engine
 
 export async function createBuyer(formData: FormData) {
   const session = await getServerSession();
@@ -89,9 +90,9 @@ export async function createBuyer(formData: FormData) {
       registrationNo, website, 
       tradeLicenseUrl, 
       passportUrl,
-      proofOfFundsUrl,    // NEW
-      bankReferenceUrl,   // NEW
-      companyProfileUrl,  // NEW
+      proofOfFundsUrl,    
+      bankReferenceUrl,   
+      companyProfileUrl,  
       kycStatus: "PENDING", 
     }
   });
@@ -104,16 +105,14 @@ export async function createBuyer(formData: FormData) {
     data: { action: "CREATED_CLIENT", details: `Added new client: ${name} ${company ? `(${company})` : ''}`, userId: user.id }
   });
 
-  // 🔔 NOTIFICATION: Alert Admins about pending KYC
+  // ⚡ AUTOMATION: Alert Admins about pending KYC using the Central Engine
   const admins = await prisma.user.findMany({ where: { role: "ADMIN" } });
-  if (admins.length > 0) {
-    await prisma.notification.createMany({
-      data: admins.map(admin => ({
-        userId: admin.id,
-        title: "KYC Pending: New Client",
-        message: `${user.firstName} registered ${company || name}. Compliance review required.`,
-        link: `/crm/${newClient.id}`,
-      }))
+  for (const admin of admins) {
+    await createSystemNotification({
+      userId: admin.id,
+      title: "KYC Pending: New Client",
+      message: `${user.firstName} registered ${company || name}. Compliance review required.`,
+      link: `/crm/${newClient.id}`,
     });
   }
 
@@ -143,15 +142,13 @@ export async function assignRep(buyerId: string, formData: FormData) {
     data: { type: "REP_ASSIGNED", description: `Account Executive assignment updated to: ${repName}`, clientId: buyerId, userId: currentUser.id }
   });
 
-  // 🔔 NOTIFICATION: Alert the new Rep they were assigned
+  // ⚡ AUTOMATION: Alert the new Rep they were assigned using the Central Engine
   if (assignedUser && assignedUser.id !== currentUser.id) {
-    await prisma.notification.create({
-      data: {
-        userId: assignedUser.id,
-        title: "New Account Assigned",
-        message: `You have been assigned as the Account Executive for ${client.company || client.name}.`,
-        link: `/crm/${client.id}`,
-      }
+    await createSystemNotification({
+      userId: assignedUser.id,
+      title: "New Account Assigned",
+      message: `You have been assigned as the Account Executive for ${client.company || client.name}.`,
+      link: `/crm/${client.id}`,
     });
   }
 
@@ -181,15 +178,13 @@ export async function updateKycStatus(clientId: string, formData: FormData) {
     data: { action: "UPDATED_KYC", details: `Updated KYC status for client ${clientId} to ${newStatus}`, userId: user.id }
   });
 
-  // 🔔 NOTIFICATION: Alert the assigned rep of the KYC decision
+  // ⚡ AUTOMATION: Alert the assigned rep of the KYC decision using the Central Engine
   if (client.assignedRepId && client.assignedRepId !== user.id) {
-    await prisma.notification.create({
-      data: {
-        userId: client.assignedRepId,
-        title: `KYC Status: ${newStatus}`,
-        message: `The compliance status for ${client.company || client.name} has been updated to ${newStatus}.`,
-        link: `/crm/${client.id}`,
-      }
+    await createSystemNotification({
+      userId: client.assignedRepId,
+      title: `KYC Status: ${newStatus}`,
+      message: `The compliance status for ${client.company || client.name} has been updated to ${newStatus}.`,
+      link: `/crm/${client.id}`,
     });
   }
 
@@ -215,7 +210,6 @@ export async function updateBuyer(formData: FormData) {
   const website = formData.get("website") as string | null;
   const registrationNo = formData.get("registrationNo") as string | null;
 
-  // ⚡ NEW: Handle Optional File Uploads on Edit
   const updateData: any = { name, company, email, phone, address, website, registrationNo };
 
   const processFile = async (fieldName: string) => {
@@ -244,7 +238,6 @@ export async function updateBuyer(formData: FormData) {
   const companyProfileUrl = await processFile("companyProfile");
   if (companyProfileUrl) updateData.companyProfileUrl = companyProfileUrl;
 
-  // Save to Database
   await prisma.client.update({
     where: { id },
     data: updateData
