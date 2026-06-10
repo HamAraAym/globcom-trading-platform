@@ -25,7 +25,7 @@ export default async function GlobalHomePage() {
   const brandName = systemSettings?.companyName || "GlobCom International";
   const brandLogo = systemSettings?.companyLogoUrl;
 
-  // ⚡ NEW: Securely fetch the current user's unread notifications
+  // Securely fetch the current user's unread notifications
   let unreadNotifications: any[] = [];
   if (session?.user?.email) {
     const dbUser = await prisma.user.findUnique({
@@ -100,111 +100,116 @@ export default async function GlobalHomePage() {
   ];
 
   return (
-    // ⚡ FIX: Changed to h-[100dvh] and added overflow-y-auto so this container scrolls independently!
-    <div className="h-[100dvh] w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6 custom-scrollbar">
-      
-      <div 
-        className="max-w-6xl w-full flex-1 flex flex-col justify-center py-10"
-        style={{ 
-          paddingTop: 'max(2.5rem, calc(env(safe-area-inset-top) + 1.5rem))',
-          paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 2rem))'
-        }}
-      >
-        
-        {/* Hub Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8 border-b border-slate-800/50 pb-6 shrink-0">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              {brandLogo ? (
-                <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center border border-slate-700 shadow-lg shadow-white/10 shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={brandLogo} alt="Logo" className="w-full h-full object-contain p-0.5" />
-                </div>
-              ) : (
-                <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-lg md:text-xl shadow-lg shadow-blue-600/20 shrink-0">
-                  GC
-                </div>
-              )}
-              <h2 className="text-sm md:text-xl font-black text-white tracking-widest uppercase truncate">{brandName}</h2>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
-              Welcome, {session?.user?.name?.split(" ")[0] || "Operator"}
-            </h1>
-            <p className="text-sm md:text-lg text-slate-400 mt-2">
-              Select an enterprise module to launch.
-            </p>
-          </div>
-          
-          {/* Global User Menu (Profile & Logout) */}
-          <div className="shrink-0 w-full sm:w-auto">
-            <GlobalUserMenu />
-          </div>
-        </div>
+    <>
+      {/* ⚡ THE SILVER BULLET: This fixed underlay paints the physical iOS safe areas dark, bleeding perfectly behind the home indicator! */}
+      <div className="fixed inset-0 bg-[#0B0F19] -z-10" />
 
-        {/* Live Action Alerts Feed */}
-        {unreadNotifications.length > 0 && (
-          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500 shrink-0">
-            <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-              <BellRing size={16} className="text-rose-500" /> Action Required
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {unreadNotifications.map((notif) => (
-                <Link 
-                  key={notif.id} 
-                  href={notif.link || "#"}
-                  className="bg-slate-900 border border-slate-800 p-4 rounded-2xl hover:bg-slate-800 transition-colors flex items-center justify-between gap-4 group"
-                >
-                  <div className="flex flex-col overflow-hidden">
-                    <h4 className="text-slate-200 font-bold text-sm mb-0.5 group-hover:text-white transition-colors truncate">
-                      {notif.title}
-                    </h4>
-                    <p className="text-slate-400 text-xs truncate">
-                      {notif.message}
-                    </p>
+      {/* The scrolling container stays perfectly intact */}
+      <div className="h-[100dvh] w-full overflow-y-auto flex flex-col items-center px-4 md:px-6 custom-scrollbar">
+        
+        <div 
+          className="max-w-6xl w-full flex-1 flex flex-col justify-center py-10"
+          style={{ 
+            paddingTop: 'max(2.5rem, calc(env(safe-area-inset-top) + 1.5rem))',
+            paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 2rem))'
+          }}
+        >
+          
+          {/* Hub Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8 border-b border-slate-800/50 pb-6 shrink-0">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                {brandLogo ? (
+                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center border border-slate-700 shadow-lg shadow-white/10 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={brandLogo} alt="Logo" className="w-full h-full object-contain p-0.5" />
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse"></div>
-                    <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+                ) : (
+                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-lg md:text-xl shadow-lg shadow-blue-600/20 shrink-0">
+                    GC
+                  </div>
+                )}
+                <h2 className="text-sm md:text-xl font-black text-white tracking-widest uppercase truncate">{brandName}</h2>
+              </div>
+              <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                Welcome, {session?.user?.name?.split(" ")[0] || "Operator"}
+              </h1>
+              <p className="text-sm md:text-lg text-slate-400 mt-2">
+                Select an enterprise module to launch.
+              </p>
+            </div>
+            
+            {/* Global User Menu (Profile & Logout) */}
+            <div className="shrink-0 w-full sm:w-auto">
+              <GlobalUserMenu />
+            </div>
+          </div>
+
+          {/* Live Action Alerts Feed */}
+          {unreadNotifications.length > 0 && (
+            <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500 shrink-0">
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <BellRing size={16} className="text-rose-500" /> Action Required
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {unreadNotifications.map((notif) => (
+                  <Link 
+                    key={notif.id} 
+                    href={notif.link || "#"}
+                    className="bg-slate-900 border border-slate-800 p-4 rounded-2xl hover:bg-slate-800 transition-colors flex items-center justify-between gap-4 group"
+                  >
+                    <div className="flex flex-col overflow-hidden">
+                      <h4 className="text-slate-200 font-bold text-sm mb-0.5 group-hover:text-white transition-colors truncate">
+                        {notif.title}
+                      </h4>
+                      <p className="text-slate-400 text-xs truncate">
+                        {notif.message}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse"></div>
+                      <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Module Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 shrink-0">
+            {modules.map((mod) => {
+              const Icon = mod.icon;
+              return (
+                <Link 
+                  key={mod.name} 
+                  href={mod.href}
+                  className={`group relative bg-slate-900 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-800 transition-all duration-300 ${mod.border} hover:shadow-2xl hover:-translate-y-1 focus:outline-none flex flex-col h-full`}
+                >
+                  <div className="flex items-center gap-4 mb-3 md:mb-6">
+                    <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl ${mod.bg} flex items-center justify-center transition-transform group-hover:scale-110 shrink-0`}>
+                      <Icon className={`w-6 h-6 md:w-7 md:h-7 ${mod.color}`} />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors leading-tight">
+                      {mod.name}
+                    </h3>
+                  </div>
+                  
+                  <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed mb-6 flex-1">
+                    {mod.description}
+                  </p>
+
+                  <div className="flex items-center font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-400 transition-colors mt-auto text-xs md:text-sm">
+                    Launch Module 
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </div>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
 
-        {/* Module Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 shrink-0">
-          {modules.map((mod) => {
-            const Icon = mod.icon;
-            return (
-              <Link 
-                key={mod.name} 
-                href={mod.href}
-                className={`group relative bg-slate-900 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-800 transition-all duration-300 ${mod.border} hover:shadow-2xl hover:-translate-y-1 focus:outline-none flex flex-col h-full`}
-              >
-                <div className="flex items-center gap-4 mb-3 md:mb-6">
-                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl ${mod.bg} flex items-center justify-center transition-transform group-hover:scale-110 shrink-0`}>
-                    <Icon className={`w-6 h-6 md:w-7 md:h-7 ${mod.color}`} />
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors leading-tight">
-                    {mod.name}
-                  </h3>
-                </div>
-                
-                <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed mb-6 flex-1">
-                  {mod.description}
-                </p>
-
-                <div className="flex items-center font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-400 transition-colors mt-auto text-xs md:text-sm">
-                  Launch Module 
-                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                </div>
-              </Link>
-            );
-          })}
         </div>
-
       </div>
-    </div>
+    </>
   );
 }
