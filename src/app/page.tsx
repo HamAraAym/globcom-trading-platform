@@ -14,18 +14,17 @@ import {
 } from "lucide-react";
 import GlobalUserMenu from "@/components/GlobalUserMenu";
 import { getGlobalSettings } from "@/actions/adminActions";
+import ThemeFix from "@/components/ThemeFix"; // ⚡ NEW: Import the iOS assassin
 
 export const dynamic = "force-dynamic";
 
 export default async function GlobalHomePage() {
   const session = await getServerSession();
 
-  // Fetch the global branding from the database
   const systemSettings = await getGlobalSettings();
   const brandName = systemSettings?.companyName || "GlobCom International";
   const brandLogo = systemSettings?.companyLogoUrl;
 
-  // Securely fetch the current user's unread notifications
   let unreadNotifications: any[] = [];
   if (session?.user?.email) {
     const dbUser = await prisma.user.findUnique({
@@ -37,7 +36,7 @@ export default async function GlobalHomePage() {
       unreadNotifications = await prisma.notification.findMany({
         where: { userId: dbUser.id, isRead: false },
         orderBy: { createdAt: 'desc' },
-        take: 4 // Limit to top 4 so it doesn't crowd out the modules
+        take: 4 
       });
     }
   }
@@ -101,11 +100,10 @@ export default async function GlobalHomePage() {
 
   return (
     <>
-      {/* ⚡ THE SILVER BULLET: This fixed underlay paints the physical iOS safe areas dark, bleeding perfectly behind the home indicator! */}
-      <div className="fixed inset-0 bg-[#0B0F19] -z-10" />
+      {/* ⚡ Inject our Client Component to dynamically hack the body color */}
+      <ThemeFix />
 
-      {/* The scrolling container stays perfectly intact */}
-      <div className="h-[100dvh] w-full overflow-y-auto flex flex-col items-center px-4 md:px-6 custom-scrollbar">
+      <div className="h-[100dvh] w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6 custom-scrollbar">
         
         <div 
           className="max-w-6xl w-full flex-1 flex flex-col justify-center py-10"
@@ -115,7 +113,6 @@ export default async function GlobalHomePage() {
           }}
         >
           
-          {/* Hub Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8 border-b border-slate-800/50 pb-6 shrink-0">
             <div>
               <div className="flex items-center gap-3 mb-3">
@@ -139,13 +136,11 @@ export default async function GlobalHomePage() {
               </p>
             </div>
             
-            {/* Global User Menu (Profile & Logout) */}
             <div className="shrink-0 w-full sm:w-auto">
               <GlobalUserMenu />
             </div>
           </div>
 
-          {/* Live Action Alerts Feed */}
           {unreadNotifications.length > 0 && (
             <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500 shrink-0">
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -176,7 +171,6 @@ export default async function GlobalHomePage() {
             </div>
           )}
 
-          {/* Module Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 shrink-0">
             {modules.map((mod) => {
               const Icon = mod.icon;
