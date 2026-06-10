@@ -100,17 +100,21 @@ export default async function GlobalHomePage() {
   ];
 
   return (
-    <div 
-      className="absolute inset-0 w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6 custom-scrollbar"
-      style={{ 
-        paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
-        paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)'
-      }}
-    >
-      <div className="max-w-6xl w-full my-auto pb-8">
+    // ⚡ FIX: Added min-h-[100dvh] and completely removed 'absolute inset-0'. 
+    // This allows the dark background to naturally fill the iOS Safe Area overshoot.
+    <div className="min-h-[100dvh] w-full bg-[#0B0F19] flex flex-col items-center px-4 md:px-6">
+      
+      {/* ⚡ FIX: Wrapped the content in a flex-1 container to handle the scrolling naturally */}
+      <div 
+        className="max-w-6xl w-full flex-1 flex flex-col justify-center py-10"
+        style={{ 
+          paddingTop: 'max(2.5rem, calc(env(safe-area-inset-top) + 1.5rem))',
+          paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 2rem))'
+        }}
+      >
         
         {/* Hub Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8 border-b border-slate-800/50 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8 border-b border-slate-800/50 pb-6 shrink-0">
           <div>
             <div className="flex items-center gap-3 mb-3">
               {brandLogo ? (
@@ -141,7 +145,7 @@ export default async function GlobalHomePage() {
 
         {/* ⚡ NEW: Live Action Alerts Feed */}
         {unreadNotifications.length > 0 && (
-          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500 shrink-0">
             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
               <BellRing size={16} className="text-rose-500" /> Action Required
             </h3>
@@ -171,7 +175,7 @@ export default async function GlobalHomePage() {
         )}
 
         {/* Module Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 shrink-0">
           {modules.map((mod) => {
             const Icon = mod.icon;
             return (
