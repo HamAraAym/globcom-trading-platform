@@ -22,14 +22,17 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "GlobCom",
+    // ⚡ NEW: iOS Native Splash Screen Declaration
+    startupImage: [
+      "/splash.png",
+    ],
   },
   icons: {
     icon: "/favicon.ico",
-    apple: "/globe.svg", 
+    apple: "/icon.png", // ⚡ FIX: Pointing to the new static PNG
   },
 };
 
-// ⚡ FIX: Added viewportFit: "cover" and userScalable: false to stretch into the iPhone Notch
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -38,7 +41,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0F19" },
   ],
 };
 
