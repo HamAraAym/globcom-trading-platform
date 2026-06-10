@@ -100,11 +100,9 @@ export default async function GlobalHomePage() {
   ];
 
   return (
-    // ⚡ FIX: Added min-h-[100dvh] and completely removed 'absolute inset-0'. 
-    // This allows the dark background to naturally fill the iOS Safe Area overshoot.
-    <div className="min-h-[100dvh] w-full bg-[#0B0F19] flex flex-col items-center px-4 md:px-6">
+    // ⚡ FIX: Changed to h-[100dvh] and added overflow-y-auto so this container scrolls independently!
+    <div className="h-[100dvh] w-full overflow-y-auto bg-[#0B0F19] flex flex-col items-center px-4 md:px-6 custom-scrollbar">
       
-      {/* ⚡ FIX: Wrapped the content in a flex-1 container to handle the scrolling naturally */}
       <div 
         className="max-w-6xl w-full flex-1 flex flex-col justify-center py-10"
         style={{ 
@@ -143,7 +141,7 @@ export default async function GlobalHomePage() {
           </div>
         </div>
 
-        {/* ⚡ NEW: Live Action Alerts Feed */}
+        {/* Live Action Alerts Feed */}
         {unreadNotifications.length > 0 && (
           <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500 shrink-0">
             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
