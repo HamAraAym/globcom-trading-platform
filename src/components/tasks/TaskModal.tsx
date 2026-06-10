@@ -15,7 +15,6 @@ interface User {
   email: string;
 }
 
-// ⚡ NEW: Interface to support Edit Mode
 interface TaskData {
   id: string;
   title: string;
@@ -34,7 +33,7 @@ interface TaskModalProps {
   onClose: () => void;
   users: User[];
   currentUserId: string;
-  initialData?: TaskData | null; // ⚡ Passed in when editing an existing task
+  initialData?: TaskData | null;
 }
 
 const ISSUE_TYPES = [
@@ -45,7 +44,6 @@ const ISSUE_TYPES = [
 ];
 
 export default function TaskModal({ isOpen, onClose, users, currentUserId, initialData }: TaskModalProps) {
-  // ⚡ Auto-fill states if initialData (Edit Mode) exists
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("TASK");
@@ -55,14 +53,12 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ⚡ Advanced Recurring State
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState("DAILY"); 
   const [recurringTime, setRecurringTime] = useState("09:00");
-  const [dayOfWeek, setDayOfWeek] = useState("1"); // 1 = Monday
-  const [dayOfMonth, setDayOfMonth] = useState("15"); // 1-31
+  const [dayOfWeek, setDayOfWeek] = useState("1"); 
+  const [dayOfMonth, setDayOfMonth] = useState("15"); 
 
-  // ⚡ Populate Form when Edit Mode opens
   useEffect(() => {
     if (initialData && isOpen) {
       setTitle(initialData.title);
@@ -75,7 +71,6 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
       
       setIsRecurring(initialData.isRecurring);
       
-      // Parse existing Cron String to rebuild the UI visually
       if (initialData.isRecurring && initialData.cronExpression) {
         const parts = initialData.cronExpression.split(" ");
         if (parts.length === 5) {
@@ -92,12 +87,18 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
         }
       }
     } else if (isOpen && !initialData) {
-      // Reset form for "Create New"
       setTitle(""); setDescription(""); setType("TASK"); setPriority("MEDIUM");
       setEstimatedHours(""); setDueDate(""); setSelectedAssignees([]);
       setIsRecurring(false); setFrequency("DAILY"); setRecurringTime("09:00");
     }
   }, [initialData, isOpen]);
+
+  // Prevent background scrolling on iOS
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -107,24 +108,21 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
     );
   };
 
-  // ⚡ Advanced Cron & Next Date Calculator
   const calculateRecurringData = () => {
     if (!isRecurring) return { cron: undefined, next: undefined };
 
     const [hours, minutes] = recurringTime.split(":").map(Number);
-    let cron = `${minutes} ${hours} * * *`; // Default Daily
+    let cron = `${minutes} ${hours} * * *`; 
     let next = new Date();
     next.setHours(hours, minutes, 0, 0);
 
     if (frequency === "WEEKLY") {
       cron = `${minutes} ${hours} * * ${dayOfWeek}`; 
-      // Math to jump to the next specific day of the week
       next.setDate(next.getDate() + ((parseInt(dayOfWeek) + 7 - next.getDay()) % 7));
       if (next <= new Date()) next.setDate(next.getDate() + 7);
 
     } else if (frequency === "MONTHLY") {
       cron = `${minutes} ${hours} ${dayOfMonth} * *`; 
-      // Jump to the specific day of the month
       next.setDate(parseInt(dayOfMonth));
       if (next <= new Date()) next.setMonth(next.getMonth() + 1);
     } else {
@@ -142,31 +140,19 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
     const { cron, next } = calculateRecurringData();
 
     if (initialData) {
-      // EDIT MODE
       await updateTaskDetails(initialData.id, {
-        title,
-        description,
-        priority,
+        title, description, priority,
         estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
         assigneeIds: selectedAssignees,
-        isRecurring,
-        cronExpression: cron,
-        nextRunAt: next,
+        isRecurring, cronExpression: cron, nextRunAt: next,
       });
     } else {
-      // CREATE MODE
       await createTask({
-        title,
-        description,
-        type,
-        priority,
+        title, description, type, priority,
         estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
-        creatorId: currentUserId,
-        assigneeIds: selectedAssignees,
-        isRecurring,
-        cronExpression: cron,
-        nextRunAt: next,
+        creatorId: currentUserId, assigneeIds: selectedAssignees,
+        isRecurring, cronExpression: cron, nextRunAt: next,
       });
     }
 
@@ -175,161 +161,160 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 flex flex-col my-auto max-h-[90vh]">
+    // ⚡ FIX: Use items-end on mobile for Bottom Sheet styling, DVH for height limits
+    <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+      
+      <div className="bg-white w-full max-w-4xl h-[95dvh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50 rounded-t-2xl shrink-0">
+        <div className="flex items-center justify-between px-5 md:px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-indigo-600" />
             {initialData ? "Edit Enterprise Ticket" : "Create Enterprise Ticket"}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 rounded-full text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm transition-colors shrink-0">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           
-          {/* LEFT COLUMN: Scope & Details */}
-          <div className="flex-1 p-6 space-y-6 border-r border-slate-200 overflow-y-auto custom-scrollbar">
+          {/* ⚡ FIX: Single wrapper for scrolling, stops nested squishing */}
+          <div className="flex flex-col md:flex-row flex-1 overflow-y-auto custom-scrollbar">
             
-            {/* Issue Type Selector (Locked in Edit Mode for safety) */}
-            <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Core Category</label>
-              <div className="flex flex-wrap gap-2.5">
-                {ISSUE_TYPES.map((t) => {
-                  const Icon = t.icon;
-                  const isActive = type === t.id;
-                  return (
-                    <button
-                      key={t.id} type="button" 
-                      onClick={() => !initialData && setType(t.id)}
-                      disabled={!!initialData}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
-                        isActive 
-                          ? `border-indigo-200 bg-indigo-50/50 text-indigo-700 ring-1 ring-indigo-100` 
-                          : `border-slate-100 bg-white text-slate-500 ${!initialData && 'hover:bg-slate-50'}`
-                      } ${initialData && !isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className={`p-1 rounded-lg ${t.bg}`}>
-                        <Icon className={`w-3.5 h-3.5 ${t.color}`} />
-                      </div>
-                      <span>{t.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Title / Summary */}
-            <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Summary <span className="text-rose-500">*</span></label>
-              <input 
-                type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-                placeholder="Briefly describe the task or deposit item..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-bold text-slate-900 placeholder:text-slate-400"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Context & Acceptance Criteria</label>
-              <textarea 
-                rows={5} value={description} onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-slate-50 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all resize-none text-slate-800 text-sm leading-relaxed"
-              />
-            </div>
-
-            {/* ⚡ ADVANCED: Automation & Recurring Section */}
-            <div className="pt-4 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-amber-100 rounded-lg">
-                    <RefreshCw className="w-4 h-4 text-amber-700" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 leading-tight">Recurring Schedule</h3>
-                    <p className="text-[10px] text-slate-500 font-medium">Auto-recreate and notify assignees</p>
-                  </div>
+            {/* LEFT COLUMN */}
+            <div className="flex-1 p-5 md:p-6 space-y-6 md:border-r border-slate-200 shrink-0">
+              
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Core Category</label>
+                <div className="flex flex-wrap gap-2.5">
+                  {ISSUE_TYPES.map((t) => {
+                    const Icon = t.icon;
+                    const isActive = type === t.id;
+                    return (
+                      <button
+                        key={t.id} type="button" 
+                        onClick={() => !initialData && setType(t.id)}
+                        disabled={!!initialData}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                          isActive 
+                            ? `border-indigo-200 bg-indigo-50/50 text-indigo-700 ring-1 ring-indigo-100` 
+                            : `border-slate-100 bg-white text-slate-500 ${!initialData && 'hover:bg-slate-50'}`
+                        } ${initialData && !isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <div className={`p-1 rounded-lg ${t.bg}`}>
+                          <Icon className={`w-3.5 h-3.5 ${t.color}`} />
+                        </div>
+                        <span>{t.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <button 
-                  type="button"
-                  onClick={() => setIsRecurring(!isRecurring)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${isRecurring ? 'bg-indigo-600' : 'bg-slate-200'}`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isRecurring ? 'left-7' : 'left-1'}`} />
-                </button>
               </div>
 
-              {isRecurring && (
-                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 animate-in slide-in-from-top-2 duration-300">
-                  <div className="col-span-2 md:col-span-1">
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Frequency</label>
-                    <select 
-                      value={frequency} onChange={(e) => setFrequency(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                    >
-                      <option value="DAILY">Every Day</option>
-                      <option value="WEEKLY">Specific Day of Week</option>
-                      <option value="MONTHLY">Specific Date of Month</option>
-                    </select>
-                  </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Summary <span className="text-rose-500">*</span></label>
+                <input 
+                  type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Briefly describe the task or deposit item..."
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-bold text-slate-900 placeholder:text-slate-400 text-sm"
+                />
+              </div>
 
-                  {frequency === "WEEKLY" && (
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Context & Acceptance Criteria</label>
+                <textarea 
+                  rows={5} value={description} onChange={(e) => setDescription(e.target.value)}
+                  className="w-full bg-slate-50 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all resize-none text-slate-800 text-sm leading-relaxed"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-amber-100 rounded-lg">
+                      <RefreshCw className="w-4 h-4 text-amber-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 leading-tight">Recurring Schedule</h3>
+                      <p className="text-[10px] text-slate-500 font-medium">Auto-recreate and notify assignees</p>
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setIsRecurring(!isRecurring)}
+                    className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${isRecurring ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isRecurring ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                {isRecurring && (
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 animate-in slide-in-from-top-2 duration-300">
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Which Day?</label>
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Frequency</label>
                       <select 
-                        value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)}
+                        value={frequency} onChange={(e) => setFrequency(e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                       >
-                        <option value="1">Monday</option>
-                        <option value="2">Tuesday</option>
-                        <option value="3">Wednesday</option>
-                        <option value="4">Thursday</option>
-                        <option value="5">Friday</option>
-                        <option value="6">Saturday</option>
-                        <option value="0">Sunday</option>
+                        <option value="DAILY">Every Day</option>
+                        <option value="WEEKLY">Specific Day of Week</option>
+                        <option value="MONTHLY">Specific Date of Month</option>
                       </select>
                     </div>
-                  )}
 
-                  {frequency === "MONTHLY" && (
-                    <div className="col-span-2 md:col-span-1">
-                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Which Date?</label>
-                      <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
-                        <span className="text-xs font-bold text-slate-400">The</span>
-                        <input 
-                          type="number" min="1" max="31" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)}
-                          className="w-12 outline-none text-xs font-bold text-center"
-                        />
-                        <span className="text-xs font-bold text-slate-400">of the month</span>
+                    {frequency === "WEEKLY" && (
+                      <div className="col-span-2 md:col-span-1">
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Which Day?</label>
+                        <select 
+                          value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                          <option value="1">Monday</option>
+                          <option value="2">Tuesday</option>
+                          <option value="3">Wednesday</option>
+                          <option value="4">Thursday</option>
+                          <option value="5">Friday</option>
+                          <option value="6">Saturday</option>
+                          <option value="0">Sunday</option>
+                        </select>
                       </div>
+                    )}
+
+                    {frequency === "MONTHLY" && (
+                      <div className="col-span-2 md:col-span-1">
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Which Date?</label>
+                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
+                          <span className="text-xs font-bold text-slate-400">The</span>
+                          <input 
+                            type="number" min="1" max="31" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)}
+                            className="w-12 outline-none text-xs font-bold text-center"
+                          />
+                          <span className="text-xs font-bold text-slate-400">of the month</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="col-span-2 md:col-span-1">
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alert Time</label>
+                      <input 
+                        type="time" value={recurringTime} onChange={(e) => setRecurringTime(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
                     </div>
-                  )}
 
-                  <div className="col-span-2 md:col-span-1">
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alert Time</label>
-                    <input 
-                      type="time" value={recurringTime} onChange={(e) => setRecurringTime(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                    />
+                    <div className="col-span-2 flex items-center gap-2 text-indigo-600 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100">
+                      <BellRing className="w-4 h-4 shrink-0" />
+                      <p className="text-[10px] font-bold">This will trigger Push, In-App, and Email notifications automatically.</p>
+                    </div>
                   </div>
-
-                  <div className="col-span-2 flex items-center gap-2 text-indigo-600 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100">
-                    <BellRing className="w-4 h-4 shrink-0" />
-                    <p className="text-[10px] font-bold">This will trigger Push, In-App, and Email notifications automatically.</p>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* RIGHT COLUMN: Metadata & Assignments */}
-          <div className="w-full md:w-80 bg-slate-50 p-6 space-y-6 flex flex-col justify-between shrink-0 overflow-y-auto custom-scrollbar">
-            
-            <div className="space-y-6">
-              {/* Priority */}
+            {/* RIGHT COLUMN */}
+            <div className="w-full md:w-80 bg-slate-50 p-5 md:p-6 space-y-6 shrink-0">
+              
               <div>
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Priority Level</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -350,7 +335,6 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
                 </div>
               </div>
 
-              {/* Due Date & Estimate */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
@@ -372,7 +356,6 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
                 </div>
               </div>
 
-              {/* Assignees Matrix */}
               <div>
                 <label className="flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
                   <div className="flex items-center gap-1.5"><Users className="w-3 h-3" /> Assignees</div>
@@ -404,24 +387,29 @@ export default function TaskModal({ isOpen, onClose, users, currentUserId, initi
                   })}
                 </div>
               </div>
-            </div>
 
-            {/* Action Buttons Pinned to Bottom Right */}
-            <div className="pt-6 mt-6 border-t border-slate-200 flex flex-col gap-2 shrink-0">
-              <button 
-                type="submit" disabled={isSubmitting || !title.trim()}
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98]"
-              >
-                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : (initialData ? "Save Changes" : "Publish Ticket")}
-              </button>
-              <button 
-                type="button" onClick={onClose}
-                className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                Cancel
-              </button>
             </div>
           </div>
+
+          {/* ⚡ FIX: Global Pinned Footer */}
+          <div 
+            className="px-4 md:px-6 py-4 border-t border-slate-200 bg-white flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3 shrink-0" 
+            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+          >
+            <button 
+              type="button" onClick={onClose}
+              className="px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors w-full sm:w-auto text-center"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" disabled={isSubmitting || !title.trim()}
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition-all w-full sm:w-auto shrink-0"
+            >
+              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : (initialData ? "Save Changes" : "Publish Ticket")}
+            </button>
+          </div>
+
         </form>
       </div>
     </div>
